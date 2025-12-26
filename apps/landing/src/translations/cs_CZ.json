@@ -1,0 +1,52 @@
+{
+  "cs_CZ": {
+    "4nMiA1": "Jazyk",
+    "1wzlZg": "Staging provideru",
+    "38k1jw": "Zacni rychle a levne, pak eskaluj na duveryhodne zdroje jen kdyz je treba.",
+    "2jGUkv": "Pripraveno pro legacy",
+    "1uNaB6": "Jednoduche GET/POST API a SDK hooky pro moderni frameworky.",
+    "1adhk8": "Cache s umyslem",
+    "C21zG": "L1 dedupe, L2 perzistence a SWR, aby opakovane dotazy byly levne.",
+    "BpLk3": "Smart Address",
+    "3sKfyv": "Navrhy adres, ktere pusobi okamzite.",
+    "1JNFnH": "Effect-first core, mala Bun sluzba a frontend SDK pro jakykoli stack. Reliable, fast, nebo oboji.",
+    "2HHr1J": "Spustit demo",
+    "7ubZt": "Zdravi sluzby",
+    "5qYqf": "rychly rezim",
+    "ju635": "spolehlivy rezim",
+    "2iK0pO": "reliable-fast (planovano)",
+    "3J29kd": "Proc to drzi",
+    "3Vk8jr": "85%",
+    "2nmFcI": "Mene oprav pri checkoutu",
+    "ksDC4": "<250ms",
+    "3jAArI": "Typicka odezva s cache",
+    "1q7fb6": "Nasad core knihovnu do libovolne aplikace. Sluzbu hostuj, kdyz potrebujes spolehlive agregovani.",
+    "4F4ZE2": "Zive demo adres",
+    "1K2KfN": "Trefuje tvou lokalni sluzbu na localhost:8787/suggest.",
+    "2BecVD": "Hledat adresu",
+    "nRRC": "Navrhy",
+    "1UqwXX": "Nacitani",
+    "30xVjg": "Pripraveno",
+    "33ROdF": "Zadej ulici, mesto nebo PSC pro vysledky.",
+    "2R5cj1": "Navrzeno pro legacy",
+    "27CvuN": "Napojis do PHP checkoutu, SPA nebo headless shopu behem minut.",
+    "1oqqq9": "Smart Address Suggestions",
+    "hsCHA": "Postaveno na Effect. Agnosticke na providerech.",
+    "2VPV74": {
+      "*": "{number}+"
+    },
+    "1REuSN": {
+      "*": "<{number}"
+    },
+    "3uo8du": "{previous items}; {following items}",
+    "1UOVWD": "{previous items} • {following items}",
+    "4DAMgG": "{previous items}, {following items}",
+    "1C255": "{list of items}, and {last item}",
+    "17bm9d": "{list of items} and {last item}",
+    "phH4S": "{list of items}, or {last item}",
+    "3q8AmB": "{list of items} or {last item}",
+    "4zJcb": "{previous items}; {last item}",
+    "1wKCx": "{list of items} • {last item}",
+    "3Q0iaX": "{list of items}, {last item}"
+  }
+}

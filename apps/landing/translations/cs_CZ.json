@@ -1,0 +1,533 @@
+{
+  "fb-locale": "cs_CZ",
+  "translations": {
+    "lvUYgJ02yKwHQV4fPSHtNA==": {
+      "description": "Language toggle label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Jazyk",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x2OaW+EAEOiVDwFM4F8+dA==": {
+      "description": "Feature title",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Staging provideru",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cR0veuxYckVODLn/Ahv3zQ==": {
+      "description": "Feature description",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Zacni rychle a levne, pak eskaluj na duveryhodne zdroje jen kdyz je treba.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "khjuIvyZd9p962I61rfBuA==": {
+      "description": "Feature title",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pripraveno pro legacy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mpupWubElHDrj9WMRaotMQ==": {
+      "description": "Feature description",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Jednoduche GET/POST API a SDK hooky pro moderni frameworky.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GfIRFSPocOlda0RLgiRn7g==": {
+      "description": "Feature title",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cache s umyslem",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gM9f1Yhw0nRLNlhvC4k2Cg==": {
+      "description": "Feature description",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "L1 dedupe, L2 perzistence a SWR, aby opakovane dotazy byly levne.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lVh7YCic6GKWeHrVRoCMYg==": {
+      "description": "Eyebrow label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Smart Address",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MyU6pkfdt+2UWyfPiu4byw==": {
+      "description": "Hero headline",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Navrhy adres, ktere pusobi okamzite.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AG/sAMWF4W2hI6MleT3ilA==": {
+      "description": "Hero subheading",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Effect-first core, mala Bun sluzba a frontend SDK pro jakykoli stack. Reliable, fast, nebo oboji.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YmmRb8igPurDbWXzWvbRmw==": {
+      "description": "Primary CTA",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Spustit demo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "D5TIqqUUthh/4IiaO66ujQ==": {
+      "description": "Secondary CTA",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Zdravi sluzby",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "apu3tfQI1GolYJjo6Xv+Tw==": {
+      "description": "Mode chip",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "rychly rezim",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yDX7knl1JaX9VVa6mZkxqg==": {
+      "description": "Mode chip",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "spolehlivy rezim",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jxupx3vzfRRl0L6YKWUZWw==": {
+      "description": "Mode chip",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "reliable-fast (planovano)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nuoK/yvBC2EpKfkkrWN2Ig==": {
+      "description": "Panel label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Proc to drzi",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i4HzwnuPF5okWB3j8Qaitw==": {
+      "description": "Metric value",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "85%",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ywl4MvdKerGVD6aZ3TubLw==": {
+      "description": "Metric label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mene oprav pri checkoutu",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JaMzC3zdm4kBf2cnbX/vFw==": {
+      "description": "Metric value",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "<250ms",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OofduBMTiEmZ+DPJlBrlgg==": {
+      "description": "Metric label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Typicka odezva s cache",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pcaADUOwbxiBl0RQNj8L8w==": {
+      "description": "Panel note",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nasad core knihovnu do libovolne aplikace. Sluzbu hostuj, kdyz potrebujes spolehlive agregovani.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "acfVSvcs5fJJVScpQWjPXQ==": {
+      "description": "Demo headline",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Zive demo adres",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2DPma2CuHBfayS0AQg2/DA==": {
+      "description": "Demo subtitle",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Trefuje tvou lokalni sluzbu na localhost:8787/suggest.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BZeXB3+2UT8uuI1gCR7xaA==": {
+      "description": "Input label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Hledat adresu",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "e722xV9b/KWl/8jsuVDqSQ==": {
+      "description": "Results label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Navrhy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LYRAG8nBoq0HkY0I8a37og==": {
+      "description": "Loading status",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nacitani",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/jr3p9JPaB9CpjOpCkLhQg==": {
+      "description": "Ready status",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pripraveno",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QyU98S3UsNozGMwZFen+JQ==": {
+      "description": "Empty state",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Zadej ulici, mesto nebo PSC pro vysledky.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "m0lZsGJAlX9q9buEZ5q+kA==": {
+      "description": "Integration headline",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Navrzeno pro legacy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Z0nQj1YH1ekPDtT7p2PKeg==": {
+      "description": "Integration blurb",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Napojis do PHP checkoutu, SPA nebo headless shopu behem minut.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HGAHvP6fagh/LB+lvZMGhQ==": {
+      "description": "Footer line",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Smart Address Suggestions",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qMpAWM4DjgF6OD+qz1cZgQ==": {
+      "description": "Footer line",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Postaveno na Effect. Agnosticke na providerech.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IYUmtYxQtGdt1MucjXrsVA==": {
+      "description": "Label with meaning 'at least number'",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{number}+",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZIF1WhVQwt7WZJvFTEbMWw==": {
+      "description": "Label with meaning 'less than number'",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "<{number}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Oc/9PrbjfyLHS60BXceD1A==": {
+      "description": "A list of items of various types, for example: \"San Francisco; London; Tokyo\". {previous items} and {following items} are themselves lists that contain one or more items.",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{previous items}; {following items}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AXXbKEUZuc0ji1IClRrOOw==": {
+      "description": "A list of items of various types separated by bullets, for example: \"San Francisco \\u2022 London \\u2022 Tokyo\". {previous items} and {following items} are themselves lists that contain one or more items.",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{previous items} • {following items}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "89ACgPMtnwlLDSeqhLBx2Q==": {
+      "description": "A list of items of various types separated by commas, for example: \"San Francisco, London, Tokyo\". {previous items} and {following items} are themselves lists that contain one or more items.",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{previous items}, {following items}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5hL7VXOBVnetm46YAjpX0g==": {
+      "description": "A list of items of various types with a serial comma, for example: \"item1, item2, and item3\"",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{list of items}, and {last item}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "icNetEL/crQv/PS6yhySVQ==": {
+      "description": "A list of items of various types, for example: \"item1, item2, item3 and item4\"",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{list of items} and {last item}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8kLAQ3ffiiFnQ/bWPqXfuQ==": {
+      "description": "A list of items of various types with a serial comma, for example: \"item1, item2, or item3\"",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{list of items}, or {last item}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8eSaAzrWtAqn9ktNKfkaEg==": {
+      "description": "A list of items of various types, for example: \"item1, item2, item3 or item4\"",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{list of items} or {last item}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+IBI7kr/mMKdzp+3stDvkw==": {
+      "description": "A list of items of various types, for example: \"San Francisco; London; Tokyo\". {previous items} itself contains one or more items.",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{previous items}; {last item}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "55IeE8c0qqtjTU0lo7q9AA==": {
+      "description": "A list of items of various types separated by bullets, for example: \"San Francisco \\u2022 London \\u2022 Tokyo\". {previous items} contains one or more items.",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{list of items} • {last item}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6PRJS0QalZfvaN8CkKCUCw==": {
+      "description": "A list of items of various types, for example: \"item1, item2, item3, item4\"",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{list of items}, {last item}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    }
+  }
+}
