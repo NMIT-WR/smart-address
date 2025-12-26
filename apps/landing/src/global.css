@@ -1,22 +1,23 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@200..900&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 :root {
   color-scheme: light dark;
-  --font-body: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", sans-serif;
-  --font-display: "Fraunces", "Iowan Old Style", "Times New Roman", serif;
-  --bg: light-dark(#f6f2ea, #0c0f0f);
-  --bg-quiet: light-dark(#efe9dd, #151818);
-  --panel: light-dark(#ffffff, #151a1a);
-  --panel-soft: light-dark(#fbf9f4, #101313);
-  --text: light-dark(#121212, #f4f1ea);
-  --muted: light-dark(#5a5955, #a8a39a);
-  --accent: light-dark(#0f7b6c, #38d9b0);
-  --accent-strong: light-dark(#0a5f54, #18b58f);
-  --border: light-dark(#d6d0c4, #2d322f);
-  --shadow: light-dark(rgba(20, 18, 14, 0.12), rgba(0, 0, 0, 0.35));
-  --glow: light-dark(rgba(15, 123, 108, 0.22), rgba(56, 217, 176, 0.25));
-  --grid: light-dark(rgba(20, 18, 14, 0.08), rgba(255, 255, 255, 0.05));
+  --font-body: "Geist", "Helvetica Neue", "Segoe UI", sans-serif;
+  --font-display: "Geist", "Helvetica Neue", "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "SFMono-Regular", ui-monospace, monospace;
+  --bg: light-dark(#f8f4ed, #0f1116);
+  --bg-quiet: light-dark(#eee5d6, #151a20);
+  --panel: light-dark(#fffdf9, #151b21);
+  --panel-soft: light-dark(#f6efe3, #10161b);
+  --text: light-dark(#1c1916, #f7f1e6);
+  --muted: light-dark(#6c6056, #b6ab9d);
+  --accent: light-dark(#c8672d, #f1a976);
+  --accent-strong: light-dark(#a85724, #f7b98f);
+  --border: light-dark(#e1d8ca, #2b333b);
+  --shadow: light-dark(rgba(28, 25, 22, 0.12), rgba(0, 0, 0, 0.32));
+  --glow: light-dark(rgba(200, 103, 45, 0.22), rgba(241, 169, 118, 0.2));
+  --grid: light-dark(rgba(28, 25, 22, 0.06), rgba(255, 255, 255, 0.04));
 }
 
 @layer base {
@@ -38,15 +39,7 @@
     background-color: var(--bg);
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: var(--font-display);
-    letter-spacing: -0.02em;
-    margin: 0;
+    line-height: 1.5;
   }
 
   p {
@@ -62,36 +55,25 @@
   input {
     font: inherit;
   }
+
+  code,
+  pre {
+    font-family: var(--font-mono);
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--panel);
+  }
 }
 
-@layer components {
-  .page-shell {
-    min-height: 100vh;
-    background-image:
-      radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 1px),
-      radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 1px);
-    background-size: 22px 22px, 160px 160px;
-    background-position: 0 0, 0 0;
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
-
-  .surface {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    box-shadow: 0 24px 50px var(--shadow);
-  }
-
-  .surface-soft {
-    background: var(--panel-soft);
-    border: 1px solid var(--border);
-  }
-
-  .accent-ring {
-    box-shadow: 0 0 0 1px var(--glow), 0 0 24px var(--glow);
-  }
-
-  .chip {
-    border: 1px solid var(--border);
-    background: var(--bg-quiet);
-    color: var(--muted);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

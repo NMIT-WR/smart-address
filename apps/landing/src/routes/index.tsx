@@ -41,22 +41,19 @@ const formatAddress = (suggestion: Suggestion) => {
   return parts.join(', ')
 }
 
-const formatSource = (suggestion: Suggestion) =>
-  suggestion.source?.provider ? `via ${suggestion.source.provider}` : ''
-
 const useSuggestions = (query: string) => {
   const [results, setResults] = useState<ReadonlyArray<Suggestion>>([])
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'ready'>(
     'idle',
   )
-  const [error, setError] = useState<string | null>(null)
+  const [hasError, setHasError] = useState(false)
 
   useEffect(() => {
     const trimmed = query.trim()
     if (!trimmed) {
       setResults([])
       setStatus('idle')
-      setError(null)
+      setHasError(false)
       return
     }
 
@@ -64,7 +61,7 @@ const useSuggestions = (query: string) => {
     const timer = setTimeout(async () => {
       try {
         setStatus('loading')
-        setError(null)
+        setHasError(false)
         const url = new URL(demoEndpoint)
         url.searchParams.set('text', trimmed)
         url.searchParams.set('limit', '5')
@@ -84,7 +81,7 @@ const useSuggestions = (query: string) => {
         }
         setResults([])
         setStatus('error')
-        setError('Backend unavailable. Start the service on :8787.')
+        setHasError(true)
       }
     }, 320)
 
@@ -94,7 +91,7 @@ const useSuggestions = (query: string) => {
     }
   }, [query])
 
-  return { results, status, error }
+  return { results, status, hasError }
 }
 
 const LocaleToggle = () => {
@@ -104,7 +101,7 @@ const LocaleToggle = () => {
 
   return (
     <button
-      className="chip flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-[0.2em] transition hover:text-[color:var(--text)]"
+      className="flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--bg-quiet)] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[color:var(--muted)] transition hover:text-[color:var(--text)]"
       onClick={() => startTransition(() => setLocale(nextLocale))}
       type="button"
     >
@@ -120,17 +117,16 @@ const LocaleToggle = () => {
 
 function Landing() {
   const [query, setQuery] = useState('Praha 1')
-  const { results, status, error } = useSuggestions(query)
+  const { results, status, hasError } = useSuggestions(query)
 
   const features = useMemo(
     () => [
       {
-        id: 'staging',
-        title: <fbt desc="Feature title">Provider staging</fbt>,
+        id: 'ladder',
+        title: <fbt desc="Feature title">Provider ladder</fbt>,
         description: (
           <fbt desc="Feature description">
-            Start fast and cheap, then escalate to trusted sources only when
-            needed.
+            Start with the cheapest provider, escalate only when needed.
           </fbt>
         ),
       },
@@ -139,7 +135,7 @@ function Landing() {
         title: <fbt desc="Feature title">Legacy ready</fbt>,
         description: (
           <fbt desc="Feature description">
-            Simple GET/POST endpoint and SDK hooks for modern frameworks.
+            One request shape across GET, POST, RPC, and MCP tool calls.
           </fbt>
         ),
       },
@@ -148,7 +144,7 @@ function Landing() {
         title: <fbt desc="Feature title">Cache with intent</fbt>,
         description: (
           <fbt desc="Feature description">
-            L1 dedupe, L2 persistence, and SWR so repeat lookups stay cheap.
+            L1 dedupe, L2 persistence, and SWR keep results fresh and cheap.
           </fbt>
         ),
       },
@@ -158,100 +154,125 @@ function Landing() {
 
   return (
     <div className="px-6 pb-24 pt-10">
-      <header className="mx-auto flex max-w-6xl items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <span className="chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.3em]">
-            <fbt desc="Eyebrow label">Smart Address</fbt>
-          </span>
-          <h1 className="text-4xl md:text-6xl">
-            <fbt desc="Hero headline">
-              Address suggestions that feel instant.
-            </fbt>
-          </h1>
+      <header className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--accent)] shadow-[0_12px_30px_var(--shadow)]">
+            SA
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+              <fbt desc="Brand kicker">Smart Address</fbt>
+            </span>
+            <span className="text-sm text-[color:var(--muted)]">
+              <fbt desc="Brand subline">Effect-native address intelligence</fbt>
+            </span>
+          </div>
         </div>
         <LocaleToggle />
       </header>
 
-      <main className="mx-auto mt-12 flex max-w-6xl flex-col gap-12">
-        <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+      <main className="mx-auto mt-12 flex max-w-6xl flex-col gap-16">
+        <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
           <div className="flex flex-col gap-6">
-            <p className="text-lg text-[color:var(--muted)]">
+            <h1 className="opacity-0 translate-y-3 text-4xl font-[var(--font-display)] leading-[1.05] tracking-[-0.03em] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none animate-[fade-in_0.7s_ease-out_0.04s_forwards] sm:text-5xl lg:text-6xl">
+              <fbt desc="Hero headline">
+                Address suggestions your checkout can trust.
+              </fbt>
+            </h1>
+            <p className="opacity-0 translate-y-3 text-lg text-[color:var(--muted)] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none animate-[fade-in_0.7s_ease-out_0.12s_forwards]">
               <fbt desc="Hero subheading">
-                Effect-first core, tiny Bun service, and a frontend SDK for any
-                stack. Reliable, fast, or both.
+                Framework-agnostic core in Effect. A tiny Bun service orchestrates
+                providers, caches, and rate limits.
               </fbt>
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="opacity-0 translate-y-3 flex flex-wrap gap-3 motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none animate-[fade-in_0.7s_ease-out_0.2s_forwards]">
               <a
-                className="surface accent-ring rounded-full px-5 py-3 text-sm font-semibold text-[color:var(--accent)] transition hover:text-[color:var(--accent-strong)]"
+                className="rounded-full border border-[color:var(--accent-strong)] bg-[color:var(--accent)] px-5 py-3 text-sm font-semibold text-[color:var(--panel)] shadow-[0_18px_40px_var(--glow)] transition hover:scale-[1.01]"
                 href="#demo"
               >
-                <fbt desc="Primary CTA">Run the demo</fbt>
+                <fbt desc="Primary CTA">Try the live demo</fbt>
               </a>
               <a
-                className="surface-soft rounded-full px-5 py-3 text-sm font-semibold text-[color:var(--text)] transition hover:text-[color:var(--accent)]"
+                className="rounded-full border border-[color:var(--border)] px-5 py-3 text-sm font-semibold text-[color:var(--text)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
                 href="http://localhost:8787/health"
               >
                 <fbt desc="Secondary CTA">Service health</fbt>
               </a>
             </div>
-            <div className="flex flex-wrap gap-3 text-sm text-[color:var(--muted)]">
-              <span className="chip rounded-full px-3 py-1">
+            <div className="opacity-0 translate-y-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-[color:var(--muted)] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none animate-[fade-in_0.7s_ease-out_0.28s_forwards]">
+              <span className="rounded-full border border-[color:var(--border)] bg-[color:var(--bg-quiet)] px-3 py-1">
                 <fbt desc="Mode chip">fast mode</fbt>
               </span>
-              <span className="chip rounded-full px-3 py-1">
+              <span className="rounded-full border border-[color:var(--border)] bg-[color:var(--bg-quiet)] px-3 py-1">
                 <fbt desc="Mode chip">reliable mode</fbt>
               </span>
-              <span className="chip rounded-full px-3 py-1">
-                <fbt desc="Mode chip">reliable-fast (planned)</fbt>
+              <span className="rounded-full border border-[color:var(--border)] bg-[color:var(--bg-quiet)] px-3 py-1">
+                <fbt desc="Mode chip">reliable + fast (planned)</fbt>
               </span>
             </div>
           </div>
 
-          <div className="surface rounded-3xl p-6 md:p-8">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+          <div className="flex flex-col gap-4">
+            <div className="opacity-0 translate-y-3 rounded-[28px] border border-[color:var(--border)] bg-[color:var(--panel)] p-6 shadow-[0_24px_60px_var(--shadow)] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none animate-[fade-in_0.7s_ease-out_0.14s_forwards]">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
                 <span>
-                  <fbt desc="Panel label">Why it sticks</fbt>
+                  <fbt desc="Signal label">Reliability signals</fbt>
                 </span>
-                <span>1 req/s</span>
+                <span>
+                  <fbt desc="Rate limit badge">1 req/s for Nominatim</fbt>
+                </span>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="surface-soft rounded-2xl p-4">
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel-soft)] p-4">
                   <div className="text-2xl font-semibold text-[color:var(--text)]">
-                    <fbt desc="Metric value">85%</fbt>
+                    L1 + L2
                   </div>
                   <p className="text-sm text-[color:var(--muted)]">
-                    <fbt desc="Metric label">
-                      Fewer corrections on checkout
-                    </fbt>
+                    <fbt desc="Metric label">Cache-first responses</fbt>
                   </p>
                 </div>
-                <div className="surface-soft rounded-2xl p-4">
+                <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel-soft)] p-4">
                   <div className="text-2xl font-semibold text-[color:var(--text)]">
-                    <fbt desc="Metric value">&lt;250ms</fbt>
+                    SWR
                   </div>
                   <p className="text-sm text-[color:var(--muted)]">
-                    <fbt desc="Metric label">
-                      Typical response with cache
-                    </fbt>
+                    <fbt desc="Metric label">Background revalidation</fbt>
                   </p>
                 </div>
               </div>
-              <p className="text-sm text-[color:var(--muted)]">
+              <p className="mt-4 text-sm text-[color:var(--muted)]">
                 <fbt desc="Panel note">
-                  Ship the core library to any app. Host the service when you
-                  need reliable aggregation.
+                  Start cheap, then escalate to trusted sources when confidence
+                  drops.
+                </fbt>
+              </p>
+            </div>
+
+            <div className="opacity-0 translate-y-3 rounded-[24px] border border-[color:var(--border)] bg-[color:var(--panel-soft)] p-5 motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none animate-[fade-in_0.7s_ease-out_0.22s_forwards]">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
+                <span>
+                  <fbt desc="Interfaces label">Interfaces</fbt>
+                </span>
+                <span>
+                  <fbt desc="Interfaces value">HTTP · RPC · MCP</fbt>
+                </span>
+              </div>
+              <p className="mt-3 text-sm text-[color:var(--muted)]">
+                <fbt desc="Interfaces blurb">
+                  One payload across GET, POST, Effect RPC, and MCP tool calls.
                 </fbt>
               </p>
             </div>
           </div>
         </section>
 
-        <section id="demo" className="surface rounded-3xl p-6 md:p-8">
+        <section
+          id="demo"
+          className="rounded-[32px] border border-[color:var(--border)] bg-[color:var(--panel)] p-6 shadow-[0_24px_60px_var(--shadow)] md:p-8"
+        >
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-              <h2 className="text-2xl">
+              <h2 className="text-2xl font-[var(--font-display)] tracking-[-0.02em]">
                 <fbt desc="Demo headline">Live address demo</fbt>
               </h2>
               <p className="text-sm text-[color:var(--muted)]">
@@ -265,13 +286,13 @@ function Landing() {
                 <fbt desc="Input label">Search address</fbt>
               </label>
               <input
-                className="surface-soft rounded-2xl border border-[color:var(--border)] px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--glow)]"
+                className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel-soft)] px-4 py-3 text-lg text-[color:var(--text)] focus:outline-none focus:ring-2 focus:ring-[color:var(--glow)]"
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Praha 1, Na Porici"
+                placeholder="Praha 1, Na Poříčí"
                 value={query}
               />
             </div>
-            <div className="surface-soft rounded-2xl p-4">
+            <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel-soft)] p-4">
               <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
                 <span>
                   <fbt desc="Results label">Suggestions</fbt>
@@ -279,14 +300,18 @@ function Landing() {
                 <span>
                   {status === 'loading' ? (
                     <fbt desc="Loading status">Loading</fbt>
+                  ) : status === 'idle' ? (
+                    <fbt desc="Idle status">Idle</fbt>
                   ) : (
                     <fbt desc="Ready status">Ready</fbt>
                   )}
                 </span>
               </div>
-              {error ? (
+              {hasError ? (
                 <p className="mt-3 text-sm text-[color:var(--accent)]">
-                  {error}
+                  <fbt desc="Backend error">
+                    Backend unavailable. Start the service on :8787.
+                  </fbt>
                 </p>
               ) : results.length === 0 ? (
                 <p className="mt-3 text-sm text-[color:var(--muted)]">
@@ -307,9 +332,16 @@ function Landing() {
                       <span className="text-sm text-[color:var(--muted)]">
                         {formatAddress(suggestion)}
                       </span>
-                      <span className="text-xs uppercase tracking-[0.15em] text-[color:var(--muted)]">
-                        {formatSource(suggestion)}
-                      </span>
+                      {suggestion.source?.provider ? (
+                        <span className="text-xs uppercase tracking-[0.15em] text-[color:var(--muted)]">
+                          <fbt desc="Suggestion source label">
+                            via{' '}
+                            <fbt:param name="provider">
+                              {suggestion.source.provider}
+                            </fbt:param>
+                          </fbt>
+                        </span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -320,8 +352,13 @@ function Landing() {
 
         <section className="grid gap-4 md:grid-cols-3">
           {features.map((feature) => (
-            <div key={feature.id} className="surface rounded-2xl p-5">
-              <h3 className="text-lg">{feature.title}</h3>
+            <div
+              key={feature.id}
+              className="rounded-[24px] border border-[color:var(--border)] bg-[color:var(--panel)] p-5 shadow-[0_18px_40px_var(--shadow)]"
+            >
+              <h3 className="text-lg font-[var(--font-display)]">
+                {feature.title}
+              </h3>
               <p className="mt-3 text-sm text-[color:var(--muted)]">
                 {feature.description}
               </p>
@@ -329,10 +366,10 @@ function Landing() {
           ))}
         </section>
 
-        <section className="surface-soft rounded-3xl p-6 md:p-8">
+        <section className="rounded-[28px] border border-[color:var(--border)] bg-[color:var(--panel-soft)] p-6 md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="flex flex-col gap-2">
-              <h3 className="text-xl">
+              <h3 className="text-xl font-[var(--font-display)]">
                 <fbt desc="Integration headline">Legacy friendly by design</fbt>
               </h3>
               <p className="text-sm text-[color:var(--muted)]">
@@ -342,7 +379,7 @@ function Landing() {
                 </fbt>
               </p>
             </div>
-            <pre className="surface rounded-2xl px-4 py-3 text-xs text-[color:var(--muted)]">
+            <pre className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-xs text-[color:var(--muted)]">
               <code>
                 {`GET ${demoEndpoint}?text=Praha&limit=5&strategy=reliable`}
               </code>

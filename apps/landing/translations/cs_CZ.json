@@ -13,49 +13,13 @@
       ],
       "types": []
     },
-    "x2OaW+EAEOiVDwFM4F8+dA==": {
-      "description": "Feature title",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Staging provideru",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "cR0veuxYckVODLn/Ahv3zQ==": {
-      "description": "Feature description",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Zacni rychle a levne, pak eskaluj na duveryhodne zdroje jen kdyz je treba.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "khjuIvyZd9p962I61rfBuA==": {
       "description": "Feature title",
       "status": "new",
       "tokens": [],
       "translations": [
         {
-          "translation": "Pripraveno pro legacy",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "mpupWubElHDrj9WMRaotMQ==": {
-      "description": "Feature description",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Jednoduche GET/POST API a SDK hooky pro moderni frameworky.",
+          "translation": "Připravené pro legacy",
           "variations": {}
         }
       ],
@@ -67,67 +31,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Cache s umyslem",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "gM9f1Yhw0nRLNlhvC4k2Cg==": {
-      "description": "Feature description",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "L1 dedupe, L2 perzistence a SWR, aby opakovane dotazy byly levne.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "lVh7YCic6GKWeHrVRoCMYg==": {
-      "description": "Eyebrow label",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Smart Address",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "MyU6pkfdt+2UWyfPiu4byw==": {
-      "description": "Hero headline",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Navrhy adres, ktere pusobi okamzite.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "AG/sAMWF4W2hI6MleT3ilA==": {
-      "description": "Hero subheading",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Effect-first core, mala Bun sluzba a frontend SDK pro jakykoli stack. Reliable, fast, nebo oboji.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "YmmRb8igPurDbWXzWvbRmw==": {
-      "description": "Primary CTA",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Spustit demo",
+          "translation": "Cache s účelem",
           "variations": {}
         }
       ],
@@ -139,7 +43,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Zdravi sluzby",
+          "translation": "Stav služby",
           "variations": {}
         }
       ],
@@ -151,7 +55,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "rychly rezim",
+          "translation": "rychlý režim",
           "variations": {}
         }
       ],
@@ -163,91 +67,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "spolehlivy rezim",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "jxupx3vzfRRl0L6YKWUZWw==": {
-      "description": "Mode chip",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "reliable-fast (planovano)",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "nuoK/yvBC2EpKfkkrWN2Ig==": {
-      "description": "Panel label",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Proc to drzi",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "i4HzwnuPF5okWB3j8Qaitw==": {
-      "description": "Metric value",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "85%",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "ywl4MvdKerGVD6aZ3TubLw==": {
-      "description": "Metric label",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Mene oprav pri checkoutu",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "JaMzC3zdm4kBf2cnbX/vFw==": {
-      "description": "Metric value",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "<250ms",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "OofduBMTiEmZ+DPJlBrlgg==": {
-      "description": "Metric label",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Typicka odezva s cache",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "pcaADUOwbxiBl0RQNj8L8w==": {
-      "description": "Panel note",
-      "status": "new",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Nasad core knihovnu do libovolne aplikace. Sluzbu hostuj, kdyz potrebujes spolehlive agregovani.",
+          "translation": "spolehlivý režim",
           "variations": {}
         }
       ],
@@ -259,7 +79,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Zive demo adres",
+          "translation": "Živé demo adres",
           "variations": {}
         }
       ],
@@ -271,7 +91,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Trefuje tvou lokalni sluzbu na localhost:8787/suggest.",
+          "translation": "Míří na vaši lokální službu na localhost:8787/suggest.",
           "variations": {}
         }
       ],
@@ -295,7 +115,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Navrhy",
+          "translation": "Návrhy",
           "variations": {}
         }
       ],
@@ -307,7 +127,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Nacitani",
+          "translation": "Načítání",
           "variations": {}
         }
       ],
@@ -319,7 +139,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Pripraveno",
+          "translation": "Připraveno",
           "variations": {}
         }
       ],
@@ -331,7 +151,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Zadej ulici, mesto nebo PSC pro vysledky.",
+          "translation": "Zadejte ulici, město nebo PSČ pro výsledky.",
           "variations": {}
         }
       ],
@@ -343,7 +163,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Navrzeno pro legacy",
+          "translation": "Navrženo pro legacy",
           "variations": {}
         }
       ],
@@ -355,7 +175,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Napojis do PHP checkoutu, SPA nebo headless shopu behem minut.",
+          "translation": "Napojíte do PHP checkoutu, SPA nebo headless shopu během minut.",
           "variations": {}
         }
       ],
@@ -379,7 +199,7 @@
       "tokens": [],
       "translations": [
         {
-          "translation": "Postaveno na Effect. Agnosticke na providerech.",
+          "translation": "Postaveno na Effectu. Agnostické k poskytovatelům.",
           "variations": {}
         }
       ],
@@ -524,6 +344,258 @@
       "translations": [
         {
           "translation": "{list of items}, {last item}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l8ZfKSWV8DkjhH6T8ZcaUg==": {
+      "description": "Feature title",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Žebřík poskytovatelů",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fAchO7+4hQ4kwIjVAjFRWw==": {
+      "description": "Feature description",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Začněte u nejlevnějšího poskytovatele, eskalujte jen když je potřeba.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kyZXxo7LaYa1oegdvx1+6g==": {
+      "description": "Feature description",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Jednotný payload pro GET, POST, RPC i MCP nástroje.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cQcgcrE/Pahpz6p32UkLRQ==": {
+      "description": "Feature description",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "L1 deduplikace, L2 persistence a SWR drží výsledky čerstvé a levné.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JdKVU5sqkpd2EgeIuWJrIA==": {
+      "description": "Brand kicker",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Smart Address",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KZL8Spfsc0qtKPxvNs8PZQ==": {
+      "description": "Brand subline",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Effect-native adresní inteligence",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ak6GKnt1p6fc1KJjriM2BQ==": {
+      "description": "Hero headline",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Návrhy adres, kterým může checkout věřit.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0LM8hEfKz/89bM98/oFGuQ==": {
+      "description": "Hero subheading",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Framework-agnostické jádro v Effectu. Malá Bun služba orchestruje poskytovatele, cache a rate limity.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+ajteQrJu0qW5JEVUmreSw==": {
+      "description": "Primary CTA",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Vyzkoušet živé demo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cryO8jPGWbdgduwqQAOS9A==": {
+      "description": "Mode chip",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "spolehlivý + rychlý (plánováno)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UT2QJqcqyjWKC5TC09Vm3A==": {
+      "description": "Signal label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Signály spolehlivosti",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "q44CyRgzGX24wWpN62WS9Q==": {
+      "description": "Rate limit badge",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "1 req/s pro Nominatim",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mzS9RM8YMERZ0P13JIdhnA==": {
+      "description": "Metric label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Odpovědi z cache jako první",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sTZKrYLg1GqAKfzv9u5SVQ==": {
+      "description": "Metric label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Revalidace na pozadí",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3sl0Kfr3yQuugJiNu1/PHw==": {
+      "description": "Panel note",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Začněte levně, při nízké jistotě eskalujte na důvěryhodné zdroje.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "L7YI+N4Dao9U8L1p/Qy3zg==": {
+      "description": "Interfaces label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Rozhraní",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3vOd/1snHlRGVAnqJl9xjA==": {
+      "description": "Interfaces value",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "HTTP · RPC · MCP",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3fUvKqe8GbTCVMLVSg2gRg==": {
+      "description": "Interfaces blurb",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Jeden payload pro GET, POST, Effect RPC i MCP nástroje.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0HTCHhfm+kq0vCRQJ77sEw==": {
+      "description": "Idle status",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nečinné",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Z/ELaShKHOwqtOU9JNbeVw==": {
+      "description": "Backend error",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Backend není dostupný. Spusťte službu na :8787.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HbJR16WLd4+HMYsMPveC+Q==": {
+      "description": "Suggestion source label",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "přes {provider}",
           "variations": {}
         }
       ],

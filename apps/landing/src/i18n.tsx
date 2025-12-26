@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 
 export const availableLanguages = new Map([
   ['en_US', 'English'],
-  ['cs_CZ', 'Cesky'],
+  ['cs_CZ', 'Čeština'],
 ])
 
 const clientLocales =
