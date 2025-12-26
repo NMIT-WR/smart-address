@@ -1,0 +1,19 @@
+{
+  "name": "smart-address-workspace",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "prepare": "effect-language-service patch",
+    "build": "pnpm -r --filter ./packages/* run build",
+    "typecheck": "pnpm -r --filter ./packages/* --filter ./apps/* run typecheck",
+    "check:publint": "pnpm -r --filter ./packages/* run publint",
+    "check:tree": "pnpm -r --filter ./packages/* run tree-shake",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@effect/language-service": "catalog:tooling",
+    "typescript": "catalog:types",
+    "vitest": "catalog:test"
+  }
+}

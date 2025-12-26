@@ -1,0 +1,37 @@
+{
+  "name": "@smart-address/core",
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/address.d.ts",
+      "import": "./dist/address.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    }
+  },
+  "main": "./dist/address.js",
+  "module": "./dist/address.js",
+  "types": "./dist/address.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "typecheck": "tsc --noEmit",
+    "publint": "publint",
+    "tree-shake": "is-tree-shakable"
+  },
+  "peerDependencies": {
+    "effect": "catalog:prod"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:build",
+    "is-tree-shakable": "catalog:quality",
+    "publint": "catalog:quality",
+    "typescript": "catalog:types"
+  }
+}

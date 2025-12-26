@@ -1,0 +1,49 @@
+{
+  "name": "@smart-address/integrations",
+  "version": "0.1.1",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/http.d.ts",
+      "import": "./dist/http.js"
+    },
+    "./rate-limit": {
+      "types": "./dist/rate-limit.d.ts",
+      "import": "./dist/rate-limit.js"
+    },
+    "./nominatim": {
+      "types": "./dist/nominatim.d.ts",
+      "import": "./dist/nominatim.js"
+    },
+    "./service-client": {
+      "types": "./dist/service-client.d.ts",
+      "import": "./dist/service-client.js"
+    }
+  },
+  "main": "./dist/http.js",
+  "module": "./dist/http.js",
+  "types": "./dist/http.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "typecheck": "tsc --noEmit",
+    "publint": "publint",
+    "tree-shake": "is-tree-shakable"
+  },
+  "dependencies": {
+    "@smart-address/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@effect/platform": "catalog:prod",
+    "effect": "catalog:prod"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:build",
+    "is-tree-shakable": "catalog:quality",
+    "publint": "catalog:quality",
+    "typescript": "catalog:types"
+  }
+}

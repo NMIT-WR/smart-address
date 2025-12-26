@@ -1,0 +1,26 @@
+{
+  "name": "@smart-address/service-bun",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/main.ts",
+    "start": "bun src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@effect/ai": "catalog:prod",
+    "@effect/platform": "catalog:prod",
+    "@effect/platform-bun": "catalog:prod",
+    "@effect/rpc": "catalog:prod",
+    "@smart-address/core": "workspace:*",
+    "@smart-address/integrations": "workspace:*",
+    "@smart-address/rpc": "workspace:*",
+    "@upstash/redis": "catalog:prod",
+    "effect": "catalog:prod"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:types",
+    "typescript": "catalog:types"
+  }
+}
