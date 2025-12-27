@@ -4,11 +4,9 @@ import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import fbteePreset from '@nkzw/babel-preset-fbtee'
-import { nitro } from 'nitro/vite'
 
 const config = defineConfig({
   plugins: [
-    nitro(),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],

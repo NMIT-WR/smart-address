@@ -1,7 +1,7 @@
 {
   "name": "smart-address-workspace",
   "private": true,
-  "packageManager": "pnpm@10.14.0",
+  "packageManager": "pnpm@10.26.2",
   "scripts": {
     "prepare": "effect-language-service patch",
     "build": "pnpm -r --filter ./packages/* run build",

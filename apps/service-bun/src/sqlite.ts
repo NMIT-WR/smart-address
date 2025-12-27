@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs"
 import { dirname, resolve } from "node:path"
-import { Database } from "bun:sqlite"
+import type { Database } from "bun:sqlite"
 
 export type AddressSqliteConfig = {
   readonly path?: string
@@ -55,9 +55,17 @@ const migrate = (db: Database) => {
   `)
 }
 
-export const openAddressSqlite = (config: AddressSqliteConfig = {}) => {
+const loadBunSqlite = async () => {
+  if (typeof Bun === "undefined") {
+    throw new Error("bun:sqlite is only available in the Bun runtime.")
+  }
+  return import("bun:sqlite")
+}
+
+export const openAddressSqlite = async (config: AddressSqliteConfig = {}) => {
   const dbPath = resolveDbPath(config.path)
   mkdirSync(dirname(dbPath), { recursive: true })
+  const { Database } = await loadBunSqlite()
   const db = new Database(dbPath)
   applyPragmas(db)
   migrate(db)
