@@ -20,6 +20,7 @@ const AddressRpcHandlers = SuggestAddressRpcGroup.toLayer(
 
 export const AddressRpcServerLayer = Layer.mergeAll(
   AddressRpcHandlers,
-  RpcServer.layerHttpRouter({ group: SuggestAddressRpcGroup, path: "/rpc" }),
-  RpcSerialization.layerJson
+  RpcServer.layerHttpRouter({ group: SuggestAddressRpcGroup, path: "/rpc" }).pipe(
+    Layer.provide(RpcSerialization.layerJson)
+  )
 )

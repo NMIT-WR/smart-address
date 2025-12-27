@@ -51,5 +51,8 @@ export const withRateLimiter = <R>(
 export const withRateLimit = <R>(provider: AddressProvider<R>): AddressProvider<R | AddressRateLimiter> => ({
   name: provider.name,
   suggest: (query) =>
-    Effect.flatMap(Effect.service(AddressRateLimiter), (limiter) => limiter.schedule(provider.suggest(query)))
+    Effect.gen(function* () {
+      const limiter = yield* AddressRateLimiter
+      return yield* limiter.schedule(provider.suggest(query))
+    })
 })

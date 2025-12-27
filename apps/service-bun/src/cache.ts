@@ -3,6 +3,7 @@ import * as Duration from "effect/Duration"
 import * as Equal from "effect/Equal"
 import * as Hash from "effect/Hash"
 import * as Schema from "effect/Schema"
+import * as HttpClient from "@effect/platform/HttpClient"
 import { addressQueryKey, type AddressSuggestionResult } from "@smart-address/core"
 import { AddressSuggestionResultSchema } from "@smart-address/core/schema"
 import { Redis } from "@upstash/redis"
@@ -281,8 +282,12 @@ export const AddressCachedSuggestorLayer = Layer.effect(
   Effect.gen(function* () {
     const cache = yield* AddressSuggestionCache
     const raw = yield* AddressSuggestor
+    const httpClient = yield* HttpClient.HttpClient
+    const provideHttpClient = <A>(effect: Effect.Effect<A, never, HttpClient.HttpClient>) =>
+      effect.pipe(Effect.provideService(HttpClient.HttpClient, httpClient))
     return {
-      suggest: (request) => cache.getOrFetch(request, raw.suggest(request))
+      suggest: (request) =>
+        cache.getOrFetch(request, provideHttpClient(raw.suggest(request)))
     }
   })
 )

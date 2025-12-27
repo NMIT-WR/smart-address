@@ -66,11 +66,11 @@ const redisConfig =
       }
     : null
 
-const appLayer = Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer)
+const cacheStoreLayer = redisConfig ? AddressCacheStoreRedis(redisConfig) : AddressCacheStoreMemory
 
-const serverLayer = HttpLayerRouter.serve(appLayer).pipe(
-  Layer.provide(BunHttpServer.layer({ port })),
-  Layer.provide(FetchHttpClient.layer),
+const cacheLayer = AddressSuggestionCacheLayer(cacheConfig).pipe(Layer.provide(cacheStoreLayer))
+
+const suggestorLayer = AddressCachedSuggestorLayer.pipe(
   Layer.provide(
     AddressSuggestorLayer({
       nominatim: nominatimConfig,
@@ -78,9 +78,16 @@ const serverLayer = HttpLayerRouter.serve(appLayer).pipe(
       nominatimRateLimit
     })
   ),
-  Layer.provide(AddressSuggestionCacheLayer(cacheConfig)),
-  Layer.provide(AddressCachedSuggestorLayer),
-  Layer.provide(redisConfig ? AddressCacheStoreRedis(redisConfig) : AddressCacheStoreMemory)
+  Layer.provide(cacheLayer),
+  Layer.provide(FetchHttpClient.layer)
+)
+
+const appLayer = Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer).pipe(
+  Layer.provide(suggestorLayer)
+)
+
+const serverLayer = HttpLayerRouter.serve(appLayer).pipe(
+  Layer.provide(BunHttpServer.layer({ port }))
 )
 
 BunRuntime.runMain(Layer.launch(serverLayer))

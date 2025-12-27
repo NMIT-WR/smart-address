@@ -2,7 +2,7 @@ import { Effect } from "effect"
 import * as HttpServerRequest from "@effect/platform/HttpServerRequest"
 import * as HttpServerResponse from "@effect/platform/HttpServerResponse"
 import * as UrlParams from "@effect/platform/UrlParams"
-import { AddressCachedSuggestor } from "./cache"
+import type { AddressCachedSuggestor } from "./cache"
 import {
   decodeSuggestPayload,
   payloadFromSearchParams,
@@ -35,26 +35,25 @@ const isSuggestRequestError = (error: unknown): error is SuggestRequestError =>
 const parseSuggestPayload = (payload: unknown) =>
   decodeSuggestPayload(payload).pipe(Effect.flatMap(toSuggestRequest))
 
-const handleSuggestPayload = (payload: unknown) =>
-  Effect.flatMap(AddressCachedSuggestor, (suggestor) =>
-    parseSuggestPayload(payload).pipe(
-      Effect.flatMap((request) => suggestor.suggest(request)),
-      Effect.flatMap((result) => withCorsEffect(HttpServerResponse.json(result))),
-      Effect.catchAll((error) => {
-        if (isSuggestRequestError(error)) {
-          return errorResponse(error.message)
-        }
-        return errorResponse("Invalid request")
-      })
-    )
+const handleSuggestPayload = (suggestor: AddressCachedSuggestor, payload: unknown) =>
+  parseSuggestPayload(payload).pipe(
+    Effect.flatMap((request) => suggestor.suggest(request)),
+    Effect.flatMap((result) => withCorsEffect(HttpServerResponse.json(result))),
+    Effect.catchAll((error) => {
+      if (isSuggestRequestError(error)) {
+        return errorResponse(error.message)
+      }
+      return errorResponse("Invalid request")
+    })
   )
 
-export const handleSuggestGet = (request: HttpServerRequest.HttpServerRequest) => {
-  const url = new URL(request.url, "http://localhost")
-  const params = HttpServerRequest.searchParamsFromURL(url)
-  const payload = payloadFromSearchParams(params)
-  return handleSuggestPayload(payload)
-}
+export const handleSuggestGet =
+  (suggestor: AddressCachedSuggestor) => (request: HttpServerRequest.HttpServerRequest) => {
+    const url = new URL(request.url, "http://localhost")
+    const params = HttpServerRequest.searchParamsFromURL(url)
+    const payload = payloadFromSearchParams(params)
+    return handleSuggestPayload(suggestor, payload)
+  }
 
 const parseFormBody = (request: HttpServerRequest.HttpServerRequest) =>
   request.urlParamsBody.pipe(
@@ -62,17 +61,18 @@ const parseFormBody = (request: HttpServerRequest.HttpServerRequest) =>
     Effect.map(payloadFromSearchParams)
   )
 
-export const handleSuggestPost = (request: HttpServerRequest.HttpServerRequest) => {
-  const contentType = request.headers["content-type"] ?? ""
-  const bodyEffect =
-    contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")
-      ? parseFormBody(request)
-      : request.json
+export const handleSuggestPost =
+  (suggestor: AddressCachedSuggestor) => (request: HttpServerRequest.HttpServerRequest) => {
+    const contentType = request.headers["content-type"] ?? ""
+    const bodyEffect =
+      contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")
+        ? parseFormBody(request)
+        : request.json
 
-  return bodyEffect.pipe(
-    Effect.flatMap(handleSuggestPayload),
-    Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
-  )
-}
+    return bodyEffect.pipe(
+      Effect.flatMap((payload) => handleSuggestPayload(suggestor, payload)),
+      Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
+    )
+  }
 
 export const optionsResponse = withCors(HttpServerResponse.text("", { status: 204 }))

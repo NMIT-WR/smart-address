@@ -3,10 +3,10 @@ import * as Duration from "effect/Duration"
 
 export type AddressQuery = {
   readonly text: string
-  readonly limit?: number
-  readonly countryCode?: string
-  readonly locale?: string
-  readonly sessionToken?: string
+  readonly limit?: number | undefined
+  readonly countryCode?: string | undefined
+  readonly locale?: string | undefined
+  readonly sessionToken?: string | undefined
 }
 
 const normalizeString = (value: string | undefined): string | undefined => {
@@ -29,10 +29,10 @@ export const normalizeAddressQuery = (query: AddressQuery): AddressQuery => {
 
   return {
     text,
-    limit,
-    countryCode,
-    locale,
-    sessionToken
+    ...(limit !== undefined ? { limit } : {}),
+    ...(countryCode !== undefined ? { countryCode } : {}),
+    ...(locale !== undefined ? { locale } : {}),
+    ...(sessionToken !== undefined ? { sessionToken } : {})
   }
 }
 
@@ -48,27 +48,27 @@ export const addressQueryKey = (query: AddressQuery): string => {
 }
 
 export type AddressParts = {
-  readonly line1?: string
-  readonly line2?: string
-  readonly city?: string
-  readonly region?: string
-  readonly postalCode?: string
-  readonly countryCode?: string
+  readonly line1?: string | undefined
+  readonly line2?: string | undefined
+  readonly city?: string | undefined
+  readonly region?: string | undefined
+  readonly postalCode?: string | undefined
+  readonly countryCode?: string | undefined
 }
 
 export type AddressSuggestionSource = {
   readonly provider: string
-  readonly kind?: "public" | "internal"
-  readonly reference?: string
+  readonly kind?: "public" | "internal" | undefined
+  readonly reference?: string | undefined
 }
 
 export type AddressSuggestion = {
   readonly id: string
   readonly label: string
   readonly address: AddressParts
-  readonly score?: number
+  readonly score?: number | undefined
   readonly source: AddressSuggestionSource
-  readonly metadata?: Record<string, string>
+  readonly metadata?: Record<string, string> | undefined
 }
 
 export class AddressProviderError extends Data.TaggedError("AddressProviderError")<{
@@ -164,8 +164,11 @@ const runProvider = <R>(provider: AddressProvider<R>, query: AddressQuery) =>
     )
   )
 
+const isPlan = <R>(input: AddressProviderInput<R>): input is AddressProviderPlan<R> =>
+  !Array.isArray(input)
+
 const normalizePlan = <R>(input: AddressProviderInput<R>): AddressProviderPlan<R> =>
-  Array.isArray(input) ? { stages: [{ providers: input }] } : input
+  isPlan(input) ? input : { stages: [{ providers: input }] }
 
 const appendSuggestions = (
   target: Map<string, AddressSuggestion>,

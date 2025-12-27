@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 import { Effect } from "effect"
 import * as HttpServerRequest from "@effect/platform/HttpServerRequest"
 import * as HttpServerResponse from "@effect/platform/HttpServerResponse"
-import { AddressCachedSuggestor } from "../src/cache"
 import { handleSuggestGet, handleSuggestPost } from "../src/http"
 
 const sampleResult = {
@@ -21,8 +20,7 @@ const suggestor = {
   suggest: () => Effect.succeed(sampleResult)
 }
 
-const runWithSuggestor = <A>(effect: Effect.Effect<A>) =>
-  Effect.runPromise(effect.pipe(Effect.provideService(AddressCachedSuggestor, suggestor)))
+const run = <A>(effect: Effect.Effect<A>) => Effect.runPromise(effect)
 
 describe("http handlers", () => {
   it("handles GET /suggest", async () => {
@@ -30,7 +28,7 @@ describe("http handlers", () => {
       new Request("http://localhost/suggest?text=Main&strategy=fast")
     )
 
-    const response = await runWithSuggestor(handleSuggestGet(request))
+    const response = await run(handleSuggestGet(suggestor)(request))
     const web = HttpServerResponse.toWeb(response)
     const body = await web.json()
 
@@ -47,7 +45,7 @@ describe("http handlers", () => {
       })
     )
 
-    const response = await runWithSuggestor(handleSuggestPost(request))
+    const response = await run(handleSuggestPost(suggestor)(request))
     const web = HttpServerResponse.toWeb(response)
     const body = await web.json()
 
@@ -64,7 +62,7 @@ describe("http handlers", () => {
       })
     )
 
-    const response = await runWithSuggestor(handleSuggestPost(request))
+    const response = await run(handleSuggestPost(suggestor)(request))
     const web = HttpServerResponse.toWeb(response)
     const body = await web.json()
 

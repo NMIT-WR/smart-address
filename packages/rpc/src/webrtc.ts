@@ -1,4 +1,5 @@
 import { Effect, Layer } from "effect"
+import * as Context from "effect/Context"
 import * as Socket from "@effect/platform/Socket"
 import * as SocketServer from "@effect/platform/SocketServer"
 
@@ -63,13 +64,15 @@ export const makeDataChannelSocket = (channel: DataChannelLike) =>
 export const layerDataChannelSocket = (channel: DataChannelLike) =>
   Layer.effect(Socket.Socket, makeDataChannelSocket(channel))
 
+type SocketServerService = Context.Tag.Service<typeof SocketServer.SocketServer>
+
 export const makeDataChannelSocketServer = (channel: DataChannelLike) =>
-  Effect.succeed<SocketServer.SocketServer>({
+  Effect.succeed<SocketServerService>({
     address: {
       _tag: "UnixAddress",
       path: "webrtc:data-channel"
     },
-    run: (handler) =>
+    run: (handler: (socket: Socket.Socket) => Effect.Effect<any, any, any>) =>
       makeDataChannelSocket(channel).pipe(
         Effect.flatMap(handler),
         Effect.catchAllCause((cause) =>
