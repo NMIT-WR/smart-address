@@ -1,19 +1,33 @@
 # Service API
 
-Základní URL: `http://localhost:8787`
+## Základní URL
+
+Default: `http://localhost:8787`
+
+## Endpointy
+
+- `GET /health` (liveness)
+- `GET /suggest` (query parametry)
+- `POST /suggest` (JSON nebo form)
+
+Další protokoly:
+
+- MCP: `POST /mcp` (viz: [MCP nástroj](/cs/reference/mcp-tool))
+- Effect RPC: `/rpc` (viz: [Effect RPC](/cs/reference/rpc))
 
 ## GET /suggest
 
-Query parametry:
+### Vstupy (query parametry)
 
-- `text` (string, povinný) nebo `q` (alias)
-- `limit` (number)
-- `countryCode` (ISO-3166-1 alpha-2)
-- `locale` (BCP-47)
-- `sessionToken` (string)
-- `strategy` nebo `mode` (`fast` | `reliable`)
+- Povinné: `text` (string) nebo `q` (alias)
+- Volitelné:
+  - `limit` (number; stringy se dekódují)
+  - `countryCode` (ISO-3166-1 alpha-2)
+  - `locale` (BCP-47)
+  - `sessionToken` (string)
+  - `strategy` nebo `mode` (`fast` | `reliable`)
 
-Příklad:
+### Příklad
 
 ```bash
 curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
@@ -21,7 +35,9 @@ curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
 
 ## POST /suggest
 
-JSON body (stejná pole):
+### Vstupy (JSON body)
+
+Stejná pole jako `GET /suggest`.
 
 ```json
 {
@@ -32,7 +48,7 @@ JSON body (stejná pole):
 }
 ```
 
-## Odpověď
+### Výstup (200)
 
 ```json
 {
@@ -50,6 +66,9 @@ JSON body (stejná pole):
 
 ## GET /health
 
-```json
-{ "status": "ok" }
-```
+Výstup: text `ok`
+
+## Chyby
+
+- Nevalidní payload vrací `400` s `{ "error": "..." }` (např. chybí `text`/`q`).
+- Selhání providerů se vrací uvnitř pole `errors` s HTTP `200`.

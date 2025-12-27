@@ -1,13 +1,25 @@
 # Přidání dalšího providera
 
-Cíl: připojit nový provider do core suggestion služby.
+## Cíl
+
+Implementovat nový `AddressProvider` a napojit ho do core suggestion služby (a případně i do Bun služby).
+
+## Požadavky
+
+- Umíte namapovat výstup providera na `AddressSuggestion`.
+- Počítáte s tím, že chyby providerů se sbírají jako data.
+
+## Kroky
+
+### 1) Implementace `AddressProvider`
+
+Použijte `makeAddressProvider(name, suggest)` a vracejte pole `AddressSuggestion`.
 
 ```ts
 import { Effect } from "effect"
 import {
   makeAddressProvider,
-  makeAddressSuggestionService,
-  type AddressProviderPlan
+  type AddressSuggestion
 } from "@smart-address/core"
 
 const myProvider = makeAddressProvider("my-api", (query) =>
@@ -19,7 +31,7 @@ const myProvider = makeAddressProvider("my-api", (query) =>
         body: JSON.stringify(query)
       })
       const data = await response.json()
-      return data.items.map((item: any) => ({
+      return (data.items as Array<any>).map((item): AddressSuggestion => ({
         id: item.id,
         label: item.label,
         address: item.address,
@@ -29,6 +41,14 @@ const myProvider = makeAddressProvider("my-api", (query) =>
     catch: (cause) => cause
   })
 )
+```
+
+### 2) Provider plan
+
+Plan umožní spouštět providery ve stagích (a případně paralelně).
+
+```ts
+import { makeAddressSuggestionService, type AddressProviderPlan } from "@smart-address/core"
 
 const plan: AddressProviderPlan = {
   stages: [
@@ -39,8 +59,17 @@ const plan: AddressProviderPlan = {
 const service = makeAddressSuggestionService(plan)
 ```
 
-Tipy:
+### 3) (Volitelně) Napojení do Bun služby
+
+Pokud běží `@smart-address/service-bun`, přidejte providera do `apps/service-bun/src/service.ts` a rozhodněte, která strategie ho používá.
+
+## Poznámky
 
 - Vracejte pouze `AddressSuggestion`.
 - Chyby se sbírají po providerech a nepadají celé volání.
-- Stages využijte pro nesting a spolehlivost.
+- Zvažte `withProviderTimeout` (core) a `withRateLimiter` (integrations) při volání externích providerů.
+
+## Viz také
+
+- [Core typy](/cs/reference/core-types)
+- [Strategie](/cs/explanation/strategies)

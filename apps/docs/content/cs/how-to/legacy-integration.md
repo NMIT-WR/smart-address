@@ -1,6 +1,14 @@
 # Integrace do legacy PHP
 
-Cíl: volat službu z framework‑less PHP e‑shopu.
+## Cíl
+
+Volat HTTP službu z framework‑less PHP integrace (např. legacy checkout).
+
+## Požadavky
+
+- Běžící služba (default `http://localhost:8787`).
+
+## Příklad
 
 ```php
 <?php
@@ -22,7 +30,12 @@ $first = $data['suggestions'][0] ?? null;
 ?>
 ```
 
-Poznámky:
+## Poznámky
 
 - API je čisté JSON, SDK není potřeba.
 - Strategie nastavte explicitně, pokud chcete stabilní chování.
+- Nevalidní payload vrací `400` s `{ "error": "..." }`.
+
+## Viz také
+
+- [Service API reference](/cs/reference/service-api)

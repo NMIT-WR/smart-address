@@ -8,6 +8,13 @@ Smart Address je rozdělen do tří vrstev:
 
 Každá vrstva je Effect‑native a dá se skládat samostatně.
 
+## Struktura repozitáře
+
+- `packages/core`: plánování providerů + dedupe + result typy.
+- `packages/integrations`: implementace providerů + utility (HTTP, rate limiting, service client).
+- `packages/rpc`: RPC schéma a klientské layers.
+- `apps/service-bun`: runtime služby (routes, cache, SQLite, MCP, RPC).
+
 ## Data flow
 
 1. Příchozí request (`/suggest`, RPC nebo MCP).

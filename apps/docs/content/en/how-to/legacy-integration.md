@@ -1,6 +1,14 @@
 # Integrate from legacy PHP
 
-Goal: call the service from a framework-less PHP shop.
+## Goal
+
+Call the HTTP service from a framework-less PHP integration (e.g. legacy checkout).
+
+## Prerequisites
+
+- Service running (default `http://localhost:8787`).
+
+## Example
 
 ```php
 <?php
@@ -22,7 +30,12 @@ $first = $data['suggestions'][0] ?? null;
 ?>
 ```
 
-Notes:
+## Notes
 
 - The API is plain JSON; no SDK is required.
 - Keep `strategy` explicit if you want consistent behavior.
+- Invalid payloads return `400` with `{ "error": "..." }`.
+
+## See also
+
+- [Service API reference](/reference/service-api)

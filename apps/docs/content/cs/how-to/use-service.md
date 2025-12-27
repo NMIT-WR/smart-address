@@ -1,14 +1,32 @@
 # Použití HTTP služby
 
-Cíl: získat návrhy adres přes HTTP.
+## Cíl
 
-## GET dotaz
+Získat návrhy adres přes HTTP (GET nebo POST).
+
+## Kdy to použít
+
+- Chcete jednoduchou integraci přes `curl`/`fetch`.
+- Nechcete v klientovi spouštět Effect runtime.
+
+## Požadavky
+
+- Běžící služba (default `http://localhost:8787`).
+
+## Vstupy
+
+- Povinné: `text` nebo `q`
+- Volitelné: `limit`, `countryCode`, `locale`, `sessionToken`, `strategy` (nebo `mode`)
+
+## Kroky
+
+### 1) GET dotaz
 
 ```bash
 curl "http://localhost:8787/suggest?text=221B%20Baker%20Street&limit=5&countryCode=GB&strategy=reliable"
 ```
 
-## POST dotaz
+### 2) POST dotaz (JSON)
 
 ```bash
 curl -X POST "http://localhost:8787/suggest" \
@@ -16,7 +34,15 @@ curl -X POST "http://localhost:8787/suggest" \
   -d '{"text":"221B Baker Street","limit":5,"countryCode":"GB","strategy":"reliable"}'
 ```
 
-## Odpověď
+### 3) POST dotaz (form)
+
+```bash
+curl -X POST "http://localhost:8787/suggest" \
+  -H "content-type: application/x-www-form-urlencoded" \
+  -d "q=221B%20Baker%20Street&limit=5&countryCode=GB&strategy=reliable"
+```
+
+## Výstup
 
 ```json
 {
@@ -39,8 +65,19 @@ curl -X POST "http://localhost:8787/suggest" \
 
 Použijte `strategy` nebo alias `mode`.
 
+## Chyby
+
+- Nevalidní payload vrací `400` s `{ "error": "..." }`.
+- Selhání providerů nemění HTTP status; objeví se v poli `errors`.
+
 ## Health check
 
 ```bash
 curl "http://localhost:8787/health"
 ```
+
+Očekávaná odpověď: `ok`
+
+## Viz také
+
+- [Service API reference](/cs/reference/service-api)

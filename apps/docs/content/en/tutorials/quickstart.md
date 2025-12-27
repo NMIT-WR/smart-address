@@ -1,14 +1,24 @@
 # Quickstart
 
-Goal: run the Bun service locally and fetch real address suggestions.
+## Goal
 
-## 1. Install dependencies
+Run the Bun service locally and fetch real address suggestions over HTTP.
+
+## Prerequisites
+
+- `pnpm`
+- `bun`
+- Nominatim usage requires a real `User-Agent` (and it’s best practice to include an email).
+
+## Steps
+
+### 1) Install dependencies
 
 ```bash
 pnpm install
 ```
 
-## 2. Start the service
+### 2) Start the service
 
 ```bash
 NOMINATIM_USER_AGENT="smart-address-dev" \
@@ -16,9 +26,9 @@ NOMINATIM_EMAIL="you@example.com" \
 pnpm --filter @smart-address/service-bun dev
 ```
 
-The service starts on `http://localhost:8787`.
+The service starts on `http://localhost:8787` and creates a SQLite DB at `data/smart-address.db` (relative to the service working directory).
 
-## 3. Request suggestions
+### 3) Request suggestions
 
 ```bash
 curl "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
@@ -26,10 +36,23 @@ curl "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
 
 You should receive JSON with `suggestions` and `errors` arrays.
 
-## 4. What you just used
+### 4) Understand the result shape
+
+- `suggestions`: the merged, deduped list of `AddressSuggestion`.
+- `errors`: provider-level failures (a valid request can still return `200` with `errors` filled).
+
+### 5) Health check
+
+```bash
+curl "http://localhost:8787/health"
+```
+
+Expected response: `ok`
+
+## What you just used
 
 - Provider: Nominatim (public)
-- Strategy: `reliable`
+- Strategy: `reliable` (default)
 - Cache: in-memory L1 + SQLite L2
 
 ## Next steps

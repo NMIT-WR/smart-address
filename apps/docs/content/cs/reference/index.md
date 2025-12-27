@@ -1,10 +1,10 @@
 # Reference
 
-Přesné rozhraní, schémata a runtime konfigurace.
+Přesné rozhraní, schémata a runtime konfigurace. Berte tyto stránky jako zdroj pravdy pro názvy, defaulty a datové tvary.
 
 - [Core typy](/cs/reference/core-types)
 - [Service API](/cs/reference/service-api)
 - [MCP nástroj](/cs/reference/mcp-tool)
 - [Effect RPC](/cs/reference/rpc)
 - [Runtime konfigurace](/cs/reference/config)
-- [SDK přehled](/cs/reference/sdk)
+- [Klienti a SDK](/cs/reference/sdk)

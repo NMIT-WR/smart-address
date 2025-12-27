@@ -2,6 +2,14 @@
 
 Strategie jsou hinty pro výběr provider planu.
 
+## Co strategie ovlivňuje
+
+- Kteří provideři se volají (a v jakém pořadí).
+- Concurrency a staging (např. nejdřív interní, potom public fallback).
+- Trade‑off mezi časem/cenou/spolehlivostí.
+
+V Bun službě mapují strategie na plány v `apps/service-bun/src/service.ts`.
+
 ## fast
 
 - Minimální sada providerů

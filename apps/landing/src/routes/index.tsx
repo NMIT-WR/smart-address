@@ -118,6 +118,15 @@ const LocaleToggle = () => {
 function Landing() {
   const [query, setQuery] = useState('Praha 1')
   const { results, status, hasError } = useSuggestions(query)
+  const serviceStatusLabel = hasError ? (
+    <fbt desc="Service status">Service offline</fbt>
+  ) : status === 'loading' ? (
+    <fbt desc="Service status">Service checking</fbt>
+  ) : status === 'ready' ? (
+    <fbt desc="Service status">Service online</fbt>
+  ) : (
+    <fbt desc="Service status">Service idle</fbt>
+  )
 
   const features = useMemo(
     () => [
@@ -191,12 +200,6 @@ function Landing() {
                 href="#demo"
               >
                 <fbt desc="Primary CTA">Try the live demo</fbt>
-              </a>
-              <a
-                className="rounded-full border border-[color:var(--border)] px-5 py-3 text-sm font-semibold text-[color:var(--text)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
-                href="http://localhost:8787/health"
-              >
-                <fbt desc="Secondary CTA">Service health</fbt>
               </a>
             </div>
             <div className="opacity-0 translate-y-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-[color:var(--muted)] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none animate-[fade-in_0.7s_ease-out_0.28s_forwards]">
@@ -277,7 +280,7 @@ function Landing() {
               </h2>
               <p className="text-sm text-[color:var(--muted)]">
                 <fbt desc="Demo subtitle">
-                  This hits your local service at localhost:8787/suggest.
+                  Live results powered by Smart Address.
                 </fbt>
               </p>
             </div>
@@ -298,19 +301,13 @@ function Landing() {
                   <fbt desc="Results label">Suggestions</fbt>
                 </span>
                 <span>
-                  {status === 'loading' ? (
-                    <fbt desc="Loading status">Loading</fbt>
-                  ) : status === 'idle' ? (
-                    <fbt desc="Idle status">Idle</fbt>
-                  ) : (
-                    <fbt desc="Ready status">Ready</fbt>
-                  )}
+                  {serviceStatusLabel}
                 </span>
               </div>
               {hasError ? (
                 <p className="mt-3 text-sm text-[color:var(--accent)]">
                   <fbt desc="Backend error">
-                    Backend unavailable. Start the service on :8787.
+                    Service unavailable. Try again shortly.
                   </fbt>
                 </p>
               ) : results.length === 0 ? (
@@ -381,7 +378,7 @@ function Landing() {
             </div>
             <pre className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-xs text-[color:var(--muted)]">
               <code>
-                {`GET ${demoEndpoint}?text=Praha&limit=5&strategy=reliable`}
+                {`GET /suggest?text=Praha&limit=5&strategy=reliable`}
               </code>
             </pre>
           </div>

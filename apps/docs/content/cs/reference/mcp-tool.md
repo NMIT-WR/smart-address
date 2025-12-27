@@ -1,6 +1,10 @@
 # MCP nástroj
 
-Služba vystavuje MCP tool jménem `suggest-address`.
+Služba vystavuje MCP tool jménem `suggest-address` na MCP HTTP endpointu.
+
+## Endpoint
+
+Default: `http://localhost:8787/mcp`
 
 ## Název
 
@@ -8,14 +12,14 @@ Služba vystavuje MCP tool jménem `suggest-address`.
 
 ## Vstupy
 
-- `text` (string): text dotazu
-- `q` (string): alias pro `text`
-- `limit` (number)
-- `countryCode` (string)
-- `locale` (string)
-- `sessionToken` (string)
-- `strategy` ("fast" | "reliable")
-- `mode` (alias pro `strategy`)
+- Povinné: `text` (string) nebo `q` (alias)
+- Volitelné:
+  - `limit` (number; stringy se dekódují)
+  - `countryCode` (string)
+  - `locale` (string)
+  - `sessionToken` (string)
+  - `strategy` ("fast" | "reliable")
+  - `mode` (alias pro `strategy`)
 
 ## Výstup
 

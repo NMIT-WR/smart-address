@@ -9,3 +9,4 @@ dist
 .env.*
 !.env.example
 .DS_Store
+.mcp.json

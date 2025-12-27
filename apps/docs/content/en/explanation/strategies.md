@@ -2,6 +2,14 @@
 
 Strategies are hints for selecting provider plans.
 
+## What a strategy controls
+
+- Which providers are called (and in what order).
+- Concurrency and staging (e.g. try internal first, then public fallback).
+- Time/cost trade-offs.
+
+In the Bun service, strategies map to different plans in `apps/service-bun/src/service.ts`.
+
 ## fast
 
 - Minimal provider set

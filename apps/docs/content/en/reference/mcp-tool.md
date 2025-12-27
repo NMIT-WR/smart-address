@@ -1,6 +1,10 @@
 # MCP tool
 
-The service exposes an MCP tool named `suggest-address`.
+The service exposes an MCP tool named `suggest-address` on the MCP HTTP endpoint.
+
+## Endpoint
+
+Default: `http://localhost:8787/mcp`
 
 ## Tool name
 
@@ -8,14 +12,14 @@ The service exposes an MCP tool named `suggest-address`.
 
 ## Inputs
 
-- `text` (string): user query text
-- `q` (string): alias for `text`
-- `limit` (number)
-- `countryCode` (string)
-- `locale` (string)
-- `sessionToken` (string)
-- `strategy` ("fast" | "reliable")
-- `mode` (alias for `strategy`)
+- Required: `text` (string) or `q` (alias)
+- Optional:
+  - `limit` (number; strings are accepted and decoded)
+  - `countryCode` (string)
+  - `locale` (string)
+  - `sessionToken` (string)
+  - `strategy` ("fast" | "reliable")
+  - `mode` (alias for `strategy`)
 
 ## Output
 

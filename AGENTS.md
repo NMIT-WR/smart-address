@@ -18,6 +18,11 @@ https://github.com/PaulJPhilp/EffectPatterns#getting-started
 - No barrel files (avoid index.ts re-export hubs).
 - No `.js` extensions in TypeScript imports (bundler resolution is configured).
 - Documentation follows Diataxis (tutorials, how-to, reference, explanation).
-- Update docs (EN + CS) whenever APIs, behavior, or versions change.
-- Write AI-friendly docs: explicit inputs/outputs, stable headings, and copy-paste examples.
+- Docs live in `apps/docs/content/en` and `apps/docs/content/cs` and must stay structurally mirrored (same pages, same paths).
+- Update docs (EN + CS) whenever APIs, behavior, or versions change (also keep `README.md` and `README.cs.md` in sync).
+- Write AI-friendly docs:
+  - Use stable section headings (`## Goal`, `## Prerequisites`, `## Inputs`, `## Output`, `## Errors`, `## See also`).
+  - Prefer explicit contracts (inputs/outputs/defaults) over narrative.
+  - Include copy-paste examples that work end-to-end.
+  - Keep terminology consistent with code identifiers and package exports.
 <!-- effect-solutions:end -->

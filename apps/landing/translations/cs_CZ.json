@@ -13,6 +13,54 @@
       ],
       "types": []
     },
+    "Qgr54ffRyH0+pCJtGuMbbw==": {
+      "description": "Service status",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Služba offline",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DsTYE3RFWXIQXPYpe3neng==": {
+      "description": "Service status",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ověřování služby",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wIoXnASIDxpJDpMteQLnpA==": {
+      "description": "Service status",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Služba online",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9JQkEW1s2FnpPvAnL1YOLA==": {
+      "description": "Service status",
+      "status": "new",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Služba připravena",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "khjuIvyZd9p962I61rfBuA==": {
       "description": "Feature title",
       "status": "new",
@@ -85,13 +133,13 @@
       ],
       "types": []
     },
-    "2DPma2CuHBfayS0AQg2/DA==": {
+    "1uidid5ZO3VIsKiIl4GqmQ==": {
       "description": "Demo subtitle",
       "status": "new",
       "tokens": [],
       "translations": [
         {
-          "translation": "Míří na vaši lokální službu na localhost:8787/suggest.",
+          "translation": "Živé výsledky poháněné Smart Address.",
           "variations": {}
         }
       ],
@@ -577,13 +625,13 @@
       ],
       "types": []
     },
-    "Z/ELaShKHOwqtOU9JNbeVw==": {
+    "W0b25wSaI1l4kn/I7H2JJw==": {
       "description": "Backend error",
       "status": "new",
       "tokens": [],
       "translations": [
         {
-          "translation": "Backend není dostupný. Spusťte službu na :8787.",
+          "translation": "Služba není dostupná. Zkuste to za chvíli.",
           "variations": {}
         }
       ],
