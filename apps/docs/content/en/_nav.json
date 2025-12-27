@@ -1,0 +1,22 @@
+[
+  {
+    "text": "Tutorials",
+    "link": "/tutorials/quickstart",
+    "activeMatch": "/tutorials/"
+  },
+  {
+    "text": "How-to",
+    "link": "/how-to/use-service",
+    "activeMatch": "/how-to/"
+  },
+  {
+    "text": "Reference",
+    "link": "/reference/",
+    "activeMatch": "/reference/"
+  },
+  {
+    "text": "Explanation",
+    "link": "/explanation/",
+    "activeMatch": "/explanation/"
+  }
+]

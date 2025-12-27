@@ -1,0 +1,22 @@
+[
+  {
+    "text": "Tutoriály",
+    "link": "/cs/tutorials/quickstart",
+    "activeMatch": "/cs/tutorials/"
+  },
+  {
+    "text": "Jak na to",
+    "link": "/cs/how-to/use-service",
+    "activeMatch": "/cs/how-to/"
+  },
+  {
+    "text": "Reference",
+    "link": "/cs/reference/",
+    "activeMatch": "/cs/reference/"
+  },
+  {
+    "text": "Vysvětlení",
+    "link": "/cs/explanation/",
+    "activeMatch": "/cs/explanation/"
+  }
+]

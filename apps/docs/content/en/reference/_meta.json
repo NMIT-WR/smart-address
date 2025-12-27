@@ -1,0 +1,9 @@
+[
+  "index",
+  "core-types",
+  "service-api",
+  "mcp-tool",
+  "rpc",
+  "config",
+  "sdk"
+]

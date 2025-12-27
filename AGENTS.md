@@ -17,4 +17,7 @@ https://github.com/PaulJPhilp/EffectPatterns#getting-started
 
 - No barrel files (avoid index.ts re-export hubs).
 - No `.js` extensions in TypeScript imports (bundler resolution is configured).
+- Documentation follows Diataxis (tutorials, how-to, reference, explanation).
+- Update docs (EN + CS) whenever APIs, behavior, or versions change.
+- Write AI-friendly docs: explicit inputs/outputs, stable headings, and copy-paste examples.
 <!-- effect-solutions:end -->
