@@ -19,7 +19,7 @@ pnpm build
 
 ## Testing
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+This project uses Bun's test runner. You can run the tests with:
 
 ```bash
 pnpm test

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "@effect-native/bun-test"
 import { Effect } from "effect"
 import * as RpcTest from "@effect/rpc/RpcTest"
 import { SuggestAddressRpcGroup } from "../src/suggest"

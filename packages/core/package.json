@@ -29,6 +29,7 @@
     "effect": "catalog:prod"
   },
   "devDependencies": {
+    "@effect-native/bun-test": "^0.1.3",
     "@rslib/core": "catalog:build",
     "is-tree-shakable": "catalog:quality",
     "publint": "catalog:quality",

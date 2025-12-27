@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "@effect-native/bun-test"
 import { Deferred, Effect, Fiber, Layer, Ref } from "effect"
 import * as RpcClient from "@effect/rpc/RpcClient"
 import * as RpcServer from "@effect/rpc/RpcServer"

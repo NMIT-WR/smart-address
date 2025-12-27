@@ -1,0 +1,53 @@
+diff --git a/package.json b/package.json
+index 980809f2fc128c9c73b56f7fec2b0dd838bc0803..e7acca2283cfb7bed6d84ef029ce5dbcfa031d6f 100644
+--- a/package.json
++++ b/package.json
+@@ -17,34 +17,34 @@
+   "publishConfig": {
+     "provenance": true
+   },
+-  "main": "./dist/cjs/index.js",
+-  "module": "./dist/esm/index.js",
+-  "types": "./dist/dts/index.d.ts",
++  "main": "./dist/cjs/src/index.js",
++  "module": "./dist/esm/src/index.js",
++  "types": "./dist/dts/src/index.d.ts",
+   "exports": {
+     "./package.json": "./package.json",
+     ".": {
+-      "types": "./dist/dts/index.d.ts",
+-      "import": "./dist/esm/index.js",
+-      "default": "./dist/cjs/index.js"
++      "types": "./dist/dts/src/index.d.ts",
++      "import": "./dist/esm/src/index.js",
++      "default": "./dist/cjs/src/index.js"
+     },
+     "./index": {
+-      "types": "./dist/dts/index.d.ts",
+-      "import": "./dist/esm/index.js",
+-      "default": "./dist/cjs/index.js"
++      "types": "./dist/dts/src/index.d.ts",
++      "import": "./dist/esm/src/index.js",
++      "default": "./dist/cjs/src/index.js"
+     },
+     "./types": {
+-      "types": "./dist/dts/types.d.ts",
+-      "import": "./dist/esm/types.js",
+-      "default": "./dist/cjs/types.js"
++      "types": "./dist/dts/src/types.d.ts",
++      "import": "./dist/esm/src/types.js",
++      "default": "./dist/cjs/src/types.js"
+     }
+   },
+   "typesVersions": {
+     "*": {
+       "index": [
+-        "./dist/dts/index.d.ts"
++        "./dist/dts/src/index.d.ts"
+       ],
+       "types": [
+-        "./dist/dts/types.d.ts"
++        "./dist/dts/src/types.d.ts"
+       ]
+     }
+   }

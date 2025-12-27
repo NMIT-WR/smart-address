@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "@effect-native/bun-test"
 import { Clock, Effect, Ref } from "effect"
 import * as Duration from "effect/Duration"
 import * as TestContext from "effect/TestContext"

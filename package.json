@@ -8,12 +8,11 @@
     "typecheck": "pnpm -r --filter ./packages/* --filter ./apps/* run typecheck",
     "check:publint": "pnpm -r --filter ./packages/* run publint",
     "check:tree": "pnpm -r --filter ./packages/* run tree-shake",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "bun test",
+    "test:watch": "bun test --watch"
   },
   "devDependencies": {
     "@effect/language-service": "catalog:tooling",
-    "typescript": "catalog:types",
-    "vitest": "catalog:test"
+    "typescript": "catalog:types"
   }
 }

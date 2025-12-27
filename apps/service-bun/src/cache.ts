@@ -66,60 +66,57 @@ export const AddressCacheStoreMemory = Layer.effect(
 export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(
     AddressCacheStore,
-    Effect.tryPromise({
-      try: async () => {
-        const { db } = await openAddressSqlite(config)
-        const select = db.prepare("SELECT entry_json, expires_at FROM address_cache WHERE key = ?")
-        const remove = db.prepare("DELETE FROM address_cache WHERE key = ?")
-        const upsert = db.prepare(`
-          INSERT INTO address_cache (
-            key,
-            stored_at,
-            stale_at,
-            expires_at,
-            entry_json
-          ) VALUES (?, ?, ?, ?, ?)
-          ON CONFLICT(key) DO UPDATE SET
-            stored_at = excluded.stored_at,
-            stale_at = excluded.stale_at,
-            expires_at = excluded.expires_at,
-            entry_json = excluded.entry_json;
-        `)
+    Effect.sync(() => {
+      const { db } = openAddressSqlite(config)
+      const select = db.prepare("SELECT entry_json, expires_at FROM address_cache WHERE key = ?")
+      const remove = db.prepare("DELETE FROM address_cache WHERE key = ?")
+      const upsert = db.prepare(`
+        INSERT INTO address_cache (
+          key,
+          stored_at,
+          stale_at,
+          expires_at,
+          entry_json
+        ) VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET
+          stored_at = excluded.stored_at,
+          stale_at = excluded.stale_at,
+          expires_at = excluded.expires_at,
+          entry_json = excluded.entry_json;
+      `)
 
-        return {
-          get: (key) =>
-            Effect.sync(() => {
-              const row = select.get(key) as
-                | { entry_json: string; expires_at: number }
-                | undefined
-              if (!row) {
-                return null
-              }
-              const now = Date.now()
-              if (row.expires_at <= now) {
-                remove.run(key)
-                return null
-              }
-              try {
-                const parsed = JSON.parse(row.entry_json)
-                const decoded = Schema.decodeUnknownSync(AddressCacheEntrySchema)(parsed)
-                return decoded
-              } catch {
-                remove.run(key)
-                return null
-              }
-            }),
-          set: (key, entry) =>
-            Effect.sync(() => {
-              const storedAt = Number.isFinite(entry.storedAt) ? entry.storedAt : Date.now()
-              const staleAt = Number.isFinite(entry.staleAt) ? entry.staleAt : storedAt
-              const expiresAt = Number.isFinite(entry.expiresAt) ? entry.expiresAt : storedAt
-              upsert.run([key, storedAt, staleAt, expiresAt, JSON.stringify(entry)])
-            }).pipe(Effect.asVoid)
-        }
-      },
-      catch: (error) => error as Error
-    }).pipe(Effect.orDie)
+      return {
+        get: (key) =>
+          Effect.sync(() => {
+            const row = select.get(key) as
+              | { entry_json: string; expires_at: number }
+              | undefined
+            if (!row) {
+              return null
+            }
+            const now = Date.now()
+            if (row.expires_at <= now) {
+              remove.run(key)
+              return null
+            }
+            try {
+              const parsed = JSON.parse(row.entry_json)
+              const decoded = Schema.decodeUnknownSync(AddressCacheEntrySchema)(parsed)
+              return decoded
+            } catch {
+              remove.run(key)
+              return null
+            }
+          }),
+        set: (key, entry) =>
+          Effect.sync(() => {
+            const storedAt = Number.isFinite(entry.storedAt) ? entry.storedAt : Date.now()
+            const staleAt = Number.isFinite(entry.staleAt) ? entry.staleAt : storedAt
+            const expiresAt = Number.isFinite(entry.expiresAt) ? entry.expiresAt : storedAt
+            upsert.run([key, storedAt, staleAt, expiresAt, JSON.stringify(entry)])
+          }).pipe(Effect.asVoid)
+      }
+    })
   )
 
 export type AddressCacheConfig = {
