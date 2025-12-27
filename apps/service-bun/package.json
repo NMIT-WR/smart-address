@@ -16,7 +16,6 @@
     "@smart-address/core": "workspace:*",
     "@smart-address/integrations": "workspace:*",
     "@smart-address/rpc": "workspace:*",
-    "@upstash/redis": "catalog:prod",
     "effect": "catalog:prod"
   },
   "devDependencies": {

@@ -5,8 +5,6 @@ import * as HttpLayerRouter from "@effect/platform/HttpLayerRouter"
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun"
 import { AddressSuggestorLayer } from "./service"
 import {
-  AddressCacheStoreMemory,
-  AddressCacheStoreRedis,
   AddressCacheStoreSqlite,
   AddressCachedSuggestorLayer,
   AddressSuggestionCacheLayer
@@ -59,20 +57,9 @@ const cacheConfig = {
   l2BaseSWR: l2SWRMs ? Duration.millis(l2SWRMs) : undefined
 }
 
-const redisConfig =
-  Bun.env.UPSTASH_REDIS_REST_URL && Bun.env.UPSTASH_REDIS_REST_TOKEN
-    ? {
-        url: Bun.env.UPSTASH_REDIS_REST_URL,
-        token: Bun.env.UPSTASH_REDIS_REST_TOKEN,
-        prefix: Bun.env.CACHE_REDIS_PREFIX
-      }
-    : null
-
 const sqliteConfig = { path: Bun.env.SMART_ADDRESS_DB_PATH }
 
-const cacheStoreLayer = redisConfig
-  ? AddressCacheStoreRedis(redisConfig)
-  : AddressCacheStoreSqlite(sqliteConfig)
+const cacheStoreLayer = AddressCacheStoreSqlite(sqliteConfig)
 
 const cacheLayer = AddressSuggestionCacheLayer(cacheConfig).pipe(Layer.provide(cacheStoreLayer))
 

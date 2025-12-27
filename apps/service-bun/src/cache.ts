@@ -6,7 +6,6 @@ import * as Schema from "effect/Schema"
 import * as HttpClient from "@effect/platform/HttpClient"
 import { addressQueryKey, type AddressSuggestionResult } from "@smart-address/core"
 import { AddressSuggestionResultSchema } from "@smart-address/core/schema"
-import { Redis } from "@upstash/redis"
 import type { SuggestRequest } from "./request"
 import { AddressSuggestor } from "./service"
 import { AddressSearchLog } from "./search-log"
@@ -63,52 +62,6 @@ export const AddressCacheStoreMemory = Layer.effect(
     }
   })
 )
-
-export type AddressCacheStoreRedisConfig = {
-  readonly url: string
-  readonly token: string
-  readonly prefix?: string
-}
-
-export const AddressCacheStoreRedis = (config: AddressCacheStoreRedisConfig) => {
-  const redis = new Redis({ url: config.url, token: config.token })
-  const prefix = config.prefix ? `${config.prefix}:` : ""
-
-  return Layer.succeed(AddressCacheStore, {
-    get: (key) =>
-      Effect.tryPromise({
-        try: async () => redis.get<string>(`${prefix}${key}`),
-        catch: () => null
-      }).pipe(
-        Effect.flatMap((result) => {
-          if (!result) {
-            return Effect.succeed(null)
-          }
-          return Effect.try({
-            try: () => JSON.parse(result),
-            catch: () => null
-          }).pipe(
-            Effect.flatMap((parsed) =>
-              parsed
-                ? Schema.decodeUnknown(AddressCacheEntrySchema)(parsed).pipe(Effect.catchAll(() => Effect.succeed(null)))
-                : Effect.succeed(null)
-            ),
-            Effect.catchAll(() => Effect.succeed(null))
-          )
-        }),
-        Effect.orElseSucceed(() => null)
-      ),
-    set: (key, entry, ttl) =>
-      Effect.tryPromise({
-        try: async () => {
-          const payload = JSON.stringify(entry)
-          const ttlSeconds = Math.max(1, Math.ceil(Duration.toMillis(ttl) / 1000))
-          await redis.set(`${prefix}${key}`, payload, { ex: ttlSeconds })
-        },
-        catch: () => undefined
-      }).pipe(Effect.asVoid)
-  })
-}
 
 export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(

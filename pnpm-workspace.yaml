@@ -10,7 +10,6 @@ catalogs:
     "@effect/platform": ^0.94.0
     "@effect/platform-bun": ^0.87.0
     "@effect/rpc": ^0.73.0
-    "@upstash/redis": ^1.36.0
   # Build tooling for libraries
   build:
     "@rslib/core": ^0.18.6
