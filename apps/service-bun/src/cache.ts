@@ -9,6 +9,8 @@ import { AddressSuggestionResultSchema } from "@smart-address/core/schema"
 import { Redis } from "@upstash/redis"
 import type { SuggestRequest } from "./request"
 import { AddressSuggestor } from "./service"
+import { AddressSearchLog } from "./search-log"
+import { openAddressSqlite, type AddressSqliteConfig } from "./sqlite"
 
 type AddressCacheEntry = {
   readonly storedAt: number
@@ -107,6 +109,62 @@ export const AddressCacheStoreRedis = (config: AddressCacheStoreRedisConfig) => 
       }).pipe(Effect.asVoid)
   })
 }
+
+export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
+  Layer.effect(
+    AddressCacheStore,
+    Effect.sync(() => {
+      const { db } = openAddressSqlite(config)
+      const select = db.prepare("SELECT entry_json, expires_at FROM address_cache WHERE key = ?")
+      const remove = db.prepare("DELETE FROM address_cache WHERE key = ?")
+      const upsert = db.prepare(`
+        INSERT INTO address_cache (
+          key,
+          stored_at,
+          stale_at,
+          expires_at,
+          entry_json
+        ) VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET
+          stored_at = excluded.stored_at,
+          stale_at = excluded.stale_at,
+          expires_at = excluded.expires_at,
+          entry_json = excluded.entry_json;
+      `)
+
+      return {
+        get: (key) =>
+          Effect.sync(() => {
+            const row = select.get(key) as
+              | { entry_json: string; expires_at: number }
+              | undefined
+            if (!row) {
+              return null
+            }
+            const now = Date.now()
+            if (row.expires_at <= now) {
+              remove.run(key)
+              return null
+            }
+            try {
+              const parsed = JSON.parse(row.entry_json)
+              const decoded = Schema.decodeUnknownSync(AddressCacheEntrySchema)(parsed)
+              return decoded
+            } catch {
+              remove.run(key)
+              return null
+            }
+          }),
+        set: (key, entry) =>
+          Effect.sync(() => {
+            const storedAt = Number.isFinite(entry.storedAt) ? entry.storedAt : Date.now()
+            const staleAt = Number.isFinite(entry.staleAt) ? entry.staleAt : storedAt
+            const expiresAt = Number.isFinite(entry.expiresAt) ? entry.expiresAt : storedAt
+            upsert.run([key, storedAt, staleAt, expiresAt, JSON.stringify(entry)])
+          }).pipe(Effect.asVoid)
+      }
+    })
+  )
 
 export type AddressCacheConfig = {
   readonly l1Capacity?: number
@@ -283,11 +341,14 @@ export const AddressCachedSuggestorLayer = Layer.effect(
     const cache = yield* AddressSuggestionCache
     const raw = yield* AddressSuggestor
     const httpClient = yield* HttpClient.HttpClient
+    const log = yield* AddressSearchLog
     const provideHttpClient = <A>(effect: Effect.Effect<A, never, HttpClient.HttpClient>) =>
       effect.pipe(Effect.provideService(HttpClient.HttpClient, httpClient))
     return {
       suggest: (request) =>
-        cache.getOrFetch(request, provideHttpClient(raw.suggest(request)))
+        cache
+          .getOrFetch(request, provideHttpClient(raw.suggest(request)))
+          .pipe(Effect.tap((result) => log.record(request, result).pipe(Effect.catchAll(() => Effect.void))))
     }
   })
 )

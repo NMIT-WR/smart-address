@@ -7,12 +7,14 @@ import { AddressSuggestorLayer } from "./service"
 import {
   AddressCacheStoreMemory,
   AddressCacheStoreRedis,
+  AddressCacheStoreSqlite,
   AddressCachedSuggestorLayer,
   AddressSuggestionCacheLayer
 } from "./cache"
 import { AddressRoutesLayer } from "./routes"
 import { AddressRpcServerLayer } from "./rpc"
 import { AddressMcpLayer } from "./mcp"
+import { AddressSearchLogSqlite } from "./search-log"
 
 const parseNumber = (value: string | undefined): number | undefined => {
   if (!value) {
@@ -66,7 +68,11 @@ const redisConfig =
       }
     : null
 
-const cacheStoreLayer = redisConfig ? AddressCacheStoreRedis(redisConfig) : AddressCacheStoreMemory
+const sqliteConfig = { path: Bun.env.SMART_ADDRESS_DB_PATH }
+
+const cacheStoreLayer = redisConfig
+  ? AddressCacheStoreRedis(redisConfig)
+  : AddressCacheStoreSqlite(sqliteConfig)
 
 const cacheLayer = AddressSuggestionCacheLayer(cacheConfig).pipe(Layer.provide(cacheStoreLayer))
 
@@ -79,7 +85,8 @@ const suggestorLayer = AddressCachedSuggestorLayer.pipe(
     })
   ),
   Layer.provide(cacheLayer),
-  Layer.provide(FetchHttpClient.layer)
+  Layer.provide(FetchHttpClient.layer),
+  Layer.provide(AddressSearchLogSqlite(sqliteConfig))
 )
 
 const appLayer = Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer).pipe(
