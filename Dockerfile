@@ -1,6 +1,6 @@
-FROM oven/bun:1.1.38-alpine AS build
+FROM node:24-alpine AS build
 
-RUN apk add --no-cache git nodejs npm \
+RUN apk add --no-cache git \
   && npm install -g pnpm@10.26.2
 
 WORKDIR /app
@@ -23,7 +23,7 @@ COPY packages ./packages
 RUN pnpm -r --filter "./packages/*" run build \
   && pnpm --filter @smart-address/service-bun deploy --prod /app/deploy
 
-FROM oven/bun:1.1.38-alpine
+FROM oven/bun:1.3.5-alpine
 
 WORKDIR /app
 ENV NODE_ENV=production

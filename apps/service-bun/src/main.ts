@@ -12,11 +12,11 @@ import { AddressRoutesLayer } from "./routes"
 import { AddressRpcServerLayer } from "./rpc"
 import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp"
 import { AddressSearchLogSqlite } from "./search-log"
-import { AddressServiceConfig } from "./config"
+import { addressServiceConfig } from "./config"
 
-const appLayer = Layer.unwrapEffect(
+const serverLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
-    const config = yield* AddressServiceConfig
+    const config = yield* addressServiceConfig
     const cacheStoreLayer = AddressCacheStoreSqlite(config.sqlite)
     const cacheLayer = AddressSuggestionCacheLayer(config.cache).pipe(Layer.provide(cacheStoreLayer))
     const suggestorLayer = AddressCachedSuggestorLayer.pipe(
@@ -32,20 +32,15 @@ const appLayer = Layer.unwrapEffect(
       Layer.provide(AddressSearchLogSqlite(config.sqlite))
     )
 
-    return Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer).pipe(
+    const appLayer = Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer).pipe(
       Layer.provide(suggestorLayer),
       Layer.provide(AddressMcpHandlersLayer)
     )
-  })
-)
 
-const serverLayer = Layer.unwrapEffect(
-  Effect.gen(function* () {
-    const config = yield* AddressServiceConfig
     return HttpLayerRouter.serve(appLayer).pipe(
       Layer.provide(BunHttpServer.layer({ port: config.port }))
     )
   })
-).pipe(Layer.provide(AddressServiceConfig.layer))
+)
 
 BunRuntime.runMain(Layer.launch(serverLayer))
