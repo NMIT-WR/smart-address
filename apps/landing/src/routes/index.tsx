@@ -57,7 +57,21 @@ const useSuggestions = (query: string) => {
           },
           { signal: controller.signal },
         )
-        setResults(payload.suggestions)
+        const sorted = [...payload.suggestions].sort((left, right) => {
+          const leftScore = typeof left.score === 'number' ? left.score : null
+          const rightScore = typeof right.score === 'number' ? right.score : null
+          if (leftScore === null && rightScore === null) {
+            return 0
+          }
+          if (leftScore === null) {
+            return 1
+          }
+          if (rightScore === null) {
+            return -1
+          }
+          return rightScore - leftScore
+        })
+        setResults(sorted)
         setStatus('ready')
       } catch (err) {
         if ((err as { name?: string }).name === 'AbortError') {
