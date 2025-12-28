@@ -6,7 +6,8 @@
   "exports": {
     ".": {
       "types": "./dist/smart-address.d.ts",
-      "import": "./dist/smart-address.js"
+      "import": "./dist/smart-address.js",
+      "require": "./dist/umd/smart-address.js"
     }
   },
   "main": "./dist/smart-address.js",

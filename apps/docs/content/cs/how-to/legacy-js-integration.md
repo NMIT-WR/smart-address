@@ -1,6 +1,6 @@
 # Integrace legacy checkoutu (Bootstrap + vanilla JS)
 
-## Goal
+## Cíl
 
 Přidejte našeptávání adres do legacy checkoutu pomocí Smart Address SDK bez bundleru.
 

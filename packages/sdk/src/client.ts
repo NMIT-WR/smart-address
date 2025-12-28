@@ -1,3 +1,4 @@
+// Keep these types in sync with @smart-address/core to avoid pulling Effect into the browser bundle.
 export type AddressStrategy = "fast" | "reliable"
 
 export type AddressParts = {
