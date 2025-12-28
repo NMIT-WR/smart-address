@@ -67,11 +67,11 @@ export const addressServiceConfig = rawConfig.pipe(
 
     const cacheConfig: AddressCacheConfig = {
       ...(l1Capacity !== undefined ? { l1Capacity } : {}),
-      ...(l1TtlMs ? { l1Ttl: Duration.millis(l1TtlMs) } : {}),
-      ...(l2BaseTtlMs ? { l2BaseTtl: Duration.millis(l2BaseTtlMs) } : {}),
-      ...(l2MinTtlMs ? { l2MinTtl: Duration.millis(l2MinTtlMs) } : {}),
-      ...(l2MaxTtlMs ? { l2MaxTtl: Duration.millis(l2MaxTtlMs) } : {}),
-      ...(l2SWRMs ? { l2BaseSWR: Duration.millis(l2SWRMs) } : {})
+      ...(l1TtlMs !== undefined ? { l1Ttl: Duration.millis(l1TtlMs) } : {}),
+      ...(l2BaseTtlMs !== undefined ? { l2BaseTtl: Duration.millis(l2BaseTtlMs) } : {}),
+      ...(l2MinTtlMs !== undefined ? { l2MinTtl: Duration.millis(l2MinTtlMs) } : {}),
+      ...(l2MaxTtlMs !== undefined ? { l2MaxTtl: Duration.millis(l2MaxTtlMs) } : {}),
+      ...(l2SWRMs !== undefined ? { l2BaseSWR: Duration.millis(l2SWRMs) } : {})
     }
 
     const sqliteConfig = sqlitePath === undefined ? {} : { path: sqlitePath }
