@@ -69,6 +69,7 @@ Použijte `strategy` nebo alias `mode`.
 ## Chyby
 
 - Nevalidní payload vrací `400` s `{ "error": "..." }`.
+- Chybějící nebo neplatný `key` vrací `401` s `{ "error": "Missing or invalid key." }`.
 - Selhání providerů nemění HTTP status; objeví se v poli `errors`.
 
 ## Health check

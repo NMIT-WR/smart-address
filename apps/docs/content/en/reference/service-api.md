@@ -26,6 +26,7 @@ Other protocols:
   - `locale` (BCP-47)
   - `sessionToken` (string)
   - `strategy` or `mode` (`fast` | `reliable`)
+- Conditional:
   - `key` (required when `SUGGEST_API_KEYS` is set)
 
 ### Example
@@ -74,4 +75,5 @@ Output: text `ok`
 ## Errors
 
 - Validation failures return `400` with `{ "error": "..." }` (example: missing `text`/`q`).
+- Missing or invalid `key` returns `401` with `{ "error": "Missing or invalid key." }`.
 - Provider failures are returned inside the `errors` array with HTTP `200`.

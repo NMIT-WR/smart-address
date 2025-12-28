@@ -69,6 +69,7 @@ Use `strategy` or its alias `mode`.
 ## Errors
 
 - Invalid payloads return `400` with `{ "error": "..." }`.
+- Missing or invalid `key` returns `401` with `{ "error": "Missing or invalid key." }`.
 - Provider failures do **not** change the HTTP status; they appear in the `errors` array.
 
 ## Health check
