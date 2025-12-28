@@ -22,6 +22,14 @@ const parseNumber = (value: string | undefined): number | undefined => {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
+const parseOptionalString = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined
+  }
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
+}
+
 const port = parseNumber(Bun.env.PORT) ?? 8787
 const timeoutMs = parseNumber(Bun.env.PROVIDER_TIMEOUT_MS) ?? 4000
 const defaultLimit = parseNumber(Bun.env.NOMINATIM_DEFAULT_LIMIT)
@@ -33,12 +41,13 @@ const l2MinTtlMs = parseNumber(Bun.env.CACHE_L2_MIN_TTL_MS)
 const l2MaxTtlMs = parseNumber(Bun.env.CACHE_L2_MAX_TTL_MS)
 const l2SWRMs = parseNumber(Bun.env.CACHE_L2_SWR_MS)
 
-const nominatimBaseUrl = Bun.env.NOMINATIM_BASE_URL
-const nominatimEmail = Bun.env.NOMINATIM_EMAIL
-const nominatimReferer = Bun.env.NOMINATIM_REFERER
+const nominatimBaseUrl = parseOptionalString(Bun.env.NOMINATIM_BASE_URL)
+const nominatimEmail = parseOptionalString(Bun.env.NOMINATIM_EMAIL)
+const nominatimReferer = parseOptionalString(Bun.env.NOMINATIM_REFERER)
+const nominatimUserAgent = parseOptionalString(Bun.env.NOMINATIM_USER_AGENT) ?? "smart-address-service"
 
 const nominatimConfig = {
-  userAgent: Bun.env.NOMINATIM_USER_AGENT ?? "smart-address-service",
+  userAgent: nominatimUserAgent,
   ...(nominatimBaseUrl !== undefined ? { baseUrl: nominatimBaseUrl } : {}),
   ...(nominatimEmail !== undefined ? { email: nominatimEmail } : {}),
   ...(nominatimReferer !== undefined ? { referer: nominatimReferer } : {}),
@@ -61,7 +70,7 @@ const cacheConfig = {
   ...(l2SWRMs ? { l2BaseSWR: Duration.millis(l2SWRMs) } : {})
 }
 
-const sqlitePath = Bun.env.SMART_ADDRESS_DB_PATH
+const sqlitePath = parseOptionalString(Bun.env.SMART_ADDRESS_DB_PATH)
 const sqliteConfig = sqlitePath === undefined ? {} : { path: sqlitePath }
 
 const cacheStoreLayer = AddressCacheStoreSqlite(sqliteConfig)

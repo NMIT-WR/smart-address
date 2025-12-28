@@ -61,10 +61,10 @@ Persist the SQLite DB:
 - The default DB path is `data/smart-address.db` (relative to `/app`).
 - Override with `SMART_ADDRESS_DB_PATH` (for example `/app/data/custom.db`).
 
-Required env vars (Nominatim):
+Recommended env vars (Nominatim usage policy):
 
-- `NOMINATIM_USER_AGENT`
-- `NOMINATIM_EMAIL`
+- `NOMINATIM_USER_AGENT` (default: `smart-address-service` when unset/blank)
+- `NOMINATIM_EMAIL` (optional, recommended for production use)
 
 Optional env vars:
 

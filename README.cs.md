@@ -61,10 +61,10 @@ Persistování SQLite DB:
 - Výchozí cesta DB je `data/smart-address.db` (relativně k `/app`).
 - Přepište přes `SMART_ADDRESS_DB_PATH` (např. `/app/data/custom.db`).
 
-Povinné env proměnné (Nominatim):
+Doporučené env proměnné (zásady Nominatim):
 
-- `NOMINATIM_USER_AGENT`
-- `NOMINATIM_EMAIL`
+- `NOMINATIM_USER_AGENT` (výchozí: `smart-address-service`, pokud je prázdné/nevyplněné)
+- `NOMINATIM_EMAIL` (volitelné, doporučeno pro produkci)
 
 Volitelné env proměnné:
 
