@@ -44,6 +44,12 @@ Build the image:
 docker build -t smart-address-service .
 ```
 
+Tagging tip (recommended for production):
+
+```bash
+docker build -t smart-address-service:$(git rev-parse --short HEAD) .
+```
+
 Run with Docker Compose:
 
 ```bash

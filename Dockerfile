@@ -15,7 +15,7 @@ COPY packages/core/package.json packages/core/package.json
 COPY packages/integrations/package.json packages/integrations/package.json
 COPY packages/rpc/package.json packages/rpc/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY apps ./apps
 COPY packages ./packages

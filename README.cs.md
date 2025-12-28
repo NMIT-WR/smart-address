@@ -44,6 +44,12 @@ Sestavení image:
 docker build -t smart-address-service .
 ```
 
+Tip na tagování (doporučeno pro produkci):
+
+```bash
+docker build -t smart-address-service:$(git rev-parse --short HEAD) .
+```
+
 Spuštění přes Docker Compose:
 
 ```bash
