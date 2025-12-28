@@ -38,12 +38,41 @@ await Effect.runPromise(
 )
 ```
 
+### SDK do prohlížeče (ESM + script tag)
+
+Použijte `@smart-address/sdk` jako malý klient do prohlížeče (bez bundleru). SDK posílá `key` jako query parametr `?key=`.
+
+```ts
+import { createClient } from "@smart-address/sdk"
+
+const client = createClient({ baseUrl: "https://api.example.com", key: "YOUR_KEY" })
+const result = await client.suggest({
+  text: "Praha",
+  limit: 5,
+  countryCode: "CZ",
+  strategy: "reliable"
+})
+```
+
+Script tag build (UMD, globální `SmartAddress`):
+
+```html
+<script src="https://unpkg.com/@smart-address/sdk/dist/umd/smart-address.js"></script>
+<script>
+  const client = SmartAddress.createClient({
+    baseUrl: "https://api.example.com",
+    key: "YOUR_KEY"
+  })
+</script>
+```
+
+Příklad pro legacy checkout: [Bootstrap + vanilla JS](/cs/how-to/legacy-js-integration).
+
 ## Plánované SDK
 
 Plánované SDK:
 
-- Core JS klient (framework‑agnostic)
 - React, Svelte, Vue
 - Web Component
 
-Do té doby můžete používat HTTP API (jakýkoliv jazyk) nebo Effect klienty výše.
+Pro ostatní jazyky použijte HTTP API nebo Effect klienty výše.

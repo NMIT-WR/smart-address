@@ -255,6 +255,21 @@ importers:
         specifier: catalog:types
         version: 5.9.3
 
+  packages/sdk:
+    devDependencies:
+      '@rslib/core':
+        specifier: catalog:build
+        version: 0.18.6(typescript@5.9.3)
+      is-tree-shakable:
+        specifier: catalog:quality
+        version: 0.4.2
+      publint:
+        specifier: catalog:quality
+        version: 0.3.16
+      typescript:
+        specifier: catalog:types
+        version: 5.9.3
+
 packages:
 
   '@ast-grep/napi-darwin-arm64@0.37.0':

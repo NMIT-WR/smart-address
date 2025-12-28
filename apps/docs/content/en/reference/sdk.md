@@ -38,12 +38,41 @@ await Effect.runPromise(
 )
 ```
 
+### Browser SDK (ESM + script tag)
+
+Use `@smart-address/sdk` for a tiny browser client (no bundler required). The SDK appends `key` as the `?key=` query param.
+
+```ts
+import { createClient } from "@smart-address/sdk"
+
+const client = createClient({ baseUrl: "https://api.example.com", key: "YOUR_KEY" })
+const result = await client.suggest({
+  text: "Prague",
+  limit: 5,
+  countryCode: "CZ",
+  strategy: "reliable"
+})
+```
+
+Script tag build (UMD, global `SmartAddress`):
+
+```html
+<script src="https://unpkg.com/@smart-address/sdk/dist/umd/smart-address.js"></script>
+<script>
+  const client = SmartAddress.createClient({
+    baseUrl: "https://api.example.com",
+    key: "YOUR_KEY"
+  })
+</script>
+```
+
+Legacy checkout example: [Bootstrap + vanilla JS](/how-to/legacy-js-integration).
+
 ## Planned SDKs
 
 SDKs are planned for:
 
-- Core JS client (framework-agnostic)
 - React, Svelte, Vue
 - Web Component
 
-For now, you can use the HTTP API (any language) or the Effect clients above.
+For other languages, use the HTTP API or the Effect clients above.

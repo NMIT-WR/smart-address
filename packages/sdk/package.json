@@ -1,0 +1,32 @@
+{
+  "name": "@smart-address/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/smart-address.d.ts",
+      "import": "./dist/smart-address.js"
+    }
+  },
+  "main": "./dist/smart-address.js",
+  "module": "./dist/smart-address.js",
+  "types": "./dist/smart-address.d.ts",
+  "unpkg": "./dist/umd/smart-address.js",
+  "jsdelivr": "./dist/umd/smart-address.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "typecheck": "tsc --noEmit",
+    "publint": "publint",
+    "tree-shake": "is-tree-shakable"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:build",
+    "is-tree-shakable": "catalog:quality",
+    "publint": "catalog:quality",
+    "typescript": "catalog:types"
+  }
+}

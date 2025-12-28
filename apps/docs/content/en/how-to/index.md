@@ -7,3 +7,4 @@ Task-focused guides for getting specific outcomes. These assume you already have
 - [Use the HTTP service](/how-to/use-service)
 - [Add another provider](/how-to/add-provider)
 - [Integrate from legacy PHP](/how-to/legacy-integration)
+- [Integrate legacy checkout (Bootstrap + vanilla JS)](/how-to/legacy-js-integration)

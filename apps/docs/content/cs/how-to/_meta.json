@@ -2,5 +2,6 @@
   "index",
   "use-service",
   "add-provider",
-  "legacy-integration"
+  "legacy-integration",
+  "legacy-js-integration"
 ]

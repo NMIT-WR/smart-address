@@ -9,6 +9,7 @@ Reliable address suggestions for checkout and onboarding. Built on Effect so you
 - `packages/core` (`@smart-address/core`): domain types, provider planning, dedupe, and error collection.
 - `packages/integrations` (`@smart-address/integrations`): provider adapters (e.g. Nominatim) + HTTP/RL helpers.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC contract + client helpers.
+- `packages/sdk` (`@smart-address/sdk`): tiny browser client (ESM + script tag bundle).
 - `apps/service-bun` (`@smart-address/service-bun`): Bun service exposing HTTP + MCP + RPC endpoints, caching, and SQLite persistence.
 - `apps/docs`: Rspress documentation site (Diataxis, EN + CS).
 
@@ -36,6 +37,22 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+## Browser SDK (script tag)
+
+```html
+<script src="https://unpkg.com/@smart-address/sdk/dist/umd/smart-address.js"></script>
+<script>
+  const client = SmartAddress.createClient({
+    baseUrl: "https://api.example.com",
+    key: "YOUR_KEY"
+  })
+
+  client
+    .suggest({ text: "Prague", limit: 5, countryCode: "CZ", strategy: "reliable" })
+    .then((result) => console.log(result.suggestions))
+</script>
+```
+
 ## Docs
 
 - Website source: `apps/docs`
@@ -53,4 +70,3 @@ pnpm --filter docs dev
 The service exposes an MCP tool named `suggest-address` on `http://localhost:8787/mcp`.
 
 Reference: `apps/docs/content/en/reference/mcp-tool.md`
-

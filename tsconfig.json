@@ -11,7 +11,8 @@
       "@smart-address/rpc": ["packages/rpc/src/suggest.ts"],
       "@smart-address/rpc/client": ["packages/rpc/src/client.ts"],
       "@smart-address/rpc/suggest": ["packages/rpc/src/suggest.ts"],
-      "@smart-address/rpc/webrtc": ["packages/rpc/src/webrtc.ts"]
+      "@smart-address/rpc/webrtc": ["packages/rpc/src/webrtc.ts"],
+      "@smart-address/sdk": ["packages/sdk/src/client.ts"]
     },
     "target": "ES2022",
     "module": "Preserve",
