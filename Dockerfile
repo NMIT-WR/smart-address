@@ -8,7 +8,7 @@ WORKDIR /app
 ENV PNPM_STORE_DIR=/app/.pnpm-store
 ENV CI=true
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json .npmrc ./
 COPY patches ./patches
 COPY apps/service-bun/package.json apps/service-bun/package.json
 COPY packages/core/package.json packages/core/package.json
@@ -21,7 +21,7 @@ COPY apps ./apps
 COPY packages ./packages
 
 RUN pnpm -r --filter "./packages/*" run build \
-  && pnpm --filter @smart-address/service-bun deploy --prod --legacy /app/deploy
+  && pnpm --filter @smart-address/service-bun deploy --prod /app/deploy
 
 FROM oven/bun:1.1.38-alpine
 
