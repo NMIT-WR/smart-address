@@ -9,6 +9,7 @@ import {
   type AddressQuery,
   type AddressSuggestion
 } from "@smart-address/core"
+import { compactString, firstNonEmpty, joinParts, toProviderId } from "./address-utils"
 
 export type HereConfig = {
   readonly apiKey: string
@@ -50,33 +51,6 @@ type HereItem = Schema.Schema.Type<typeof HereItemSchema>
 type HereAddress = Schema.Schema.Type<typeof HereAddressSchema>
 type HereResponse = Schema.Schema.Type<typeof HereResponseSchema>
 
-const compactString = (value: string | undefined): string | undefined => {
-  if (!value) {
-    return undefined
-  }
-  const trimmed = value.trim()
-  return trimmed.length === 0 ? undefined : trimmed
-}
-
-const joinParts = (first?: string, second?: string): string | undefined => {
-  const left = compactString(first)
-  const right = compactString(second)
-  if (left && right) {
-    return `${left} ${right}`
-  }
-  return left ?? right
-}
-
-const firstNonEmpty = (...values: Array<string | undefined>): string | undefined => {
-  for (const value of values) {
-    const compacted = compactString(value)
-    if (compacted) {
-      return compacted
-    }
-  }
-  return undefined
-}
-
 const addressFromHere = (address: HereAddress | undefined) => {
   if (!address) {
     return {}
@@ -98,9 +72,6 @@ const addressFromHere = (address: HereAddress | undefined) => {
     countryCode
   }
 }
-
-const toProviderId = (provider: string, rawId: string) =>
-  rawId.startsWith(`${provider}:`) ? rawId : `${provider}:${rawId}`
 
 const metadataFromHere = (item: HereItem): Record<string, string> | undefined => {
   const metadata: Record<string, string> = {}

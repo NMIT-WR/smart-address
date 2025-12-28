@@ -83,6 +83,19 @@ describe("http handlers", () => {
     expect(body.error).toBe("Missing or invalid key.")
   })
 
+  it("rejects invalid suggest key when configured", async () => {
+    const request = HttpServerRequest.fromWeb(
+      new Request("http://localhost/suggest?text=Main&key=wrong")
+    )
+
+    const response = await run(handleSuggestGet(suggestor, { keys: ["secret"] })(request))
+    const web = HttpServerResponse.toWeb(response)
+    const body = await web.json()
+
+    expect(web.status).toBe(401)
+    expect(body.error).toBe("Missing or invalid key.")
+  })
+
   it("accepts suggest key when configured", async () => {
     const request = HttpServerRequest.fromWeb(
       new Request("http://localhost/suggest?key=secret", {
@@ -93,6 +106,19 @@ describe("http handlers", () => {
     )
 
     const response = await run(handleSuggestPost(suggestor, { keys: ["secret"] })(request))
+    const web = HttpServerResponse.toWeb(response)
+    const body = await web.json()
+
+    expect(web.status).toBe(200)
+    expect(body.suggestions[0]?.id).toBe("sample:1")
+  })
+
+  it("accepts rotated suggest key when configured", async () => {
+    const request = HttpServerRequest.fromWeb(
+      new Request("http://localhost/suggest?text=Main&key=rotated")
+    )
+
+    const response = await run(handleSuggestGet(suggestor, { keys: ["secret", "rotated"] })(request))
     const web = HttpServerResponse.toWeb(response)
     const body = await web.json()
 

@@ -34,6 +34,31 @@ const normalizeKeyPart = (value: string | undefined): string | undefined => {
   return trimmed.length === 0 ? undefined : trimmed.replace(/\s+/g, " ")
 }
 
+const parseCoordinate = (value: string | undefined): number | undefined => {
+  if (!value) {
+    return undefined
+  }
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
+const roundCoordinate = (value: number): string => {
+  const rounded = Math.round(value * 10000) / 10000
+  return String(rounded)
+}
+
+const coordinateKey = (metadata: AddressSuggestion["metadata"]): string | undefined => {
+  if (!metadata) {
+    return undefined
+  }
+  const lat = parseCoordinate(metadata.lat)
+  const lon = parseCoordinate(metadata.lon ?? metadata.lng)
+  if (lat === undefined || lon === undefined) {
+    return undefined
+  }
+  return `${roundCoordinate(lat)},${roundCoordinate(lon)}`
+}
+
 const addressDedupeKey = (suggestion: AddressSuggestion): string => {
   const address = suggestion.address
   const parts = [
@@ -47,6 +72,11 @@ const addressDedupeKey = (suggestion: AddressSuggestion): string => {
   ]
     .map(normalizeKeyPart)
     .filter((value): value is string => Boolean(value))
+
+  const coords = coordinateKey(suggestion.metadata)
+  if (coords) {
+    parts.push(coords)
+  }
 
   if (parts.length === 0) {
     return suggestion.id

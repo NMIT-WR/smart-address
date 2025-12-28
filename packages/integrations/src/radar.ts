@@ -9,6 +9,7 @@ import {
   type AddressQuery,
   type AddressSuggestion
 } from "@smart-address/core"
+import { compactString, firstNonEmpty, joinParts, toProviderId } from "./address-utils"
 
 export type RadarConfig = {
   readonly apiKey: string
@@ -38,33 +39,6 @@ const RadarResponseSchema = Schema.Struct({
 
 type RadarAddress = Schema.Schema.Type<typeof RadarAddressSchema>
 type RadarResponse = Schema.Schema.Type<typeof RadarResponseSchema>
-
-const compactString = (value: string | undefined): string | undefined => {
-  if (!value) {
-    return undefined
-  }
-  const trimmed = value.trim()
-  return trimmed.length === 0 ? undefined : trimmed
-}
-
-const joinParts = (first?: string, second?: string): string | undefined => {
-  const left = compactString(first)
-  const right = compactString(second)
-  if (left && right) {
-    return `${left} ${right}`
-  }
-  return left ?? right
-}
-
-const firstNonEmpty = (...values: Array<string | undefined>): string | undefined => {
-  for (const value of values) {
-    const compacted = compactString(value)
-    if (compacted) {
-      return compacted
-    }
-  }
-  return undefined
-}
 
 const buildFallbackLabel = (address: RadarAddress): string | undefined => {
   const line1 = joinParts(address.addressNumber, address.street)
@@ -102,9 +76,6 @@ const addressFromRadar = (address: RadarAddress) => {
     countryCode
   }
 }
-
-const toProviderId = (provider: string, rawId: string) =>
-  rawId.startsWith(`${provider}:`) ? rawId : `${provider}:${rawId}`
 
 const buildRadarId = (address: RadarAddress): string => {
   const fallback = [

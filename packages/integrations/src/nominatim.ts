@@ -9,6 +9,7 @@ import {
   type AddressQuery,
   type AddressSuggestion
 } from "@smart-address/core"
+import { compactString, firstNonEmpty, joinParts } from "./address-utils"
 
 export type NominatimConfig = {
   readonly baseUrl?: string
@@ -54,33 +55,6 @@ const NominatimResponseSchema = Schema.Array(NominatimResultSchema)
 
 type NominatimResult = Schema.Schema.Type<typeof NominatimResultSchema>
 type NominatimAddress = Schema.Schema.Type<typeof NominatimAddressSchema>
-
-const compactString = (value: string | undefined): string | undefined => {
-  if (!value) {
-    return undefined
-  }
-  const trimmed = value.trim()
-  return trimmed.length === 0 ? undefined : trimmed
-}
-
-const firstNonEmpty = (...values: Array<string | undefined>): string | undefined => {
-  for (const value of values) {
-    const compacted = compactString(value)
-    if (compacted) {
-      return compacted
-    }
-  }
-  return undefined
-}
-
-const joinParts = (first?: string, second?: string): string | undefined => {
-  const left = compactString(first)
-  const right = compactString(second)
-  if (left && right) {
-    return `${left} ${right}`
-  }
-  return left ?? right
-}
 
 const addressFromNominatim = (address: NominatimAddress | undefined) => {
   if (!address) {
