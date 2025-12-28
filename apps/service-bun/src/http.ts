@@ -2,7 +2,7 @@ import { Effect } from "effect"
 import * as HttpServerRequest from "@effect/platform/HttpServerRequest"
 import * as HttpServerResponse from "@effect/platform/HttpServerResponse"
 import * as UrlParams from "@effect/platform/UrlParams"
-import type { AddressCachedSuggestor } from "./cache"
+import type { AddressCachedSuggestorService } from "./cache"
 import {
   decodeSuggestPayload,
   payloadFromSearchParams,
@@ -13,6 +13,10 @@ import {
 export type SuggestAuthConfig = {
   readonly keys: ReadonlyArray<string>
 }
+
+export class SuggestAuth extends Effect.Service<SuggestAuth>()("@smart-address/service-bun/SuggestAuth", {
+  effect: (config: SuggestAuthConfig) => Effect.succeed(config)
+}) {}
 
 const defaultAuthConfig: SuggestAuthConfig = { keys: [] }
 
@@ -69,7 +73,7 @@ const isAuthorized = (
 const parseSuggestPayload = (payload: unknown) =>
   decodeSuggestPayload(payload).pipe(Effect.flatMap(toSuggestRequest))
 
-const handleSuggestPayload = (suggestor: AddressCachedSuggestor, payload: unknown) =>
+const handleSuggestPayload = (suggestor: AddressCachedSuggestorService, payload: unknown) =>
   parseSuggestPayload(payload).pipe(
     Effect.flatMap((request) => suggestor.suggest(request)),
     Effect.map((result) => jsonResponse(result)),
@@ -79,7 +83,7 @@ const handleSuggestPayload = (suggestor: AddressCachedSuggestor, payload: unknow
   )
 
 export const handleSuggestGet =
-  (suggestor: AddressCachedSuggestor, auth: SuggestAuthConfig = defaultAuthConfig) =>
+  (suggestor: AddressCachedSuggestorService, auth: SuggestAuthConfig = defaultAuthConfig) =>
   (request: HttpServerRequest.HttpServerRequest) => {
     const params = searchParamsFromRequest(request)
     if (!isAuthorized(params, auth)) {
@@ -96,7 +100,7 @@ const parseFormBody = (request: HttpServerRequest.HttpServerRequest) =>
   )
 
 export const handleSuggestPost =
-  (suggestor: AddressCachedSuggestor, auth: SuggestAuthConfig = defaultAuthConfig) =>
+  (suggestor: AddressCachedSuggestorService, auth: SuggestAuthConfig = defaultAuthConfig) =>
   (request: HttpServerRequest.HttpServerRequest) => {
     const params = searchParamsFromRequest(request)
     if (!isAuthorized(params, auth)) {

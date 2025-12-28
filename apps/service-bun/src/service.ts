@@ -1,4 +1,4 @@
-import { Context, Effect, Layer } from "effect"
+import { Effect } from "effect"
 import * as Duration from "effect/Duration"
 import {
   makeAddressSuggestionService,
@@ -6,7 +6,6 @@ import {
   type AddressProvider,
   type AddressProviderPlan,
   type AddressSuggestion,
-  type AddressSuggestionResult,
   type AddressSuggestionService
 } from "@smart-address/core"
 import { makeHereProvider, type HereConfig } from "@smart-address/integrations/here"
@@ -15,14 +14,6 @@ import { makeRadarProvider, type RadarConfig } from "@smart-address/integrations
 import { makeAddressRateLimiter, withRateLimiter } from "@smart-address/integrations/rate-limit"
 import type * as HttpClient from "@effect/platform/HttpClient"
 import type { SuggestRequest } from "./request"
-
-export interface AddressSuggestor {
-  readonly suggest: (
-    request: SuggestRequest
-  ) => Effect.Effect<AddressSuggestionResult, never, HttpClient.HttpClient>
-}
-
-export const AddressSuggestor = Context.GenericTag<AddressSuggestor>("AddressSuggestor")
 
 export type AddressSuggestorConfig = {
   readonly nominatim: NominatimConfig
@@ -100,38 +91,39 @@ const resolveProviderOrder = (
     .filter((provider): provider is AddressProvider<HttpClient.HttpClient> => Boolean(provider))
 }
 
-export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
-  Layer.effect(
-    AddressSuggestor,
-    Effect.gen(function* () {
-      const timeout = config.providerTimeout ?? Duration.seconds(4)
-      const providers = new Map<string, AddressProvider<HttpClient.HttpClient>>()
-      const rateLimit =
-        config.nominatimRateLimit === null ? null : config.nominatimRateLimit ?? Duration.seconds(1)
-      const limiter = rateLimit ? yield* makeAddressRateLimiter(rateLimit) : null
-      const baseNominatim = withProviderTimeout(makeNominatimProvider(config.nominatim), timeout)
-      const nominatim = limiter ? withRateLimiter(baseNominatim, limiter) : baseNominatim
+const buildAddressSuggestor = (config: AddressSuggestorConfig) =>
+  Effect.gen(function* () {
+    const timeout = config.providerTimeout ?? Duration.seconds(4)
+    const providers = new Map<string, AddressProvider<HttpClient.HttpClient>>()
+    const rateLimit = config.nominatimRateLimit === null ? null : config.nominatimRateLimit ?? Duration.seconds(1)
+    const limiter = rateLimit ? yield* makeAddressRateLimiter(rateLimit) : null
+    const baseNominatim = withProviderTimeout(makeNominatimProvider(config.nominatim), timeout)
+    const nominatim = limiter ? withRateLimiter(baseNominatim, limiter) : baseNominatim
 
-      providers.set("nominatim", nominatim)
+    providers.set("nominatim", nominatim)
 
-      if (config.here) {
-        providers.set("here", withProviderTimeout(makeHereProvider(config.here), timeout))
-      }
+    if (config.here) {
+      providers.set("here", withProviderTimeout(makeHereProvider(config.here), timeout))
+    }
 
-      if (config.radar) {
-        providers.set("radar", withProviderTimeout(makeRadarProvider(config.radar), timeout))
-      }
+    if (config.radar) {
+      providers.set("radar", withProviderTimeout(makeRadarProvider(config.radar), timeout))
+    }
 
-      const orderedProviders = resolveProviderOrder(config.providerOrder, providers)
-      const fastProviders = orderedProviders.slice(0, 1)
-      const fastPlan = makePlan(fastProviders, "public-fast")
-      const reliablePlan = makePlan(orderedProviders, "public-reliable")
-      const fastService = makeService(fastPlan, true)
-      const reliableService = makeService(reliablePlan, false)
+    const orderedProviders = resolveProviderOrder(config.providerOrder, providers)
+    const fastProviders = orderedProviders.slice(0, 1)
+    const fastPlan = makePlan(fastProviders, "public-fast")
+    const reliablePlan = makePlan(orderedProviders, "public-reliable")
+    const fastService = makeService(fastPlan, true)
+    const reliableService = makeService(reliablePlan, false)
 
-      return {
-        suggest: (request) =>
-          request.strategy === "fast" ? fastService.suggest(request.query) : reliableService.suggest(request.query)
-      }
-    })
-  )
+    return {
+      suggest: (request: SuggestRequest) =>
+        request.strategy === "fast" ? fastService.suggest(request.query) : reliableService.suggest(request.query)
+    }
+  })
+
+export class AddressSuggestor extends Effect.Service<AddressSuggestor>()(
+  "@smart-address/service-bun/AddressSuggestor",
+  { effect: buildAddressSuggestor }
+) {}

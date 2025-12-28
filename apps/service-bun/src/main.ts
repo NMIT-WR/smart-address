@@ -3,7 +3,7 @@ import * as Duration from "effect/Duration"
 import * as FetchHttpClient from "@effect/platform/FetchHttpClient"
 import * as HttpLayerRouter from "@effect/platform/HttpLayerRouter"
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun"
-import { AddressSuggestorLayer } from "./service"
+import { AddressSuggestor } from "./service"
 import {
   AddressCacheStoreSqlite,
   AddressCachedSuggestorLayer,
@@ -13,6 +13,7 @@ import { AddressRoutesLayer } from "./routes"
 import { AddressRpcServerLayer } from "./rpc"
 import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp"
 import { AddressSearchLogSqlite } from "./search-log"
+import { SuggestAuth } from "./http"
 
 const parseNumber = (value: string | undefined): number | undefined => {
   if (!value) {
@@ -101,7 +102,7 @@ const cacheLayer = AddressSuggestionCacheLayer(cacheConfig).pipe(Layer.provide(c
 
 const suggestorLayer = AddressCachedSuggestorLayer.pipe(
   Layer.provide(
-    AddressSuggestorLayer({
+    AddressSuggestor.Default({
       nominatim: nominatimConfig,
       ...(hereConfig ? { here: hereConfig } : {}),
       ...(radarConfig ? { radar: radarConfig } : {}),
@@ -115,12 +116,15 @@ const suggestorLayer = AddressCachedSuggestorLayer.pipe(
   Layer.provide(AddressSearchLogSqlite(sqliteConfig))
 )
 
+const authLayer = SuggestAuth.Default({ keys: suggestKeys })
+
 const appLayer = Layer.mergeAll(
-  AddressRoutesLayer({ keys: suggestKeys }),
+  AddressRoutesLayer,
   AddressRpcServerLayer,
   AddressMcpLayer
 ).pipe(
   Layer.provide(suggestorLayer),
+  Layer.provide(authLayer),
   Layer.provide(AddressMcpHandlersLayer)
 )
 

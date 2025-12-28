@@ -3,11 +3,12 @@ import { addressQueryKey, normalizeAddressQuery, type AddressSuggestionResult } 
 import type { SuggestRequest } from "./request"
 import { openAddressSqlite, type AddressSqliteConfig } from "./sqlite"
 
-export interface AddressSearchLog {
-  readonly record: (request: SuggestRequest, result: AddressSuggestionResult) => Effect.Effect<void>
-}
-
-export const AddressSearchLog = Context.GenericTag<AddressSearchLog>("AddressSearchLog")
+export class AddressSearchLog extends Context.Tag("@smart-address/service-bun/AddressSearchLog")<
+  AddressSearchLog,
+  {
+    readonly record: (request: SuggestRequest, result: AddressSuggestionResult) => Effect.Effect<void>
+  }
+>() {}
 
 export const AddressSearchLogNone = Layer.succeed(AddressSearchLog, {
   record: () => Effect.void

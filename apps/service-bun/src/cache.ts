@@ -25,12 +25,13 @@ const AddressCacheEntrySchema = Schema.Struct({
   result: AddressSuggestionResultSchema
 })
 
-export interface AddressCacheStore {
-  readonly get: (key: string) => Effect.Effect<AddressCacheEntry | null>
-  readonly set: (key: string, entry: AddressCacheEntry, ttl: Duration.DurationInput) => Effect.Effect<void>
-}
-
-export const AddressCacheStore = Context.GenericTag<AddressCacheStore>("AddressCacheStore")
+export class AddressCacheStore extends Context.Tag("@smart-address/service-bun/AddressCacheStore")<
+  AddressCacheStore,
+  {
+    readonly get: (key: string) => Effect.Effect<AddressCacheEntry | null>
+    readonly set: (key: string, entry: AddressCacheEntry, ttl: Duration.DurationInput) => Effect.Effect<void>
+  }
+>() {}
 
 export const AddressCacheStoreMemory = Layer.effect(
   AddressCacheStore,
@@ -191,14 +192,15 @@ class AddressCacheKey implements Equal.Equal {
   }
 }
 
-export interface AddressSuggestionCache {
-  readonly getOrFetch: (
-    request: SuggestRequest,
-    fetch: Effect.Effect<AddressSuggestionResult, never, never>
-  ) => Effect.Effect<AddressSuggestionResult, never, never>
-}
-
-export const AddressSuggestionCache = Context.GenericTag<AddressSuggestionCache>("AddressSuggestionCache")
+export class AddressSuggestionCache extends Context.Tag("@smart-address/service-bun/AddressSuggestionCache")<
+  AddressSuggestionCache,
+  {
+    readonly getOrFetch: (
+      request: SuggestRequest,
+      fetch: Effect.Effect<AddressSuggestionResult, never, never>
+    ) => Effect.Effect<AddressSuggestionResult, never, never>
+  }
+>() {}
 
 export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
   Layer.effect(
@@ -282,11 +284,14 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
     })
   )
 
-export interface AddressCachedSuggestor {
-  readonly suggest: (request: SuggestRequest) => Effect.Effect<AddressSuggestionResult, never, never>
-}
+export class AddressCachedSuggestor extends Context.Tag("@smart-address/service-bun/AddressCachedSuggestor")<
+  AddressCachedSuggestor,
+  {
+    readonly suggest: (request: SuggestRequest) => Effect.Effect<AddressSuggestionResult, never, never>
+  }
+>() {}
 
-export const AddressCachedSuggestor = Context.GenericTag<AddressCachedSuggestor>("AddressCachedSuggestor")
+export type AddressCachedSuggestorService = Context.Tag.Service<typeof AddressCachedSuggestor>
 
 export const AddressCachedSuggestorLayer = Layer.effect(
   AddressCachedSuggestor,
