@@ -259,6 +259,13 @@ importers:
         version: 5.9.3
 
   packages/sdk:
+    dependencies:
+      '@smart-address/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: catalog:prod
+        version: 3.19.13
     devDependencies:
       '@rslib/core':
         specifier: catalog:build

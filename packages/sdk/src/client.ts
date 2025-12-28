@@ -1,40 +1,17 @@
-// Keep these types in sync with @smart-address/core to avoid pulling Effect into the browser bundle.
-// TODO(sdk): share type-only exports once a browser-safe subpath exists.
+import type {
+  AddressParts as CoreAddressParts,
+  AddressSuggestion as CoreAddressSuggestion,
+  AddressSuggestionError as CoreAddressSuggestionError,
+  AddressSuggestionResult as CoreAddressSuggestionResult,
+  AddressSuggestionSource as CoreAddressSuggestionSource
+} from "@smart-address/core"
+
 export type AddressStrategy = "fast" | "reliable"
-
-export type AddressParts = {
-  readonly line1?: string | undefined
-  readonly line2?: string | undefined
-  readonly city?: string | undefined
-  readonly region?: string | undefined
-  readonly postalCode?: string | undefined
-  readonly countryCode?: string | undefined
-}
-
-export type AddressSuggestionSource = {
-  readonly provider: string
-  readonly kind?: "public" | "internal" | undefined
-  readonly reference?: string | undefined
-}
-
-export type AddressSuggestion = {
-  readonly id: string
-  readonly label: string
-  readonly address: AddressParts
-  readonly score?: number | undefined
-  readonly source: AddressSuggestionSource
-  readonly metadata?: Record<string, string> | undefined
-}
-
-export type AddressSuggestionError = {
-  readonly provider: string
-  readonly message: string
-}
-
-export type AddressSuggestionResult = {
-  readonly suggestions: ReadonlyArray<AddressSuggestion>
-  readonly errors: ReadonlyArray<AddressSuggestionError>
-}
+export type AddressParts = CoreAddressParts
+export type AddressSuggestionSource = CoreAddressSuggestionSource
+export type AddressSuggestion = CoreAddressSuggestion
+export type AddressSuggestionError = CoreAddressSuggestionError
+export type AddressSuggestionResult = CoreAddressSuggestionResult
 
 export type SuggestAddressRequest = {
   readonly text: string

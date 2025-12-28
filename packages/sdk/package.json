@@ -27,6 +27,10 @@
       "require": "./dist/umd/smart-address.js"
     }
   },
+  "dependencies": {
+    "@smart-address/core": "workspace:*",
+    "effect": "catalog:prod"
+  },
   "main": "./dist/smart-address.js",
   "module": "./dist/smart-address.js",
   "types": "./dist/smart-address.d.ts",
