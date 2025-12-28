@@ -1,4 +1,5 @@
 import { Effect } from "effect"
+import { createHash, timingSafeEqual } from "node:crypto"
 import * as HttpServerRequest from "@effect/platform/HttpServerRequest"
 import * as HttpServerResponse from "@effect/platform/HttpServerResponse"
 import * as UrlParams from "@effect/platform/UrlParams"
@@ -54,6 +55,10 @@ const readSearchParam = (
   return typeof value === "string" ? value : undefined
 }
 
+const hashKey = (value: string): Buffer => createHash("sha256").update(value).digest()
+
+const timingSafeMatch = (left: string, right: string): boolean => timingSafeEqual(hashKey(left), hashKey(right))
+
 const searchParamsFromRequest = (request: HttpServerRequest.HttpServerRequest) => {
   const url = new URL(request.url, "http://localhost")
   return HttpServerRequest.searchParamsFromURL(url)
@@ -67,7 +72,7 @@ const isAuthorized = (
     return true
   }
   const key = readSearchParam(params, "key")
-  return typeof key === "string" && auth.keys.includes(key)
+  return typeof key === "string" && auth.keys.some((candidate) => timingSafeMatch(candidate, key))
 }
 
 const parseSuggestPayload = (payload: unknown) =>
