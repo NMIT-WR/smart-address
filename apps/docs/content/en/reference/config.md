@@ -16,6 +16,10 @@ Service environment variables (Bun). All values are read from the process enviro
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, set `0` to disable)
 
+## Security
+
+- `SUGGEST_API_KEYS` (comma-separated list; when set, `/suggest` requires `?key=...`)
+
 ## Cache
 
 - `CACHE_L1_CAPACITY` (number, default `500`)

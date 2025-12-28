@@ -1,4 +1,5 @@
 import { Effect } from "effect"
+import { createHash, timingSafeEqual } from "node:crypto"
 import * as HttpServerRequest from "@effect/platform/HttpServerRequest"
 import * as HttpServerResponse from "@effect/platform/HttpServerResponse"
 import * as UrlParams from "@effect/platform/UrlParams"
@@ -9,6 +10,12 @@ import {
   toSuggestRequest,
   type SuggestRequestError
 } from "./request"
+
+export type SuggestAuthConfig = {
+  readonly keys: ReadonlyArray<string>
+}
+
+const defaultAuthConfig: SuggestAuthConfig = { keys: [] }
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -25,12 +32,45 @@ const jsonResponse = (body: unknown, status?: number) => {
 }
 
 const errorResponse = (message: string, status = 400) => jsonResponse({ error: message }, status)
+const unauthorizedResponse = () => errorResponse("Missing or invalid key.", 401)
 
 const isSuggestRequestError = (error: unknown): error is SuggestRequestError =>
   typeof error === "object" &&
   error !== null &&
   "_tag" in error &&
   (error as { _tag?: string })._tag === "SuggestRequestError"
+
+const readSearchParam = (
+  params: Readonly<Record<string, string | ReadonlyArray<string> | undefined>>,
+  key: string
+): string | undefined => {
+  const value = params[key]
+  if (Array.isArray(value)) {
+    return value[0]
+  }
+  return typeof value === "string" ? value : undefined
+}
+
+const hashKey = (value: string): Buffer => createHash("sha256").update(value).digest()
+
+const timingSafeMatch = (left: string, right: string): boolean =>
+  timingSafeEqual(hashKey(left), hashKey(right))
+
+const searchParamsFromRequest = (request: HttpServerRequest.HttpServerRequest) => {
+  const url = new URL(request.url, "http://localhost")
+  return HttpServerRequest.searchParamsFromURL(url)
+}
+
+const isAuthorized = (
+  params: Readonly<Record<string, string | ReadonlyArray<string> | undefined>>,
+  auth: SuggestAuthConfig
+): boolean => {
+  if (auth.keys.length === 0) {
+    return true
+  }
+  const key = readSearchParam(params, "key")
+  return typeof key === "string" && auth.keys.some((candidate) => timingSafeMatch(candidate, key))
+}
 
 const parseSuggestPayload = (payload: unknown) =>
   decodeSuggestPayload(payload).pipe(Effect.flatMap(toSuggestRequest))
@@ -45,9 +85,12 @@ const handleSuggestPayload = (suggestor: AddressCachedSuggestor, payload: unknow
   )
 
 export const handleSuggestGet =
-  (suggestor: AddressCachedSuggestor) => (request: HttpServerRequest.HttpServerRequest) => {
-    const url = new URL(request.url, "http://localhost")
-    const params = HttpServerRequest.searchParamsFromURL(url)
+  (suggestor: AddressCachedSuggestor, auth: SuggestAuthConfig = defaultAuthConfig) =>
+  (request: HttpServerRequest.HttpServerRequest) => {
+    const params = searchParamsFromRequest(request)
+    if (!isAuthorized(params, auth)) {
+      return Effect.succeed(unauthorizedResponse())
+    }
     const payload = payloadFromSearchParams(params)
     return handleSuggestPayload(suggestor, payload)
   }
@@ -59,7 +102,12 @@ const parseFormBody = (request: HttpServerRequest.HttpServerRequest) =>
   )
 
 export const handleSuggestPost =
-  (suggestor: AddressCachedSuggestor) => (request: HttpServerRequest.HttpServerRequest) => {
+  (suggestor: AddressCachedSuggestor, auth: SuggestAuthConfig = defaultAuthConfig) =>
+  (request: HttpServerRequest.HttpServerRequest) => {
+    const params = searchParamsFromRequest(request)
+    if (!isAuthorized(params, auth)) {
+      return Effect.succeed(unauthorizedResponse())
+    }
     const contentType = request.headers["content-type"] ?? ""
     const bodyEffect =
       contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")

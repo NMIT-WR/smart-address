@@ -26,11 +26,13 @@ Other protocols:
   - `locale` (BCP-47)
   - `sessionToken` (string)
   - `strategy` or `mode` (`fast` | `reliable`)
+- Conditional:
+  - `key` (required when `SUGGEST_API_KEYS` is set)
 
 ### Example
 
 ```bash
-curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
+curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ&key=demo"
 ```
 
 ## POST /suggest
@@ -38,6 +40,8 @@ curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
 ### Inputs (JSON body)
 
 Same fields as `GET /suggest`.
+
+When `SUGGEST_API_KEYS` is set, pass `?key=...` in the URL query string.
 
 ```json
 {
@@ -71,4 +75,5 @@ Output: text `ok`
 ## Errors
 
 - Validation failures return `400` with `{ "error": "..." }` (example: missing `text`/`q`).
+- Missing or invalid `key` returns `401` with `{ "error": "Missing or invalid key." }`.
 - Provider failures are returned inside the `errors` array with HTTP `200`.

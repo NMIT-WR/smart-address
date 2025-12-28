@@ -26,11 +26,13 @@ Další protokoly:
   - `locale` (BCP-47)
   - `sessionToken` (string)
   - `strategy` nebo `mode` (`fast` | `reliable`)
+- Podmíněně:
+  - `key` (povinné, pokud je nastaveno `SUGGEST_API_KEYS`)
 
 ### Příklad
 
 ```bash
-curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
+curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ&key=demo"
 ```
 
 ## POST /suggest
@@ -38,6 +40,8 @@ curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
 ### Vstupy (JSON body)
 
 Stejná pole jako `GET /suggest`.
+
+Pokud je nastaveno `SUGGEST_API_KEYS`, přidejte `?key=...` do URL query stringu.
 
 ```json
 {
@@ -71,4 +75,5 @@ Výstup: text `ok`
 ## Chyby
 
 - Nevalidní payload vrací `400` s `{ "error": "..." }` (např. chybí `text`/`q`).
+- Chybějící nebo neplatný `key` vrací `401` s `{ "error": "Missing or invalid key." }`.
 - Selhání providerů se vrací uvnitř pole `errors` s HTTP `200`.
