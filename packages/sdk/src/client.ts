@@ -1,4 +1,5 @@
 // Keep these types in sync with @smart-address/core to avoid pulling Effect into the browser bundle.
+// TODO(sdk): share type-only exports once a browser-safe subpath exists.
 export type AddressStrategy = "fast" | "reliable"
 
 export type AddressParts = {
@@ -73,7 +74,21 @@ const normalizeLimit = (value: number | undefined): number | undefined => {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return undefined
   }
-  return Math.max(0, Math.floor(value))
+  const normalized = Math.floor(value)
+  if (normalized <= 0) {
+    return undefined
+  }
+  return normalized
+}
+
+const normalizeStrategy = (value: unknown): AddressStrategy | undefined => {
+  if (value === undefined) {
+    return undefined
+  }
+  if (value === "fast" || value === "reliable") {
+    return value
+  }
+  throw new Error("Invalid strategy. Expected 'fast' or 'reliable'.")
 }
 
 const resolveSuggestUrl = (baseUrl: string): URL => {
@@ -158,8 +173,9 @@ export const createClient = (config: SmartAddressClientConfig): SmartAddressClie
         params.set("sessionToken", sessionToken)
       }
 
-      if (request.strategy) {
-        params.set("strategy", request.strategy)
+      const strategy = normalizeStrategy(request.strategy)
+      if (strategy) {
+        params.set("strategy", strategy)
       }
 
       if (key) {

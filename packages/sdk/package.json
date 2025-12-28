@@ -1,6 +1,23 @@
 {
   "name": "@smart-address/sdk",
   "version": "0.1.0",
+  "description": "Tiny browser SDK for the Smart Address suggest API.",
+  "keywords": [
+    "smart-address",
+    "address",
+    "autocomplete",
+    "suggest",
+    "sdk",
+    "browser",
+    "checkout"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NMIT-WR/smart-address.git",
+    "directory": "packages/sdk"
+  },
+  "author": "NMIT-WR",
+  "license": "UNLICENSED",
   "type": "module",
   "sideEffects": false,
   "exports": {

@@ -66,6 +66,8 @@ Script tag build (UMD, global `SmartAddress`):
 </script>
 ```
 
+The SDK keeps runtime validation minimal (text required, strategy validated) and does not include retries/backoff to stay small. Handle resilience in your integration.
+
 Legacy checkout example: [Bootstrap + vanilla JS](/how-to/legacy-js-integration).
 
 ## Planned SDKs

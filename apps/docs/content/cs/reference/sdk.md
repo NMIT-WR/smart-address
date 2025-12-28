@@ -66,6 +66,8 @@ Script tag build (UMD, globální `SmartAddress`):
 </script>
 ```
 
+SDK má jen minimální runtime validaci (text je povinný, `strategy` je ověřená) a neobsahuje retries/backoff, aby zůstal malý. Odolnost řešte ve vaší integraci.
+
 Příklad pro legacy checkout: [Bootstrap + vanilla JS](/cs/how-to/legacy-js-integration).
 
 ## Plánované SDK
