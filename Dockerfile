@@ -20,8 +20,8 @@ RUN pnpm install --frozen-lockfile
 COPY apps ./apps
 COPY packages ./packages
 
-RUN pnpm -r --filter "./packages/*" run build
-RUN pnpm --filter @smart-address/service-bun deploy --prod --legacy /app/deploy
+RUN pnpm -r --filter "./packages/*" run build \
+  && pnpm --filter @smart-address/service-bun deploy --prod --legacy /app/deploy
 
 FROM oven/bun:1.1.38-alpine
 
