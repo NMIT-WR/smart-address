@@ -113,7 +113,7 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
             const storedAt = Number.isFinite(entry.storedAt) ? entry.storedAt : Date.now()
             const staleAt = Number.isFinite(entry.staleAt) ? entry.staleAt : storedAt
             const expiresAt = Number.isFinite(entry.expiresAt) ? entry.expiresAt : storedAt
-            upsert.run([key, storedAt, staleAt, expiresAt, JSON.stringify(entry)])
+            upsert.run(key, storedAt, staleAt, expiresAt, JSON.stringify(entry))
           }).pipe(Effect.asVoid)
       }
     })
@@ -174,9 +174,9 @@ const makeCacheKey = (request: SuggestRequest) =>
 class AddressCacheKey implements Equal.Equal {
   readonly key: string
   readonly request: SuggestRequest
-  readonly fetch: Effect.Effect<AddressSuggestionResult, never, any>
+  readonly fetch: Effect.Effect<AddressSuggestionResult, never, never>
 
-  constructor(key: string, request: SuggestRequest, fetch: Effect.Effect<AddressSuggestionResult, never, any>) {
+  constructor(key: string, request: SuggestRequest, fetch: Effect.Effect<AddressSuggestionResult, never, never>) {
     this.key = key
     this.request = request
     this.fetch = fetch
@@ -192,10 +192,10 @@ class AddressCacheKey implements Equal.Equal {
 }
 
 export interface AddressSuggestionCache {
-  readonly getOrFetch: <R>(
+  readonly getOrFetch: (
     request: SuggestRequest,
-    fetch: Effect.Effect<AddressSuggestionResult, never, R>
-  ) => Effect.Effect<AddressSuggestionResult, never, R>
+    fetch: Effect.Effect<AddressSuggestionResult, never, never>
+  ) => Effect.Effect<AddressSuggestionResult, never, never>
 }
 
 export const AddressSuggestionCache = Context.GenericTag<AddressSuggestionCache>("AddressSuggestionCache")
@@ -283,7 +283,7 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
   )
 
 export interface AddressCachedSuggestor {
-  readonly suggest: (request: SuggestRequest) => Effect.Effect<AddressSuggestionResult, never, any>
+  readonly suggest: (request: SuggestRequest) => Effect.Effect<AddressSuggestionResult, never, never>
 }
 
 export const AddressCachedSuggestor = Context.GenericTag<AddressCachedSuggestor>("AddressCachedSuggestor")
@@ -295,8 +295,9 @@ export const AddressCachedSuggestorLayer = Layer.effect(
     const raw = yield* AddressSuggestor
     const httpClient = yield* HttpClient.HttpClient
     const log = yield* AddressSearchLog
-    const provideHttpClient = <A>(effect: Effect.Effect<A, never, HttpClient.HttpClient>) =>
-      effect.pipe(Effect.provideService(HttpClient.HttpClient, httpClient))
+    const provideHttpClient = <A>(
+      effect: Effect.Effect<A, never, HttpClient.HttpClient>
+    ): Effect.Effect<A, never, never> => effect.pipe(Effect.provideService(HttpClient.HttpClient, httpClient))
     return {
       suggest: (request) =>
         cache

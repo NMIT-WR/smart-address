@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@effect-native/bun-test"
+import { describe, expect, test } from "@effect-native/bun-test"
 import { Deferred, Effect, Fiber, Layer, Ref } from "effect"
 import * as RpcClient from "@effect/rpc/RpcClient"
 import * as RpcServer from "@effect/rpc/RpcServer"
@@ -108,7 +108,7 @@ const makePairedChannels = () => {
 }
 
 describe("webrtc socket adapter", () => {
-  it("writes data to the data channel", async () => {
+  test("writes data to the data channel", async () => {
     const channel = new TestDataChannel()
     const program = Effect.scoped(
       makeDataChannelSocket(channel).pipe(
@@ -137,7 +137,7 @@ describe("webrtc socket adapter", () => {
     expect(sentCount).toBe(1)
   })
 
-  it("delivers incoming messages to the handler", async () => {
+  test("delivers incoming messages to the handler", async () => {
     const channel = new TestDataChannel()
     const program = Effect.gen(function* () {
       const socket = yield* makeDataChannelSocket(channel)
@@ -158,7 +158,7 @@ describe("webrtc socket adapter", () => {
     expect(received).toEqual(["hello"])
   })
 
-  it("wraps a data channel as a socket server", async () => {
+  test("wraps a data channel as a socket server", async () => {
     const channel = new TestDataChannel()
     const program = Effect.scoped(
       Effect.gen(function* () {
@@ -195,7 +195,7 @@ describe("webrtc socket adapter", () => {
     expect(sentCount).toBe(1)
   })
 
-  it("supports RPC over a paired data channel", async () => {
+  test("supports RPC over a paired data channel", async () => {
     const { client, server } = makePairedChannels()
     const handlers = SuggestAddressRpcGroup.of({
       "suggest-address": () =>

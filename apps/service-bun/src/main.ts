@@ -11,7 +11,7 @@ import {
 } from "./cache"
 import { AddressRoutesLayer } from "./routes"
 import { AddressRpcServerLayer } from "./rpc"
-import { AddressMcpLayer } from "./mcp"
+import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp"
 import { AddressSearchLogSqlite } from "./search-log"
 
 const parseNumber = (value: string | undefined): number | undefined => {
@@ -33,12 +33,16 @@ const l2MinTtlMs = parseNumber(Bun.env.CACHE_L2_MIN_TTL_MS)
 const l2MaxTtlMs = parseNumber(Bun.env.CACHE_L2_MAX_TTL_MS)
 const l2SWRMs = parseNumber(Bun.env.CACHE_L2_SWR_MS)
 
+const nominatimBaseUrl = Bun.env.NOMINATIM_BASE_URL
+const nominatimEmail = Bun.env.NOMINATIM_EMAIL
+const nominatimReferer = Bun.env.NOMINATIM_REFERER
+
 const nominatimConfig = {
-  baseUrl: Bun.env.NOMINATIM_BASE_URL,
   userAgent: Bun.env.NOMINATIM_USER_AGENT ?? "smart-address-service",
-  email: Bun.env.NOMINATIM_EMAIL,
-  referer: Bun.env.NOMINATIM_REFERER,
-  defaultLimit
+  ...(nominatimBaseUrl !== undefined ? { baseUrl: nominatimBaseUrl } : {}),
+  ...(nominatimEmail !== undefined ? { email: nominatimEmail } : {}),
+  ...(nominatimReferer !== undefined ? { referer: nominatimReferer } : {}),
+  ...(defaultLimit !== undefined ? { defaultLimit } : {})
 }
 
 const nominatimRateLimit =
@@ -49,15 +53,16 @@ const nominatimRateLimit =
       : Duration.millis(nominatimRateLimitMs)
 
 const cacheConfig = {
-  l1Capacity: l1Capacity ?? undefined,
-  l1Ttl: l1TtlMs ? Duration.millis(l1TtlMs) : undefined,
-  l2BaseTtl: l2BaseTtlMs ? Duration.millis(l2BaseTtlMs) : undefined,
-  l2MinTtl: l2MinTtlMs ? Duration.millis(l2MinTtlMs) : undefined,
-  l2MaxTtl: l2MaxTtlMs ? Duration.millis(l2MaxTtlMs) : undefined,
-  l2BaseSWR: l2SWRMs ? Duration.millis(l2SWRMs) : undefined
+  ...(l1Capacity !== undefined ? { l1Capacity } : {}),
+  ...(l1TtlMs ? { l1Ttl: Duration.millis(l1TtlMs) } : {}),
+  ...(l2BaseTtlMs ? { l2BaseTtl: Duration.millis(l2BaseTtlMs) } : {}),
+  ...(l2MinTtlMs ? { l2MinTtl: Duration.millis(l2MinTtlMs) } : {}),
+  ...(l2MaxTtlMs ? { l2MaxTtl: Duration.millis(l2MaxTtlMs) } : {}),
+  ...(l2SWRMs ? { l2BaseSWR: Duration.millis(l2SWRMs) } : {})
 }
 
-const sqliteConfig = { path: Bun.env.SMART_ADDRESS_DB_PATH }
+const sqlitePath = Bun.env.SMART_ADDRESS_DB_PATH
+const sqliteConfig = sqlitePath === undefined ? {} : { path: sqlitePath }
 
 const cacheStoreLayer = AddressCacheStoreSqlite(sqliteConfig)
 
@@ -77,7 +82,8 @@ const suggestorLayer = AddressCachedSuggestorLayer.pipe(
 )
 
 const appLayer = Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer).pipe(
-  Layer.provide(suggestorLayer)
+  Layer.provide(suggestorLayer),
+  Layer.provide(AddressMcpHandlersLayer)
 )
 
 const serverLayer = HttpLayerRouter.serve(appLayer).pipe(

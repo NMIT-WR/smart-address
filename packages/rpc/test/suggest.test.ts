@@ -1,10 +1,10 @@
-import { describe, expect, it } from "@effect-native/bun-test"
+import { describe, expect, test } from "@effect-native/bun-test"
 import { Effect } from "effect"
 import * as RpcTest from "@effect/rpc/RpcTest"
 import { SuggestAddressRpcGroup } from "../src/suggest"
 
 describe("suggest rpc", () => {
-  it("handles suggest-address rpc", async () => {
+  test("handles suggest-address rpc", async () => {
     const handlers = SuggestAddressRpcGroup.of({
       "suggest-address": () =>
         Effect.succeed({

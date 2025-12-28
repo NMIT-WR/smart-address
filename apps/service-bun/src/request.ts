@@ -2,8 +2,8 @@ import { Data, Effect } from "effect"
 import * as Schema from "effect/Schema"
 import { normalizeAddressQuery, type AddressQuery } from "@smart-address/core"
 import {
-  AddressStrategy,
   SuggestAddressPayloadSchema,
+  type AddressStrategy,
   type SuggestAddressPayload
 } from "@smart-address/rpc/suggest"
 
@@ -27,22 +27,35 @@ export const payloadFromSearchParams = (
     if (Array.isArray(value)) {
       return value[0]
     }
-    return value
+    return typeof value === "string" ? value : undefined
   }
+
+  const parseNumberParam = (value: string | undefined): number | undefined => {
+    if (!value) {
+      return undefined
+    }
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : undefined
+  }
+
+  const parseStrategyParam = (value: string | undefined): AddressStrategy | undefined =>
+    value === "fast" || value === "reliable" ? value : undefined
 
   return {
     text: readParam("text"),
     q: readParam("q"),
-    limit: readParam("limit"),
+    limit: parseNumberParam(readParam("limit")),
     countryCode: readParam("countryCode"),
     locale: readParam("locale"),
     sessionToken: readParam("sessionToken"),
-    strategy: readParam("strategy"),
-    mode: readParam("mode")
+    strategy: parseStrategyParam(readParam("strategy")),
+    mode: parseStrategyParam(readParam("mode"))
   }
 }
 
-export const toSuggestRequest = (payload: SuggestAddressPayload) => {
+export const toSuggestRequest = (
+  payload: SuggestAddressPayload
+): Effect.Effect<SuggestRequest, SuggestRequestError> => {
   const text = payload.text ?? payload.q
   if (!text || text.trim().length === 0) {
     return Effect.fail(

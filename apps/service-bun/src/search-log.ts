@@ -39,7 +39,7 @@ export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
         record: (request, result) =>
           Effect.sync(() => {
             const normalized = normalizeAddressQuery(request.query)
-            insert.run([
+            insert.run(
               Date.now(),
               request.query.text,
               normalized.text,
@@ -52,7 +52,7 @@ export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
               result.errors.length,
               `${request.strategy}:${addressQueryKey(normalized)}`,
               JSON.stringify(result)
-            ])
+            )
           })
       }
     })

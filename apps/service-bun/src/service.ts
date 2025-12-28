@@ -29,7 +29,7 @@ export type AddressSuggestorConfig = {
 const makePlan = (
   provider: ReturnType<typeof makeNominatimProvider>,
   name: string
-): AddressProviderPlan => ({
+): AddressProviderPlan<HttpClient.HttpClient> => ({
   stages: [
     {
       name,
@@ -39,7 +39,9 @@ const makePlan = (
   ]
 })
 
-const makeService = (plan: AddressProviderPlan): AddressSuggestionService<HttpClient.HttpClient> =>
+const makeService = (
+  plan: AddressProviderPlan<HttpClient.HttpClient>
+): AddressSuggestionService<HttpClient.HttpClient> =>
   makeAddressSuggestionService(plan, { stopAtLimit: true })
 
 export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>

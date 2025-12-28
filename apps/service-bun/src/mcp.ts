@@ -2,6 +2,7 @@ import { Effect, Layer } from "effect"
 import { McpServer, Tool, Toolkit } from "@effect/ai"
 import { AddressSuggestionResultSchema } from "@smart-address/core/schema"
 import {
+  SuggestAddressErrorSchema,
   SuggestAddressPayloadSchema,
   type SuggestAddressPayload
 } from "@smart-address/rpc/suggest"
@@ -11,15 +12,19 @@ import { toSuggestRequest } from "./request"
 const SuggestAddressTool = Tool.make("suggest-address", {
   description: "Suggest addresses using configured providers and strategies.",
   parameters: SuggestAddressPayloadSchema.fields,
-  success: AddressSuggestionResultSchema
+  success: AddressSuggestionResultSchema,
+  failure: SuggestAddressErrorSchema,
+  dependencies: [AddressCachedSuggestor]
 })
 
 export const AddressMcpToolkit = Toolkit.make(SuggestAddressTool)
 
 const handleSuggestAddress = (payload: SuggestAddressPayload) =>
-  Effect.flatMap(AddressCachedSuggestor, (suggestor) =>
-    toSuggestRequest(payload).pipe(Effect.flatMap((request) => suggestor.suggest(request)))
-  )
+  Effect.gen(function* () {
+    const suggestor = yield* AddressCachedSuggestor
+    const request = yield* toSuggestRequest(payload)
+    return yield* suggestor.suggest(request)
+  }).pipe(Effect.mapError((error) => ({ message: error.message })))
 
 export const AddressMcpHandlersLayer = AddressMcpToolkit.toLayer({
   "suggest-address": handleSuggestAddress

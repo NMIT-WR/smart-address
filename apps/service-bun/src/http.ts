@@ -19,12 +19,12 @@ const corsHeaders = {
 const withCors = (response: HttpServerResponse.HttpServerResponse) =>
   HttpServerResponse.setHeaders(response, corsHeaders)
 
-const withCorsEffect = <E, R>(
-  response: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>
-) => response.pipe(Effect.map(withCors))
+const jsonResponse = (body: unknown, status?: number) => {
+  const options = status === undefined ? undefined : { status }
+  return withCors(HttpServerResponse.unsafeJson(body, options))
+}
 
-const errorResponse = (message: string, status = 400) =>
-  withCorsEffect(HttpServerResponse.json({ error: message }, { status }))
+const errorResponse = (message: string, status = 400) => jsonResponse({ error: message }, status)
 
 const isSuggestRequestError = (error: unknown): error is SuggestRequestError =>
   typeof error === "object" &&
@@ -38,13 +38,10 @@ const parseSuggestPayload = (payload: unknown) =>
 const handleSuggestPayload = (suggestor: AddressCachedSuggestor, payload: unknown) =>
   parseSuggestPayload(payload).pipe(
     Effect.flatMap((request) => suggestor.suggest(request)),
-    Effect.flatMap((result) => withCorsEffect(HttpServerResponse.json(result))),
-    Effect.catchAll((error) => {
-      if (isSuggestRequestError(error)) {
-        return errorResponse(error.message)
-      }
-      return errorResponse("Invalid request")
-    })
+    Effect.map((result) => jsonResponse(result)),
+    Effect.catchAll((error) =>
+      Effect.succeed(isSuggestRequestError(error) ? errorResponse(error.message) : errorResponse("Invalid request"))
+    )
   )
 
 export const handleSuggestGet =
