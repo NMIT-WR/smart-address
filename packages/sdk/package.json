@@ -41,6 +41,7 @@
   ],
   "scripts": {
     "build": "rslib build",
+    "test": "bun test",
     "typecheck": "tsc --noEmit",
     "publint": "publint",
     "tree-shake": "is-tree-shakable"

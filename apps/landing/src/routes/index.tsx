@@ -6,8 +6,6 @@ import { availableLanguages } from '../i18n'
 
 export const Route = createFileRoute('/')({ component: Landing })
 
-type Suggestion = AddressSuggestion
-
 const demoEndpoint =
   import.meta.env.VITE_SUGGEST_URL ?? 'http://localhost:8787/suggest'
 const demoClient = createClient({
@@ -15,7 +13,7 @@ const demoClient = createClient({
   key: import.meta.env.VITE_SUGGEST_KEY,
 })
 
-const formatAddress = (suggestion: Suggestion) => {
+const formatAddress = (suggestion: AddressSuggestion) => {
   const address = suggestion.address ?? {}
   const parts = [
     address.line1,
@@ -29,7 +27,7 @@ const formatAddress = (suggestion: Suggestion) => {
 }
 
 const useSuggestions = (query: string) => {
-  const [results, setResults] = useState<ReadonlyArray<Suggestion>>([])
+  const [results, setResults] = useState<ReadonlyArray<AddressSuggestion>>([])
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'ready'>(
     'idle',
   )
@@ -57,21 +55,7 @@ const useSuggestions = (query: string) => {
           },
           { signal: controller.signal },
         )
-        const sorted = [...payload.suggestions].sort((left, right) => {
-          const leftScore = typeof left.score === 'number' ? left.score : null
-          const rightScore = typeof right.score === 'number' ? right.score : null
-          if (leftScore === null && rightScore === null) {
-            return 0
-          }
-          if (leftScore === null) {
-            return 1
-          }
-          if (rightScore === null) {
-            return -1
-          }
-          return rightScore - leftScore
-        })
-        setResults(sorted)
+        setResults(payload.suggestions)
         setStatus('ready')
       } catch (err) {
         if ((err as { name?: string }).name === 'AbortError') {

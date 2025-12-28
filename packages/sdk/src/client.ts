@@ -1,17 +1,19 @@
 import type {
-  AddressParts as CoreAddressParts,
-  AddressSuggestion as CoreAddressSuggestion,
-  AddressSuggestionError as CoreAddressSuggestionError,
-  AddressSuggestionResult as CoreAddressSuggestionResult,
-  AddressSuggestionSource as CoreAddressSuggestionSource
+  AddressParts,
+  AddressSuggestion,
+  AddressSuggestionError,
+  AddressSuggestionResult,
+  AddressSuggestionSource
 } from "@smart-address/core"
 
 export type AddressStrategy = "fast" | "reliable"
-export type AddressParts = CoreAddressParts
-export type AddressSuggestionSource = CoreAddressSuggestionSource
-export type AddressSuggestion = CoreAddressSuggestion
-export type AddressSuggestionError = CoreAddressSuggestionError
-export type AddressSuggestionResult = CoreAddressSuggestionResult
+export type {
+  AddressParts,
+  AddressSuggestion,
+  AddressSuggestionError,
+  AddressSuggestionResult,
+  AddressSuggestionSource
+}
 
 export type SuggestAddressRequest = {
   readonly text: string
