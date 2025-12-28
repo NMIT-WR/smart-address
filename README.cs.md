@@ -36,6 +36,49 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+## Docker (self-hosting)
+
+Sestavení image:
+
+```bash
+docker build -t smart-address-service .
+```
+
+Tip na tagování (doporučeno pro produkci):
+
+```bash
+docker build -t smart-address-service:$(git rev-parse --short HEAD) .
+```
+
+Spuštění přes Docker Compose:
+
+```bash
+NOMINATIM_USER_AGENT="your-app-name" \
+NOMINATIM_EMAIL="you@example.com" \
+docker compose up -d
+```
+
+Tip: `docker compose` načítá `.env` v kořeni repa, takže můžete nastavit
+`NOMINATIM_USER_AGENT` a `NOMINATIM_EMAIL` tam místo inline.
+
+Persistování SQLite DB:
+
+- Compose mountuje volume `smart-address-data` do `/app/data`.
+- Výchozí cesta DB je `data/smart-address.db` (relativně k `/app`).
+- Přepište přes `SMART_ADDRESS_DB_PATH` (např. `/app/data/custom.db`).
+
+Doporučené env proměnné (zásady Nominatim):
+
+- `NOMINATIM_USER_AGENT` (výchozí: `smart-address-service`, pokud je prázdné/nevyplněné)
+- `NOMINATIM_EMAIL` (volitelné, doporučeno pro produkci)
+
+Volitelné env proměnné:
+
+- `NOMINATIM_BASE_URL`, `NOMINATIM_REFERER`, `NOMINATIM_DEFAULT_LIMIT`, `NOMINATIM_RATE_LIMIT_MS`
+- `PORT` (výchozí `8787`), `PROVIDER_TIMEOUT_MS`
+- Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
+- Přepsání cesty DB: `SMART_ADDRESS_DB_PATH`
+
 ## Dokumentace
 
 - Zdroj webu: `apps/docs`
@@ -53,4 +96,3 @@ pnpm --filter docs dev
 Služba publikuje MCP tool `suggest-address` na `http://localhost:8787/mcp`.
 
 Reference: `apps/docs/content/cs/reference/mcp-tool.md`
-
