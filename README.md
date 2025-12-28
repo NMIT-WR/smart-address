@@ -36,6 +36,10 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+## Hosted MVP security
+
+- `SUGGEST_API_KEYS` enables `?key=` protection on `/suggest` (comma-separated for key rotation).
+
 ## Docs
 
 - Website source: `apps/docs`
@@ -53,4 +57,3 @@ pnpm --filter docs dev
 The service exposes an MCP tool named `suggest-address` on `http://localhost:8787/mcp`.
 
 Reference: `apps/docs/content/en/reference/mcp-tool.md`
-

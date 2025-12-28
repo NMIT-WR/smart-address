@@ -22,6 +22,16 @@ const parseNumber = (value: string | undefined): number | undefined => {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
+const parseList = (value: string | undefined): ReadonlyArray<string> => {
+  if (!value) {
+    return []
+  }
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0)
+}
+
 const port = parseNumber(Bun.env.PORT) ?? 8787
 const timeoutMs = parseNumber(Bun.env.PROVIDER_TIMEOUT_MS) ?? 4000
 const defaultLimit = parseNumber(Bun.env.NOMINATIM_DEFAULT_LIMIT)
@@ -32,6 +42,7 @@ const l2BaseTtlMs = parseNumber(Bun.env.CACHE_L2_BASE_TTL_MS)
 const l2MinTtlMs = parseNumber(Bun.env.CACHE_L2_MIN_TTL_MS)
 const l2MaxTtlMs = parseNumber(Bun.env.CACHE_L2_MAX_TTL_MS)
 const l2SWRMs = parseNumber(Bun.env.CACHE_L2_SWR_MS)
+const suggestKeys = parseList(Bun.env.SUGGEST_API_KEYS)
 
 const nominatimBaseUrl = Bun.env.NOMINATIM_BASE_URL
 const nominatimEmail = Bun.env.NOMINATIM_EMAIL
@@ -81,7 +92,11 @@ const suggestorLayer = AddressCachedSuggestorLayer.pipe(
   Layer.provide(AddressSearchLogSqlite(sqliteConfig))
 )
 
-const appLayer = Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer).pipe(
+const appLayer = Layer.mergeAll(
+  AddressRoutesLayer({ keys: suggestKeys }),
+  AddressRpcServerLayer,
+  AddressMcpLayer
+).pipe(
   Layer.provide(suggestorLayer),
   Layer.provide(AddressMcpHandlersLayer)
 )

@@ -26,11 +26,12 @@ Other protocols:
   - `locale` (BCP-47)
   - `sessionToken` (string)
   - `strategy` or `mode` (`fast` | `reliable`)
+  - `key` (required when `SUGGEST_API_KEYS` is set)
 
 ### Example
 
 ```bash
-curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
+curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ&key=demo"
 ```
 
 ## POST /suggest
@@ -38,6 +39,8 @@ curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
 ### Inputs (JSON body)
 
 Same fields as `GET /suggest`.
+
+When `SUGGEST_API_KEYS` is set, pass `?key=...` in the URL query string.
 
 ```json
 {
