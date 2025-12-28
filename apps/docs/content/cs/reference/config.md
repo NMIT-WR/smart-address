@@ -16,6 +16,24 @@ Environment proměnné služby (Bun). Hodnoty se čtou z procesního prostředí
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, `0` = vypnout)
 
+## HERE
+
+- `HERE_API_KEY` (string, zapíná provider)
+- `HERE_BASE_URL` (string, volitelný override)
+
+## Radar
+
+- `RADAR_API_KEY` (string, zapíná provider)
+- `RADAR_BASE_URL` (string, volitelný override)
+
+## Provideři
+
+- `PROVIDER_ORDER` (seznam oddělený čárkou, default: `here,radar,nominatim`; použijí se jen nakonfigurovaní provideři)
+
+## Zabezpečení
+
+- `SUGGEST_API_KEYS` (seznam oddělený čárkou; pokud je nastaveno, `/suggest` vyžaduje `?key=...`)
+
 ## Cache
 
 - `CACHE_L1_CAPACITY` (number, default `500`)

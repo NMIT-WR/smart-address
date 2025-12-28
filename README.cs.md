@@ -36,6 +36,12 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+## Konfigurace pro hosted MVP
+
+- `HERE_API_KEY` a/nebo `RADAR_API_KEY` zapínají providery (volitelně: `HERE_BASE_URL`, `RADAR_BASE_URL`).
+- `PROVIDER_ORDER` řídí pořadí providerů (seznam oddělený čárkou, např. `here,radar,nominatim`).
+- `SUGGEST_API_KEYS` zapne ochranu `/suggest` přes `?key=` (seznam oddělený čárkou pro rotaci klíčů).
+
 ## Dokumentace
 
 - Zdroj webu: `apps/docs`
@@ -53,4 +59,3 @@ pnpm --filter docs dev
 Služba publikuje MCP tool `suggest-address` na `http://localhost:8787/mcp`.
 
 Reference: `apps/docs/content/cs/reference/mcp-tool.md`
-

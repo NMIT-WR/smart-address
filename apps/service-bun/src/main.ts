@@ -22,6 +22,17 @@ const parseNumber = (value: string | undefined): number | undefined => {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
+const parseList = (value: string | undefined): ReadonlyArray<string> | undefined => {
+  if (!value) {
+    return undefined
+  }
+  const items = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0)
+  return items.length > 0 ? items : undefined
+}
+
 const port = parseNumber(Bun.env.PORT) ?? 8787
 const timeoutMs = parseNumber(Bun.env.PROVIDER_TIMEOUT_MS) ?? 4000
 const defaultLimit = parseNumber(Bun.env.NOMINATIM_DEFAULT_LIMIT)
@@ -36,6 +47,12 @@ const l2SWRMs = parseNumber(Bun.env.CACHE_L2_SWR_MS)
 const nominatimBaseUrl = Bun.env.NOMINATIM_BASE_URL
 const nominatimEmail = Bun.env.NOMINATIM_EMAIL
 const nominatimReferer = Bun.env.NOMINATIM_REFERER
+const hereApiKey = Bun.env.HERE_API_KEY
+const hereBaseUrl = Bun.env.HERE_BASE_URL
+const radarApiKey = Bun.env.RADAR_API_KEY
+const radarBaseUrl = Bun.env.RADAR_BASE_URL
+const providerOrder = parseList(Bun.env.PROVIDER_ORDER)?.map((item) => item.toLowerCase())
+const suggestKeys = parseList(Bun.env.SUGGEST_API_KEYS) ?? []
 
 const nominatimConfig = {
   userAgent: Bun.env.NOMINATIM_USER_AGENT ?? "smart-address-service",
@@ -44,6 +61,20 @@ const nominatimConfig = {
   ...(nominatimReferer !== undefined ? { referer: nominatimReferer } : {}),
   ...(defaultLimit !== undefined ? { defaultLimit } : {})
 }
+
+const hereConfig = hereApiKey
+  ? {
+      apiKey: hereApiKey,
+      ...(hereBaseUrl !== undefined ? { baseUrl: hereBaseUrl } : {})
+    }
+  : undefined
+
+const radarConfig = radarApiKey
+  ? {
+      apiKey: radarApiKey,
+      ...(radarBaseUrl !== undefined ? { baseUrl: radarBaseUrl } : {})
+    }
+  : undefined
 
 const nominatimRateLimit =
   nominatimRateLimitMs === undefined
@@ -72,6 +103,9 @@ const suggestorLayer = AddressCachedSuggestorLayer.pipe(
   Layer.provide(
     AddressSuggestorLayer({
       nominatim: nominatimConfig,
+      ...(hereConfig ? { here: hereConfig } : {}),
+      ...(radarConfig ? { radar: radarConfig } : {}),
+      ...(providerOrder ? { providerOrder } : {}),
       providerTimeout: Duration.millis(timeoutMs),
       nominatimRateLimit
     })
@@ -81,7 +115,11 @@ const suggestorLayer = AddressCachedSuggestorLayer.pipe(
   Layer.provide(AddressSearchLogSqlite(sqliteConfig))
 )
 
-const appLayer = Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer).pipe(
+const appLayer = Layer.mergeAll(
+  AddressRoutesLayer({ keys: suggestKeys }),
+  AddressRpcServerLayer,
+  AddressMcpLayer
+).pipe(
   Layer.provide(suggestorLayer),
   Layer.provide(AddressMcpHandlersLayer)
 )

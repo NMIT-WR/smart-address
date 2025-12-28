@@ -26,11 +26,12 @@ Další protokoly:
   - `locale` (BCP-47)
   - `sessionToken` (string)
   - `strategy` nebo `mode` (`fast` | `reliable`)
+  - `key` (povinné, pokud je nastaveno `SUGGEST_API_KEYS`)
 
 ### Příklad
 
 ```bash
-curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
+curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ&key=demo"
 ```
 
 ## POST /suggest
@@ -38,6 +39,8 @@ curl "http://localhost:8787/suggest?q=Brno&limit=5&countryCode=CZ"
 ### Vstupy (JSON body)
 
 Stejná pole jako `GET /suggest`.
+
+Pokud je nastaveno `SUGGEST_API_KEYS`, přidejte `?key=...` do URL query stringu.
 
 ```json
 {

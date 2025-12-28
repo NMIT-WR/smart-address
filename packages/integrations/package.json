@@ -8,6 +8,10 @@
       "types": "./dist/http.d.ts",
       "import": "./dist/http.js"
     },
+    "./here": {
+      "types": "./dist/here.d.ts",
+      "import": "./dist/here.js"
+    },
     "./rate-limit": {
       "types": "./dist/rate-limit.d.ts",
       "import": "./dist/rate-limit.js"
@@ -15,6 +19,10 @@
     "./nominatim": {
       "types": "./dist/nominatim.d.ts",
       "import": "./dist/nominatim.js"
+    },
+    "./radar": {
+      "types": "./dist/radar.d.ts",
+      "import": "./dist/radar.js"
     },
     "./service-client": {
       "types": "./dist/service-client.d.ts",

@@ -16,6 +16,24 @@ Service environment variables (Bun). All values are read from the process enviro
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, set `0` to disable)
 
+## HERE
+
+- `HERE_API_KEY` (string, enables provider)
+- `HERE_BASE_URL` (string, optional override)
+
+## Radar
+
+- `RADAR_API_KEY` (string, enables provider)
+- `RADAR_BASE_URL` (string, optional override)
+
+## Providers
+
+- `PROVIDER_ORDER` (comma-separated list, default: `here,radar,nominatim`; only configured providers are used)
+
+## Security
+
+- `SUGGEST_API_KEYS` (comma-separated list; when set, `/suggest` requires `?key=...`)
+
 ## Cache
 
 - `CACHE_L1_CAPACITY` (number, default `500`)

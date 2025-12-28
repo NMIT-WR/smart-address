@@ -36,6 +36,12 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+## Hosted MVP config
+
+- `HERE_API_KEY` and/or `RADAR_API_KEY` enable providers (optional: `HERE_BASE_URL`, `RADAR_BASE_URL`).
+- `PROVIDER_ORDER` controls provider order (comma-separated, e.g. `here,radar,nominatim`).
+- `SUGGEST_API_KEYS` enables `?key=` protection on `/suggest` (comma-separated for rotation).
+
 ## Docs
 
 - Website source: `apps/docs`
@@ -53,4 +59,3 @@ pnpm --filter docs dev
 The service exposes an MCP tool named `suggest-address` on `http://localhost:8787/mcp`.
 
 Reference: `apps/docs/content/en/reference/mcp-tool.md`
-

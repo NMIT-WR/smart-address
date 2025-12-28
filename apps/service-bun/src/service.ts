@@ -3,11 +3,15 @@ import * as Duration from "effect/Duration"
 import {
   makeAddressSuggestionService,
   withProviderTimeout,
+  type AddressProvider,
   type AddressProviderPlan,
+  type AddressSuggestion,
   type AddressSuggestionResult,
   type AddressSuggestionService
 } from "@smart-address/core"
+import { makeHereProvider, type HereConfig } from "@smart-address/integrations/here"
 import { makeNominatimProvider, type NominatimConfig } from "@smart-address/integrations/nominatim"
+import { makeRadarProvider, type RadarConfig } from "@smart-address/integrations/radar"
 import { makeAddressRateLimiter, withRateLimiter } from "@smart-address/integrations/rate-limit"
 import type * as HttpClient from "@effect/platform/HttpClient"
 import type { SuggestRequest } from "./request"
@@ -22,42 +26,108 @@ export const AddressSuggestor = Context.GenericTag<AddressSuggestor>("AddressSug
 
 export type AddressSuggestorConfig = {
   readonly nominatim: NominatimConfig
+  readonly here?: HereConfig
+  readonly radar?: RadarConfig
   readonly providerTimeout?: Duration.DurationInput
   readonly nominatimRateLimit?: Duration.DurationInput | null
+  readonly providerOrder?: ReadonlyArray<string>
+}
+
+const defaultProviderOrder = ["here", "radar", "nominatim"]
+
+const normalizeKeyPart = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined
+  }
+  const trimmed = value.trim().toLowerCase()
+  return trimmed.length === 0 ? undefined : trimmed.replace(/\s+/g, " ")
+}
+
+const addressDedupeKey = (suggestion: AddressSuggestion): string => {
+  const address = suggestion.address
+  const parts = [
+    suggestion.label,
+    address.line1,
+    address.line2,
+    address.city,
+    address.region,
+    address.postalCode,
+    address.countryCode
+  ]
+    .map(normalizeKeyPart)
+    .filter((value): value is string => Boolean(value))
+
+  if (parts.length === 0) {
+    return suggestion.id
+  }
+
+  return parts.join("|")
 }
 
 const makePlan = (
-  provider: ReturnType<typeof makeNominatimProvider>,
+  providers: ReadonlyArray<AddressProvider<HttpClient.HttpClient>>,
   name: string
 ): AddressProviderPlan<HttpClient.HttpClient> => ({
-  stages: [
-    {
-      name,
-      providers: [provider],
-      concurrency: 1
-    }
-  ]
+  stages: providers.map((provider) => ({
+    name: `${name}:${provider.name}`,
+    providers: [provider],
+    concurrency: 1
+  }))
 })
 
 const makeService = (
-  plan: AddressProviderPlan<HttpClient.HttpClient>
+  plan: AddressProviderPlan<HttpClient.HttpClient>,
+  stopAtLimit: boolean
 ): AddressSuggestionService<HttpClient.HttpClient> =>
-  makeAddressSuggestionService(plan, { stopAtLimit: true })
+  makeAddressSuggestionService(plan, { stopAtLimit, dedupeKey: addressDedupeKey })
+
+const resolveProviderOrder = (
+  providerOrder: ReadonlyArray<string> | undefined,
+  providers: Map<string, AddressProvider<HttpClient.HttpClient>>
+): ReadonlyArray<AddressProvider<HttpClient.HttpClient>> => {
+  const normalizeName = (name: string) => name.trim().toLowerCase()
+  const order = (providerOrder && providerOrder.length > 0 ? providerOrder : defaultProviderOrder).map(normalizeName)
+  const resolved = order
+    .map((name) => providers.get(name))
+    .filter((provider): provider is AddressProvider<HttpClient.HttpClient> => Boolean(provider))
+
+  if (resolved.length > 0) {
+    return resolved
+  }
+
+  return defaultProviderOrder
+    .map((name) => providers.get(name))
+    .filter((provider): provider is AddressProvider<HttpClient.HttpClient> => Boolean(provider))
+}
 
 export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
   Layer.effect(
     AddressSuggestor,
     Effect.gen(function* () {
       const timeout = config.providerTimeout ?? Duration.seconds(4)
-      const baseProvider = withProviderTimeout(makeNominatimProvider(config.nominatim), timeout)
+      const providers = new Map<string, AddressProvider<HttpClient.HttpClient>>()
       const rateLimit =
         config.nominatimRateLimit === null ? null : config.nominatimRateLimit ?? Duration.seconds(1)
       const limiter = rateLimit ? yield* makeAddressRateLimiter(rateLimit) : null
-      const provider = limiter ? withRateLimiter(baseProvider, limiter) : baseProvider
-      const fastPlan = makePlan(provider, "public-fast")
-      const reliablePlan = makePlan(provider, "public-reliable")
-      const fastService = makeService(fastPlan)
-      const reliableService = makeService(reliablePlan)
+      const baseNominatim = withProviderTimeout(makeNominatimProvider(config.nominatim), timeout)
+      const nominatim = limiter ? withRateLimiter(baseNominatim, limiter) : baseNominatim
+
+      providers.set("nominatim", nominatim)
+
+      if (config.here) {
+        providers.set("here", withProviderTimeout(makeHereProvider(config.here), timeout))
+      }
+
+      if (config.radar) {
+        providers.set("radar", withProviderTimeout(makeRadarProvider(config.radar), timeout))
+      }
+
+      const orderedProviders = resolveProviderOrder(config.providerOrder, providers)
+      const fastProviders = orderedProviders.slice(0, 1)
+      const fastPlan = makePlan(fastProviders, "public-fast")
+      const reliablePlan = makePlan(orderedProviders, "public-reliable")
+      const fastService = makeService(fastPlan, true)
+      const reliableService = makeService(reliablePlan, false)
 
       return {
         suggest: (request) =>
