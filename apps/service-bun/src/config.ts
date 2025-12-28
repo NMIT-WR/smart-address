@@ -14,12 +14,8 @@ export type AddressServiceConfig = {
 }
 
 const rawConfig = Config.all({
-  port: Config.integer("PORT").pipe(
-    Config.orElse(() => Config.succeed(8787))
-  ),
-  providerTimeoutMs: Config.integer("PROVIDER_TIMEOUT_MS").pipe(
-    Config.orElse(() => Config.succeed(4000))
-  ),
+  port: Config.port("PORT").pipe(Config.withDefault(8787)),
+  providerTimeoutMs: Config.integer("PROVIDER_TIMEOUT_MS").pipe(Config.withDefault(4000)),
   defaultLimit: Config.option(Config.integer("NOMINATIM_DEFAULT_LIMIT")),
   nominatimRateLimitMs: Config.option(Config.integer("NOMINATIM_RATE_LIMIT_MS")),
   l1Capacity: Config.option(Config.integer("CACHE_L1_CAPACITY")),
@@ -28,21 +24,13 @@ const rawConfig = Config.all({
   l2MinTtlMs: Config.option(Config.integer("CACHE_L2_MIN_TTL_MS")),
   l2MaxTtlMs: Config.option(Config.integer("CACHE_L2_MAX_TTL_MS")),
   l2SWRMs: Config.option(Config.integer("CACHE_L2_SWR_MS")),
-  nominatimBaseUrl: Config.string("NOMINATIM_BASE_URL").pipe(
-    Config.orElse(() => Config.succeed(""))
-  ),
-  nominatimEmail: Config.string("NOMINATIM_EMAIL").pipe(
-    Config.orElse(() => Config.succeed(""))
-  ),
-  nominatimReferer: Config.string("NOMINATIM_REFERER").pipe(
-    Config.orElse(() => Config.succeed(""))
-  ),
+  nominatimBaseUrl: Config.string("NOMINATIM_BASE_URL").pipe(Config.withDefault("")),
+  nominatimEmail: Config.string("NOMINATIM_EMAIL").pipe(Config.withDefault("")),
+  nominatimReferer: Config.string("NOMINATIM_REFERER").pipe(Config.withDefault("")),
   nominatimUserAgent: Config.string("NOMINATIM_USER_AGENT").pipe(
-    Config.orElse(() => Config.succeed("smart-address-service"))
+    Config.withDefault("smart-address-service")
   ),
-  sqlitePath: Config.string("SMART_ADDRESS_DB_PATH").pipe(
-    Config.orElse(() => Config.succeed(""))
-  )
+  sqlitePath: Config.string("SMART_ADDRESS_DB_PATH").pipe(Config.withDefault(""))
 })
 
 export const addressServiceConfig = rawConfig.pipe(
