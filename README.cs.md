@@ -36,6 +36,40 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+## Docker (self-hosting)
+
+Sestavení image:
+
+```bash
+docker build -t smart-address-service .
+```
+
+Spuštění přes Docker Compose:
+
+```bash
+NOMINATIM_USER_AGENT="your-app-name" \
+NOMINATIM_EMAIL="you@example.com" \
+docker compose up -d
+```
+
+Persistování SQLite DB:
+
+- Compose mountuje volume `smart-address-data` do `/app/data`.
+- Výchozí cesta DB je `data/smart-address.db` (relativně k `/app`).
+- Přepište přes `SMART_ADDRESS_DB_PATH` (např. `/app/data/custom.db`).
+
+Povinné env proměnné (Nominatim):
+
+- `NOMINATIM_USER_AGENT`
+- `NOMINATIM_EMAIL`
+
+Volitelné env proměnné:
+
+- `NOMINATIM_BASE_URL`, `NOMINATIM_REFERER`, `NOMINATIM_DEFAULT_LIMIT`, `NOMINATIM_RATE_LIMIT_MS`
+- `PORT` (výchozí `8787`), `PROVIDER_TIMEOUT_MS`
+- Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
+- Přepsání cesty DB: `SMART_ADDRESS_DB_PATH`
+
 ## Dokumentace
 
 - Zdroj webu: `apps/docs`
@@ -53,4 +87,3 @@ pnpm --filter docs dev
 Služba publikuje MCP tool `suggest-address` na `http://localhost:8787/mcp`.
 
 Reference: `apps/docs/content/cs/reference/mcp-tool.md`
-

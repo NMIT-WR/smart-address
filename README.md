@@ -36,6 +36,40 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+## Docker (self-hosting)
+
+Build the image:
+
+```bash
+docker build -t smart-address-service .
+```
+
+Run with Docker Compose:
+
+```bash
+NOMINATIM_USER_AGENT="your-app-name" \
+NOMINATIM_EMAIL="you@example.com" \
+docker compose up -d
+```
+
+Persist the SQLite DB:
+
+- Compose mounts the `smart-address-data` volume to `/app/data`.
+- The default DB path is `data/smart-address.db` (relative to `/app`).
+- Override with `SMART_ADDRESS_DB_PATH` (for example `/app/data/custom.db`).
+
+Required env vars (Nominatim):
+
+- `NOMINATIM_USER_AGENT`
+- `NOMINATIM_EMAIL`
+
+Optional env vars:
+
+- `NOMINATIM_BASE_URL`, `NOMINATIM_REFERER`, `NOMINATIM_DEFAULT_LIMIT`, `NOMINATIM_RATE_LIMIT_MS`
+- `PORT` (default `8787`), `PROVIDER_TIMEOUT_MS`
+- Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
+- DB path override: `SMART_ADDRESS_DB_PATH`
+
 ## Docs
 
 - Website source: `apps/docs`
@@ -53,4 +87,3 @@ pnpm --filter docs dev
 The service exposes an MCP tool named `suggest-address` on `http://localhost:8787/mcp`.
 
 Reference: `apps/docs/content/en/reference/mcp-tool.md`
-
