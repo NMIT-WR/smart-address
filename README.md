@@ -52,6 +52,9 @@ NOMINATIM_EMAIL="you@example.com" \
 docker compose up -d
 ```
 
+Tip: `docker compose` reads `.env` in the repo root, so you can set
+`NOMINATIM_USER_AGENT` and `NOMINATIM_EMAIL` there instead of inline.
+
 Persist the SQLite DB:
 
 - Compose mounts the `smart-address-data` volume to `/app/data`.

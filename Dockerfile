@@ -1,7 +1,7 @@
 FROM oven/bun:1.1.38-alpine AS build
 
-RUN apk add --no-cache git nodejs npm
-RUN npm install -g pnpm@10.26.2
+RUN apk add --no-cache git nodejs npm \
+  && npm install -g pnpm@10.26.2
 
 WORKDIR /app
 
@@ -29,7 +29,8 @@ ENV NODE_ENV=production
 
 COPY --from=build /app /app
 
-RUN addgroup -S app \
+RUN apk add --no-cache curl \
+  && addgroup -S app \
   && adduser -S -G app app \
   && mkdir -p /app/data \
   && chown -R app:app /app
@@ -39,6 +40,6 @@ USER app
 EXPOSE 8787
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:8787/health | grep -q "ok" || exit 1
+  CMD curl -fsS http://127.0.0.1:8787/health >/dev/null || exit 1
 
 CMD ["bun", "apps/service-bun/src/main.ts"]

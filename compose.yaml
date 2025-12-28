@@ -6,8 +6,8 @@ services:
     ports:
       - "8787:8787"
     environment:
-      NOMINATIM_USER_AGENT: "smart-address-selfhost"
-      NOMINATIM_EMAIL: "you@example.com"
+      NOMINATIM_USER_AGENT: "${NOMINATIM_USER_AGENT}"
+      NOMINATIM_EMAIL: "${NOMINATIM_EMAIL}"
       # Optional overrides:
       # NOMINATIM_BASE_URL: "https://nominatim.openstreetmap.org"
       # NOMINATIM_REFERER: "https://your-app.example"

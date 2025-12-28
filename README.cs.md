@@ -52,6 +52,9 @@ NOMINATIM_EMAIL="you@example.com" \
 docker compose up -d
 ```
 
+Tip: `docker compose` načítá `.env` v kořeni repa, takže můžete nastavit
+`NOMINATIM_USER_AGENT` a `NOMINATIM_EMAIL` tam místo inline.
+
 Persistování SQLite DB:
 
 - Compose mountuje volume `smart-address-data` do `/app/data`.
