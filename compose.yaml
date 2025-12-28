@@ -1,0 +1,26 @@
+services:
+  smart-address:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8787:8787"
+    environment:
+      NOMINATIM_USER_AGENT: "${NOMINATIM_USER_AGENT:-smart-address-service}"
+      NOMINATIM_EMAIL: "${NOMINATIM_EMAIL:-}"
+      # Optional overrides:
+      # NOMINATIM_BASE_URL: "https://nominatim.openstreetmap.org"
+      # NOMINATIM_REFERER: "https://your-app.example"
+      # SMART_ADDRESS_DB_PATH: "/app/data/smart-address.db"
+    volumes:
+      - smart-address-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8787/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  smart-address-data:

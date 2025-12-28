@@ -53,6 +53,48 @@ curl "http://localhost:8787/health"
 </script>
 ```
 
+## Docker (self-hosting)
+
+Build the image:
+
+```bash
+docker build -t smart-address-service .
+```
+
+Tagging tip (recommended for production):
+
+```bash
+docker build -t smart-address-service:$(git rev-parse --short HEAD) .
+```
+
+Run with Docker Compose:
+
+```bash
+NOMINATIM_USER_AGENT="your-app-name" \
+NOMINATIM_EMAIL="you@example.com" \
+docker compose up -d
+```
+
+Tip: `docker compose` reads `.env` in the repo root, so you can set
+`NOMINATIM_USER_AGENT` and `NOMINATIM_EMAIL` there instead of inline.
+
+Persist the SQLite DB:
+
+- Compose mounts the `smart-address-data` volume to `/app/data`.
+- The default DB path is `data/smart-address.db` (relative to `/app`).
+- Override with `SMART_ADDRESS_DB_PATH` (for example `/app/data/custom.db`).
+
+Recommended env vars (Nominatim usage policy):
+
+- `NOMINATIM_USER_AGENT` (default: `smart-address-service` when unset/blank)
+- `NOMINATIM_EMAIL` (optional, recommended for production use)
+
+Optional env vars:
+
+- `NOMINATIM_BASE_URL`, `NOMINATIM_REFERER`, `NOMINATIM_DEFAULT_LIMIT`, `NOMINATIM_RATE_LIMIT_MS`
+- `PORT` (default `8787`), `PROVIDER_TIMEOUT_MS`
+- Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
+- DB path override: `SMART_ADDRESS_DB_PATH`
 ## Docs
 
 - Website source: `apps/docs`

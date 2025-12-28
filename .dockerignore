@@ -1,0 +1,16 @@
+.git
+.gitignore
+.vscode
+.DS_Store
+**/.DS_Store
+**/node_modules
+**/.pnpm-store
+**/dist
+**/build
+**/coverage
+**/.cache
+**/.turbo
+**/tmp
+**/*.log
+**/.env
+**/.env.*
