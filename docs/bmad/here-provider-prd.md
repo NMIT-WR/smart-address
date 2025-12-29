@@ -32,19 +32,21 @@ The smart-address service currently only supports Nominatim (OpenStreetMap) as a
 **Authentication**: API key via `apiKey` query parameter
 
 **Request Parameters**:
+
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `apiKey` | Yes | HERE API key |
 | `q` | Yes | Free-text search query |
-| `at` | Yes* | Center point for search (lat,lng) |
+| `at` | No | Center point for search (lat,lng) - optional geographic bias |
 | `in` | No | Country filter (countryCode:XXX) |
 | `limit` | No | Max results (1-100, default 20) |
 | `lang` | No | Response language (BCP 47) |
 | `show` | No | Additional fields (use `details`) |
 
-*Note: `at` is required by HERE API - we'll use a default if not provided
+*Note: `at` is optional - omitting it gives global search without geographic bias
 
 **Response Structure**:
+
 ```json
 {
   "items": [
@@ -79,6 +81,7 @@ The smart-address service currently only supports Nominatim (OpenStreetMap) as a
 ### Implementation Plan
 
 #### 1. HereConfig Type
+
 ```typescript
 export type HereConfig = {
   readonly apiKey: string
@@ -106,6 +109,7 @@ export type HereConfig = {
 - Set Accept-Language header from locale
 
 #### 5. Provider Factory
+
 ```typescript
 export const makeHereProvider = (config: HereConfig) =>
   makeAddressProvider("here", (query) => ...)
@@ -113,7 +117,7 @@ export const makeHereProvider = (config: HereConfig) =>
 
 ### File Structure
 
-```
+```text
 packages/integrations/
 ├── src/
 │   ├── here.ts          # HERE provider implementation
@@ -135,8 +139,8 @@ Update `apps/service-bun/src/service.ts`:
 | Variable | Description |
 |----------|-------------|
 | `HERE_API_KEY` | Required HERE API key |
-| `HERE_DEFAULT_LAT` | Default latitude for search bias |
-| `HERE_DEFAULT_LNG` | Default longitude for search bias |
+| `HERE_DEFAULT_LAT` | Optional latitude for search bias |
+| `HERE_DEFAULT_LNG` | Optional longitude for search bias |
 | `HERE_DEFAULT_LIMIT` | Default result limit |
 | `HERE_RATE_LIMIT_MS` | Rate limit between requests |
 
@@ -152,10 +156,10 @@ Update `apps/service-bun/src/service.ts`:
 ## Implementation Steps
 
 1. [x] Research HERE Discover API documentation
-2. [ ] Create HERE provider schema definitions
-3. [ ] Implement parser functions
-4. [ ] Implement makeHereProvider factory
-5. [ ] Add export to integrations package.json
-6. [ ] Write unit tests
-7. [ ] Wire into service-bun
-8. [ ] Test end-to-end
+2. [x] Create HERE provider schema definitions
+3. [x] Implement parser functions
+4. [x] Implement makeHereProvider factory
+5. [x] Add export to integrations package.json
+6. [x] Write unit tests
+7. [x] Wire into service-bun
+8. [x] Test end-to-end

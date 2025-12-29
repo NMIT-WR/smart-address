@@ -156,14 +156,15 @@ const buildRequest = (config: HereConfig, query: AddressQuery): HttpClientReques
   const normalized = normalizeAddressQuery(query)
   const limit = normalized.limit ?? config.defaultLimit ?? 5
 
-  const defaultAt = config.defaultAt ?? { lat: 0, lng: 0 }
-
   const params: Record<string, string> = {
     apiKey: config.apiKey,
     q: normalized.text,
-    at: `${defaultAt.lat},${defaultAt.lng}`,
     limit: String(limit),
     show: "details"
+  }
+
+  if (config.defaultAt) {
+    params.at = `${config.defaultAt.lat},${config.defaultAt.lng}`
   }
 
   if (normalized.countryCode) {
