@@ -3,10 +3,12 @@ import * as Duration from "effect/Duration"
 import {
   makeAddressSuggestionService,
   withProviderTimeout,
+  type AddressProvider,
   type AddressProviderPlan,
   type AddressSuggestionResult,
   type AddressSuggestionService
 } from "@smart-address/core"
+import { makeHereDiscoverProvider, type HereDiscoverConfig } from "@smart-address/integrations/here-discover"
 import { makeNominatimProvider, type NominatimConfig } from "@smart-address/integrations/nominatim"
 import { makeAddressRateLimiter, withRateLimiter } from "@smart-address/integrations/rate-limit"
 import type * as HttpClient from "@effect/platform/HttpClient"
@@ -24,20 +26,51 @@ export type AddressSuggestorConfig = {
   readonly nominatim: NominatimConfig
   readonly providerTimeout?: Duration.DurationInput
   readonly nominatimRateLimit?: Duration.DurationInput | null
+  readonly hereDiscover?: HereDiscoverConfig | null
+  readonly hereDiscoverRateLimit?: Duration.DurationInput | null
 }
 
+type HttpAddressProvider = AddressProvider<HttpClient.HttpClient>
+
 const makePlan = (
-  provider: ReturnType<typeof makeNominatimProvider>,
+  providers: ReadonlyArray<HttpAddressProvider>,
   name: string
 ): AddressProviderPlan<HttpClient.HttpClient> => ({
   stages: [
     {
       name,
-      providers: [provider],
+      providers,
       concurrency: 1
     }
   ]
 })
+
+const makeFallbackPlan = (
+  primary: HttpAddressProvider,
+  fallback: HttpAddressProvider,
+  name: string
+): AddressProviderPlan<HttpClient.HttpClient> => ({
+  stages: [
+    {
+      name,
+      providers: [primary],
+      concurrency: 1
+    },
+    {
+      name: `${name}-fallback`,
+      providers: [fallback],
+      concurrency: 1
+    }
+  ]
+})
+
+const withOptionalRateLimit = <R>(
+  provider: AddressProvider<R>,
+  rateLimit: Duration.DurationInput | null
+): Effect.Effect<AddressProvider<R>> =>
+  rateLimit
+    ? makeAddressRateLimiter(rateLimit).pipe(Effect.map((limiter) => withRateLimiter(provider, limiter)))
+    : Effect.succeed(provider)
 
 const makeService = (
   plan: AddressProviderPlan<HttpClient.HttpClient>
@@ -59,13 +92,23 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
     AddressSuggestor,
     Effect.gen(function* () {
       const timeout = config.providerTimeout ?? Duration.seconds(4)
-      const baseProvider = withProviderTimeout(makeNominatimProvider(config.nominatim), timeout)
-      const rateLimit =
+      const baseNominatim = withProviderTimeout(makeNominatimProvider(config.nominatim), timeout)
+      const nominatimRateLimit =
         config.nominatimRateLimit === null ? null : config.nominatimRateLimit ?? Duration.seconds(1)
-      const limiter = rateLimit ? yield* makeAddressRateLimiter(rateLimit) : null
-      const provider = limiter ? withRateLimiter(baseProvider, limiter) : baseProvider
-      const fastPlan = makePlan(provider, "public-fast")
-      const reliablePlan = makePlan(provider, "public-reliable")
+      const nominatimProvider = yield* withOptionalRateLimit(baseNominatim, nominatimRateLimit)
+
+      const hereProvider = config.hereDiscover
+        ? yield* withOptionalRateLimit(
+            withProviderTimeout(makeHereDiscoverProvider(config.hereDiscover), timeout),
+            config.hereDiscoverRateLimit ?? null
+          )
+        : null
+
+      const fastProvider = hereProvider ?? nominatimProvider
+      const fastPlan = makePlan([fastProvider], "public-fast")
+      const reliablePlan = hereProvider
+        ? makeFallbackPlan(hereProvider, nominatimProvider, "public-reliable")
+        : makePlan([nominatimProvider], "public-reliable")
       const fastService = makeService(fastPlan)
       const reliableService = makeService(reliablePlan)
 

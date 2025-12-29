@@ -55,7 +55,7 @@ curl "http://localhost:8787/health"
 
 ## Stav
 
-- Provideři: Nominatim (další přijdou)
+- Provideři: Nominatim, HERE Discover (další přijdou)
 - Strategie: `fast`, `reliable` (reliable-fast plánujeme)
 - Klienti: HTTP (`fetch`/`curl`), `@smart-address/integrations/service-client`, Effect RPC (`@smart-address/rpc/client`)
 

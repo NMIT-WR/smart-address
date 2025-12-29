@@ -7,7 +7,7 @@ Reliable address suggestions for checkout and onboarding. Built on Effect so you
 ## What’s in this repo
 
 - `packages/core` (`@smart-address/core`): domain types, provider planning, dedupe, and error collection.
-- `packages/integrations` (`@smart-address/integrations`): provider adapters (e.g. Nominatim) + HTTP/RL helpers.
+- `packages/integrations` (`@smart-address/integrations`): provider adapters (e.g. Nominatim, HERE Discover) + HTTP/RL helpers.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC contract + client helpers.
 - `packages/sdk` (`@smart-address/sdk`): tiny browser client (ESM module).
 - `apps/service-bun` (`@smart-address/service-bun`): Bun service exposing HTTP + MCP + RPC endpoints, caching, and SQLite persistence.
@@ -17,11 +17,14 @@ Reliable address suggestions for checkout and onboarding. Built on Effect so you
 
 Prereqs: `pnpm` + `bun`.
 
+Optional: set `HERE_API_KEY` to enable HERE Discover.
+
 ```bash
 pnpm install
 
 NOMINATIM_USER_AGENT="smart-address-dev" \
 NOMINATIM_EMAIL="you@example.com" \
+HERE_API_KEY="your-here-api-key" \
 pnpm --filter @smart-address/service-bun dev
 ```
 

@@ -38,3 +38,5 @@ Návratová hodnota je `AddressSuggestionResult`:
   "errors": []
 }
 ```
+
+Hodnota `provider` závisí na konfiguraci (například `nominatim` nebo `here-discover`, pokud je nastavené `HERE_API_KEY`).

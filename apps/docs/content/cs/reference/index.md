@@ -3,6 +3,7 @@
 Přesné rozhraní, schémata a runtime konfigurace. Berte tyto stránky jako zdroj pravdy pro názvy, defaulty a datové tvary.
 
 - [Core typy](/cs/reference/core-types)
+- [HERE Discover provider](/cs/reference/here-discover-provider)
 - [Service API](/cs/reference/service-api)
 - [MCP nástroj](/cs/reference/mcp-tool)
 - [Effect RPC](/cs/reference/rpc)

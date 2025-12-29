@@ -55,7 +55,7 @@ curl "http://localhost:8787/health"
 
 ## Status
 
-- Providers: Nominatim (more coming)
+- Providers: Nominatim, HERE Discover (more coming)
 - Strategies: `fast`, `reliable` (reliable-fast planned)
 - Clients: HTTP (`fetch`/`curl`), `@smart-address/integrations/service-client`, Effect RPC (`@smart-address/rpc/client`)
 

@@ -58,6 +58,8 @@ curl -X POST "http://localhost:8787/suggest" \
 }
 ```
 
+Hodnota `provider` závisí na konfiguraci (například `nominatim` nebo `here-discover`, pokud je nastavené `HERE_API_KEY`).
+
 ## Strategie
 
 - `reliable` (default)

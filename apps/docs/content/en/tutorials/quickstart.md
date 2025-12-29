@@ -9,6 +9,7 @@ Run the Bun service locally and fetch real address suggestions over HTTP.
 - `pnpm`
 - `bun`
 - Nominatim usage requires a real `User-Agent` (and it’s best practice to include an email).
+- Optional: set `HERE_API_KEY` to enable HERE Discover.
 
 ## Steps
 
@@ -51,7 +52,7 @@ Expected response: `ok`
 
 ## What you just used
 
-- Provider: Nominatim (public)
+- Provider: Nominatim (public). If `HERE_API_KEY` is set, fast uses HERE Discover and reliable uses HERE Discover with Nominatim fallback.
 - Strategy: `reliable` (default)
 - Cache: in-memory L1 + SQLite L2
 

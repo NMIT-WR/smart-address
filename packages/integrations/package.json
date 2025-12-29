@@ -16,6 +16,10 @@
       "types": "./dist/nominatim.d.ts",
       "import": "./dist/nominatim.js"
     },
+    "./here-discover": {
+      "types": "./dist/here-discover.d.ts",
+      "import": "./dist/here-discover.js"
+    },
     "./service-client": {
       "types": "./dist/service-client.d.ts",
       "import": "./dist/service-client.js"

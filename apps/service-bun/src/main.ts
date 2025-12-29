@@ -24,7 +24,9 @@ const serverLayer = Layer.unwrapEffect(
         AddressSuggestorLayer({
           nominatim: config.nominatim,
           providerTimeout: config.providerTimeout,
-          nominatimRateLimit: config.nominatimRateLimit
+          nominatimRateLimit: config.nominatimRateLimit,
+          hereDiscover: config.hereDiscover,
+          hereDiscoverRateLimit: config.hereDiscoverRateLimit
         })
       ),
       Layer.provide(cacheLayer),

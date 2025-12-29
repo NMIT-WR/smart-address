@@ -16,6 +16,16 @@ Environment proměnné služby (Bun). Hodnoty se čtou z procesního prostředí
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, `0` = vypnout)
 
+## HERE Discover
+
+- `HERE_API_KEY` (string, povinné pro zapnutí)
+- `HERE_DISCOVER_BASE_URL`
+- `HERE_DISCOVER_DEFAULT_LIMIT` (number, default `5`)
+- `HERE_DISCOVER_LANGUAGE`
+- `HERE_DISCOVER_IN_AREA`
+- `HERE_DISCOVER_AT`
+- `HERE_DISCOVER_RATE_LIMIT_MS` (number, default `0`, `0` = vypnout)
+
 ## Cache
 
 - `CACHE_L1_CAPACITY` (number, default `500`)
@@ -30,6 +40,8 @@ Environment proměnné služby (Bun). Hodnoty se čtou z procesního prostředí
 - `SMART_ADDRESS_DB_PATH` (string, default `data/smart-address.db` relativně k working directory služby)
 
 ## Minimální příklad
+
+Volitelně přidejte `HERE_API_KEY` pro zapnutí HERE Discover.
 
 ```bash
 PORT=8787
