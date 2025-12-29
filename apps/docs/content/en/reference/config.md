@@ -21,9 +21,9 @@ Service environment variables. All values are read from the process environment.
 - `HERE_API_KEY` (string, required to enable)
 - `HERE_DISCOVER_BASE_URL`
 - `HERE_DISCOVER_DEFAULT_LIMIT` (number, default `5`)
-- `HERE_DISCOVER_LANGUAGE`
-- `HERE_DISCOVER_IN_AREA`
-- `HERE_DISCOVER_AT`
+- `HERE_DISCOVER_LANGUAGE` (string, optional, language code like `en` or `de`)
+- `HERE_DISCOVER_IN_AREA` (string, optional, HERE `in` filter like `countryCode:GBR` or bbox)
+- `HERE_DISCOVER_AT` (string, optional, `"lat,lng"` coordinates)
 - `HERE_DEFAULT_LAT` (number, used with `HERE_DEFAULT_LNG`)
 - `HERE_DEFAULT_LNG` (number, used with `HERE_DEFAULT_LAT`)
 - `HERE_DISCOVER_SHOW_DETAILS` (boolean, default `false`, sets `show=details`)

@@ -21,9 +21,9 @@ Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 - `HERE_API_KEY` (string, povinné pro zapnutí)
 - `HERE_DISCOVER_BASE_URL`
 - `HERE_DISCOVER_DEFAULT_LIMIT` (number, default `5`)
-- `HERE_DISCOVER_LANGUAGE`
-- `HERE_DISCOVER_IN_AREA`
-- `HERE_DISCOVER_AT`
+- `HERE_DISCOVER_LANGUAGE` (string, volitelné, jazykový kód např. `en` nebo `de`)
+- `HERE_DISCOVER_IN_AREA` (string, volitelné, HERE `in` filtr např. `countryCode:GBR` nebo bbox)
+- `HERE_DISCOVER_AT` (string, volitelné, souřadnice `"lat,lng"`)
 - `HERE_DEFAULT_LAT` (number, použije se s `HERE_DEFAULT_LNG`)
 - `HERE_DEFAULT_LNG` (number, použije se s `HERE_DEFAULT_LAT`)
 - `HERE_DISCOVER_SHOW_DETAILS` (boolean, default `false`, nastaví `show=details`)
