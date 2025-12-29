@@ -85,4 +85,23 @@ describe("here discover mapping", () => {
     expect(result[0]?.address.line1).toBe("Main St")
     expect(result[0]?.metadata).toBeUndefined()
   })
+
+  it("omits lat/lng metadata when position is missing", async () => {
+    const payload = {
+      items: [
+        {
+          id: "here:cm:999",
+          title: "No Position",
+          categories: [{ id: "200-2000-0000", name: "Shop", primary: true }]
+        }
+      ]
+    }
+
+    const result = await Effect.runPromise(parseHereDiscoverResponse(payload))
+
+    expect(result).toHaveLength(1)
+    expect(result[0]?.metadata?.lat).toBeUndefined()
+    expect(result[0]?.metadata?.lng).toBeUndefined()
+    expect(result[0]?.metadata?.categoryName).toBe("Shop")
+  })
 })

@@ -16,7 +16,8 @@ export type HereDiscoverConfig = {
   readonly defaultLimit?: number
   readonly language?: string
   readonly inArea?: string
-  readonly at?: string
+  readonly at?: string | { lat: number; lng: number }
+  readonly showDetails?: boolean
 }
 
 const HerePositionSchema = Schema.Struct({
@@ -151,6 +152,16 @@ const metadataFromHere = (item: HereItem): Record<string, string> | undefined =>
   return Object.keys(metadata).length > 0 ? metadata : undefined
 }
 
+const formatAt = (value: HereDiscoverConfig["at"]): string | undefined => {
+  if (!value) {
+    return undefined
+  }
+  if (typeof value === "string") {
+    return compactString(value)
+  }
+  return `${value.lat},${value.lng}`
+}
+
 const toAddressSuggestion = (item: HereItem): AddressSuggestion => ({
   id: `here-discover:${item.id}`,
   label: item.address?.label ?? item.title,
@@ -175,6 +186,7 @@ const buildRequest = (config: HereDiscoverConfig, query: AddressQuery): HttpClie
   const limit = normalized.limit ?? config.defaultLimit ?? 5
   const language = normalized.locale ?? config.language
   const inArea = normalized.countryCode ? `countryCode:${normalized.countryCode}` : config.inArea
+  const at = formatAt(config.at)
 
   const params: Record<string, string> = {
     q: normalized.text,
@@ -182,6 +194,10 @@ const buildRequest = (config: HereDiscoverConfig, query: AddressQuery): HttpClie
   }
 
   params.limit = String(limit)
+
+  if (config.showDetails) {
+    params.show = "details"
+  }
 
   if (language) {
     params.lang = language
@@ -191,8 +207,8 @@ const buildRequest = (config: HereDiscoverConfig, query: AddressQuery): HttpClie
     params.in = inArea
   }
 
-  if (config.at) {
-    params.at = config.at
+  if (at) {
+    params.at = at
   }
 
   return HttpClientRequest.get(new URL("/v1/discover", baseUrl), {

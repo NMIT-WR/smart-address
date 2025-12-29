@@ -18,7 +18,8 @@ Expose the HERE Discover Search API as an `AddressProvider` powered by Effect an
 - `defaultLimit` (number, default `5`)
 - `language` (string, optional, forwarded as `lang`)
 - `inArea` (string, optional, forwarded as `in`)
-- `at` (string, optional, `"lat,lng"` coordinates)
+- `at` (string or `{ lat: number; lng: number }`, optional, `"lat,lng"` coordinates)
+- `showDetails` (boolean, optional, sets `show=details`)
 
 `AddressQuery` mapping:
 

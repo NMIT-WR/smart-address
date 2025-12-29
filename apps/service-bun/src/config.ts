@@ -39,6 +39,9 @@ const rawConfig = Config.all({
   hereLanguage: Config.string("HERE_DISCOVER_LANGUAGE").pipe(Config.withDefault("")),
   hereInArea: Config.string("HERE_DISCOVER_IN_AREA").pipe(Config.withDefault("")),
   hereAt: Config.string("HERE_DISCOVER_AT").pipe(Config.withDefault("")),
+  hereDefaultLat: Config.option(Config.number("HERE_DEFAULT_LAT")),
+  hereDefaultLng: Config.option(Config.number("HERE_DEFAULT_LNG")),
+  hereShowDetails: Config.boolean("HERE_DISCOVER_SHOW_DETAILS").pipe(Config.withDefault(false)),
   hereRateLimitMs: Config.option(Config.integer("HERE_DISCOVER_RATE_LIMIT_MS")),
   sqlitePath: Config.string("SMART_ADDRESS_DB_PATH").pipe(Config.withDefault(""))
 })
@@ -55,6 +58,8 @@ export const addressServiceConfig = rawConfig.pipe(
     const l2SWRMs = Option.getOrUndefined(raw.l2SWRMs)
     const hereApiKey = Option.getOrUndefined(raw.hereApiKey)
     const hereDefaultLimit = Option.getOrUndefined(raw.hereDefaultLimit)
+    const hereDefaultLat = Option.getOrUndefined(raw.hereDefaultLat)
+    const hereDefaultLng = Option.getOrUndefined(raw.hereDefaultLng)
     const hereRateLimitMs = Option.getOrUndefined(raw.hereRateLimitMs)
 
     const nominatimBaseUrl = raw.nominatimBaseUrl.trim() || undefined
@@ -65,7 +70,12 @@ export const addressServiceConfig = rawConfig.pipe(
     const hereLanguage = raw.hereLanguage.trim() || undefined
     const hereInArea = raw.hereInArea.trim() || undefined
     const hereAt = raw.hereAt.trim() || undefined
+    const hereApiKeyValue = hereApiKey ? Redacted.value(hereApiKey).trim() : undefined
     const sqlitePath = raw.sqlitePath.trim() || undefined
+    const hereDefaultAt =
+      hereDefaultLat !== undefined && hereDefaultLng !== undefined
+        ? { lat: hereDefaultLat, lng: hereDefaultLng }
+        : undefined
 
     const nominatimConfig: NominatimConfig = {
       userAgent: nominatimUserAgent,
@@ -83,15 +93,16 @@ export const addressServiceConfig = rawConfig.pipe(
           : Duration.millis(nominatimRateLimitMs)
 
     const hereDiscoverConfig: HereDiscoverConfig | null =
-      hereApiKey === undefined
+      hereApiKeyValue === undefined || hereApiKeyValue.length === 0
         ? null
         : {
-            apiKey: Redacted.value(hereApiKey),
+            apiKey: hereApiKeyValue,
             ...(hereBaseUrl !== undefined ? { baseUrl: hereBaseUrl } : {}),
             ...(hereDefaultLimit !== undefined ? { defaultLimit: hereDefaultLimit } : {}),
             ...(hereLanguage !== undefined ? { language: hereLanguage } : {}),
             ...(hereInArea !== undefined ? { inArea: hereInArea } : {}),
-            ...(hereAt !== undefined ? { at: hereAt } : {})
+            ...((hereAt ?? hereDefaultAt) !== undefined ? { at: hereAt ?? hereDefaultAt } : {}),
+            ...(raw.hereShowDetails ? { showDetails: true } : {})
           }
 
     const hereDiscoverRateLimit =

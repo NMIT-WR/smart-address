@@ -24,6 +24,9 @@ Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 - `HERE_DISCOVER_LANGUAGE`
 - `HERE_DISCOVER_IN_AREA`
 - `HERE_DISCOVER_AT`
+- `HERE_DEFAULT_LAT` (number, použije se s `HERE_DEFAULT_LNG`)
+- `HERE_DEFAULT_LNG` (number, použije se s `HERE_DEFAULT_LAT`)
+- `HERE_DISCOVER_SHOW_DETAILS` (boolean, default `false`, nastaví `show=details`)
 - `HERE_DISCOVER_RATE_LIMIT_MS` (number, default `0`, `0` = vypnout)
 
 ## Cache
@@ -42,6 +45,7 @@ Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 ## Minimální příklad
 
 Volitelně přidejte `HERE_API_KEY` pro zapnutí HERE Discover.
+Pokud nastavíte `HERE_DEFAULT_LAT` a `HERE_DEFAULT_LNG`, použijí se jako výchozí `at`, pokud není nastavené `HERE_DISCOVER_AT`.
 
 ```bash
 PORT=8787
@@ -49,4 +53,7 @@ PROVIDER_TIMEOUT_MS=4000
 NOMINATIM_USER_AGENT="smart-address-dev"
 NOMINATIM_EMAIL="you@example.com"
 # HERE_API_KEY="your-here-api-key" # volitelné: zapne HERE Discover
+# HERE_DEFAULT_LAT=50.087 # volitelné: výchozí poloha pro discover
+# HERE_DEFAULT_LNG=14.421 # volitelné: výchozí poloha pro discover
+# HERE_DISCOVER_SHOW_DETAILS=true # volitelné: vyžádat detaily z HERE
 ```
