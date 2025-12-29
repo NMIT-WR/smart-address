@@ -20,12 +20,12 @@ Přidejte našeptávání adres do legacy checkoutu pomocí Smart Address SDK be
 
 ### 0) Živá ukázka (iframe + zdroj)
 
-Ukázka se servíruje z backendu na `http://localhost:8787/demo/legacy`. Defaultně používá aktuální origin a klíč `docs-demo`.
+Ukázka se servíruje z backendu na `/demo/legacy`. Defaultně používá aktuální origin a klíč `docs-demo`.
 
 ```tsx preview
 import React from "react"
 
-const demoUrl = "http://localhost:8787/demo/legacy?key=docs-demo"
+const demoUrl = "/demo/legacy?key=docs-demo"
 
 const htmlSnippet = String.raw`<!doctype html>
 <html lang="cs">

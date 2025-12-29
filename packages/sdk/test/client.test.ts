@@ -1,16 +1,13 @@
 import { describe, expect, it } from "bun:test"
 import { createClient, type AddressStrategy } from "../src/client"
 
-const makeFetch = (calls: string[]) =>
+const makeFetch = (calls: string[], payload = { suggestions: [], errors: [] }) =>
   async (input: RequestInfo | URL) => {
     calls.push(String(input))
-    return new Response(
-      JSON.stringify({ suggestions: [], errors: [] }),
-      {
-        status: 200,
-        headers: { "content-type": "application/json" }
-      }
-    )
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    })
   }
 
 describe("smart-address sdk", () => {
@@ -62,5 +59,44 @@ describe("smart-address sdk", () => {
       client.suggest({ text: "Prague", strategy: "fastest" as AddressStrategy })
     ).rejects.toThrow("Invalid strategy. Expected 'fast' or 'reliable'.")
     expect(calls.length).toBe(0)
+  })
+
+  it("filters invalid suggestion payloads", async () => {
+    const calls: string[] = []
+    const client = createClient({
+      baseUrl: "https://example.test",
+      fetch: makeFetch(calls, {
+        suggestions: [
+          {
+            id: "ok",
+            label: "Ok",
+            address: {},
+            source: { provider: "nominatim" }
+          },
+          {
+            id: "bad-label",
+            label: 123,
+            address: {},
+            source: { provider: "nominatim" }
+          },
+          {
+            id: "missing-source",
+            label: "Missing source",
+            address: {}
+          }
+        ],
+        errors: [
+          { provider: "nominatim", message: "timeout" },
+          { provider: 123, message: "bad" }
+        ]
+      })
+    })
+
+    const result = await client.suggest({ text: "Prague" })
+
+    expect(result.suggestions.length).toBe(1)
+    expect(result.suggestions[0]?.id).toBe("ok")
+    expect(result.errors.length).toBe(1)
+    expect(result.errors[0]?.provider).toBe("nominatim")
   })
 })

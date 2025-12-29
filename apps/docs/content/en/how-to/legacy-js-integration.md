@@ -20,12 +20,12 @@ Add address suggestions to a legacy checkout page using the Smart Address SDK wi
 
 ### 0) Live demo (iframe + source)
 
-The demo is served by the backend at `http://localhost:8787/demo/legacy`. It defaults to the current origin and uses the key `docs-demo`.
+The demo is served by the backend at `/demo/legacy`. It defaults to the current origin and uses the key `docs-demo`.
 
 ```tsx preview
 import React from "react"
 
-const demoUrl = "http://localhost:8787/demo/legacy?key=docs-demo"
+const demoUrl = "/demo/legacy?key=docs-demo"
 
 const htmlSnippet = String.raw`<!doctype html>
 <html lang="en">

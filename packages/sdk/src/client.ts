@@ -104,6 +104,67 @@ const parseErrorMessage = async (response: Response): Promise<string> => {
   return `Request failed (${response.status})`
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null
+
+const hasOptionalString = (record: Record<string, unknown>, key: string): boolean => {
+  if (!(key in record)) {
+    return true
+  }
+  const value = record[key]
+  return value === undefined || typeof value === "string"
+}
+
+const isAddressParts = (value: unknown): value is AddressParts => {
+  if (!isRecord(value)) {
+    return false
+  }
+  return (
+    hasOptionalString(value, "line1") &&
+    hasOptionalString(value, "line2") &&
+    hasOptionalString(value, "city") &&
+    hasOptionalString(value, "region") &&
+    hasOptionalString(value, "postalCode") &&
+    hasOptionalString(value, "countryCode")
+  )
+}
+
+const isSuggestionSource = (value: unknown): value is AddressSuggestionSource => {
+  if (!isRecord(value)) {
+    return false
+  }
+  if (typeof value.provider !== "string") {
+    return false
+  }
+  return hasOptionalString(value, "kind") && hasOptionalString(value, "reference")
+}
+
+const isAddressSuggestion = (value: unknown): value is AddressSuggestion => {
+  if (!isRecord(value)) {
+    return false
+  }
+  if (typeof value.id !== "string" || typeof value.label !== "string") {
+    return false
+  }
+  if (!isSuggestionSource(value.source) || !isAddressParts(value.address)) {
+    return false
+  }
+  if ("score" in value && value.score !== undefined && typeof value.score !== "number") {
+    return false
+  }
+  if ("metadata" in value && value.metadata !== undefined && !isRecord(value.metadata)) {
+    return false
+  }
+  return true
+}
+
+const isSuggestionError = (value: unknown): value is AddressSuggestionError => {
+  if (!isRecord(value)) {
+    return false
+  }
+  return typeof value.provider === "string" && typeof value.message === "string"
+}
+
 const readResult = async (response: Response): Promise<AddressSuggestionResult> => {
   const payload = await response.json().catch(() => null)
   if (!payload || typeof payload !== "object") {
@@ -111,8 +172,10 @@ const readResult = async (response: Response): Promise<AddressSuggestionResult> 
   }
   const typed = payload as Partial<AddressSuggestionResult>
   return {
-    suggestions: Array.isArray(typed.suggestions) ? typed.suggestions : [],
-    errors: Array.isArray(typed.errors) ? typed.errors : []
+    suggestions: Array.isArray(typed.suggestions)
+      ? typed.suggestions.filter(isAddressSuggestion)
+      : [],
+    errors: Array.isArray(typed.errors) ? typed.errors.filter(isSuggestionError) : []
   }
 }
 
