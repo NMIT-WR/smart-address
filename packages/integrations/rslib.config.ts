@@ -10,6 +10,7 @@ export default defineConfig({
           http: "./src/http.ts",
           "rate-limit": "./src/rate-limit.ts",
           nominatim: "./src/nominatim.ts",
+          here: "./src/here.ts",
           "service-client": "./src/service-client.ts"
         }
       }

@@ -19,6 +19,10 @@
     "./service-client": {
       "types": "./dist/service-client.d.ts",
       "import": "./dist/service-client.js"
+    },
+    "./here": {
+      "types": "./dist/here.d.ts",
+      "import": "./dist/here.js"
     }
   },
   "main": "./dist/http.js",

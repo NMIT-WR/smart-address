@@ -1,6 +1,7 @@
 import { Config, Option } from "effect"
 import * as Duration from "effect/Duration"
 import type { NominatimConfig } from "@smart-address/integrations/nominatim"
+import type { HereConfig } from "@smart-address/integrations/here"
 import type { AddressCacheConfig } from "./cache"
 import type { AddressSqliteConfig } from "./sqlite"
 
@@ -8,7 +9,9 @@ export type AddressServiceConfig = {
   readonly port: number
   readonly providerTimeout: Duration.Duration
   readonly nominatimRateLimit: Duration.Duration | null
+  readonly hereRateLimit: Duration.Duration | null
   readonly nominatim: NominatimConfig
+  readonly here: HereConfig | undefined
   readonly cache: AddressCacheConfig
   readonly sqlite: AddressSqliteConfig
 }
@@ -30,6 +33,11 @@ const rawConfig = Config.all({
   nominatimUserAgent: Config.string("NOMINATIM_USER_AGENT").pipe(
     Config.withDefault("smart-address-service")
   ),
+  hereApiKey: Config.string("HERE_API_KEY").pipe(Config.withDefault("")),
+  hereDefaultLat: Config.option(Config.number("HERE_DEFAULT_LAT")),
+  hereDefaultLng: Config.option(Config.number("HERE_DEFAULT_LNG")),
+  hereDefaultLimit: Config.option(Config.integer("HERE_DEFAULT_LIMIT")),
+  hereRateLimitMs: Config.option(Config.integer("HERE_RATE_LIMIT_MS")),
   sqlitePath: Config.string("SMART_ADDRESS_DB_PATH").pipe(Config.withDefault(""))
 })
 
@@ -65,6 +73,25 @@ export const addressServiceConfig = rawConfig.pipe(
           ? null
           : Duration.millis(nominatimRateLimitMs)
 
+    const hereApiKey = raw.hereApiKey.trim() || undefined
+    const hereDefaultLat = Option.getOrUndefined(raw.hereDefaultLat)
+    const hereDefaultLng = Option.getOrUndefined(raw.hereDefaultLng)
+    const hereDefaultLimit = Option.getOrUndefined(raw.hereDefaultLimit)
+    const hereRateLimitMs = Option.getOrUndefined(raw.hereRateLimitMs)
+
+    const hereConfig: HereConfig | undefined = hereApiKey
+      ? {
+          apiKey: hereApiKey,
+          ...(hereDefaultLat !== undefined && hereDefaultLng !== undefined
+            ? { defaultAt: { lat: hereDefaultLat, lng: hereDefaultLng } }
+            : {}),
+          ...(hereDefaultLimit !== undefined ? { defaultLimit: hereDefaultLimit } : {})
+        }
+      : undefined
+
+    const hereRateLimit =
+      hereRateLimitMs === undefined ? null : hereRateLimitMs <= 0 ? null : Duration.millis(hereRateLimitMs)
+
     const cacheConfig: AddressCacheConfig = {
       ...(l1Capacity !== undefined ? { l1Capacity } : {}),
       ...(l1TtlMs !== undefined ? { l1Ttl: Duration.millis(l1TtlMs) } : {}),
@@ -80,7 +107,9 @@ export const addressServiceConfig = rawConfig.pipe(
       port: raw.port,
       providerTimeout: Duration.millis(raw.providerTimeoutMs),
       nominatimRateLimit,
+      hereRateLimit,
       nominatim: nominatimConfig,
+      here: hereConfig,
       cache: cacheConfig,
       sqlite: sqliteConfig
     }
