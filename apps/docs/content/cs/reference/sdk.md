@@ -38,7 +38,7 @@ await Effect.runPromise(
 )
 ```
 
-### SDK do prohlížeče (ESM + script tag)
+### SDK do prohlížeče (ESM modul)
 
 Použijte `@smart-address/sdk` jako malý klient do prohlížeče (bez bundleru). SDK posílá `key` jako query parametr `?key=`.
 
@@ -54,12 +54,13 @@ const result = await client.suggest({
 })
 ```
 
-Script tag build (UMD, globální `SmartAddress`):
+Module script (servírovaný ze Smart Address služby na `/demo/sdk.js`):
 
 ```html
-<script src="https://unpkg.com/@smart-address/sdk/dist/umd/smart-address.js"></script>
-<script>
-  const client = SmartAddress.createClient({
+<script type="module">
+  import { createClient } from "https://api.example.com/demo/sdk.js"
+
+  const client = createClient({
     baseUrl: "https://api.example.com",
     key: "YOUR_KEY"
   })

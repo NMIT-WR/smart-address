@@ -12,19 +12,6 @@ export default defineConfig({
       source: {
         entry
       }
-    },
-    {
-      format: "umd",
-      bundle: true,
-      umdName: "SmartAddress",
-      source: {
-        entry
-      },
-      output: {
-        distPath: {
-          root: "./dist/umd"
-        }
-      }
     }
   ],
   output: {

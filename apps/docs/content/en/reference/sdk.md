@@ -38,7 +38,7 @@ await Effect.runPromise(
 )
 ```
 
-### Browser SDK (ESM + script tag)
+### Browser SDK (ESM module)
 
 Use `@smart-address/sdk` for a tiny browser client (no bundler required). The SDK appends `key` as the `?key=` query param.
 
@@ -54,12 +54,13 @@ const result = await client.suggest({
 })
 ```
 
-Script tag build (UMD, global `SmartAddress`):
+Module script (served by the Smart Address service at `/demo/sdk.js`):
 
 ```html
-<script src="https://unpkg.com/@smart-address/sdk/dist/umd/smart-address.js"></script>
-<script>
-  const client = SmartAddress.createClient({
+<script type="module">
+  import { createClient } from "https://api.example.com/demo/sdk.js"
+
+  const client = createClient({
     baseUrl: "https://api.example.com",
     key: "YOUR_KEY"
   })
