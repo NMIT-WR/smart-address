@@ -26,6 +26,8 @@ const port = parseNumber(Bun.env.PORT) ?? 8787
 const timeoutMs = parseNumber(Bun.env.PROVIDER_TIMEOUT_MS) ?? 4000
 const defaultLimit = parseNumber(Bun.env.NOMINATIM_DEFAULT_LIMIT)
 const nominatimRateLimitMs = parseNumber(Bun.env.NOMINATIM_RATE_LIMIT_MS)
+const hereDefaultLimit = parseNumber(Bun.env.HERE_DISCOVER_DEFAULT_LIMIT)
+const hereRateLimitMs = parseNumber(Bun.env.HERE_DISCOVER_RATE_LIMIT_MS)
 const l1Capacity = parseNumber(Bun.env.CACHE_L1_CAPACITY)
 const l1TtlMs = parseNumber(Bun.env.CACHE_L1_TTL_MS)
 const l2BaseTtlMs = parseNumber(Bun.env.CACHE_L2_BASE_TTL_MS)
@@ -36,6 +38,11 @@ const l2SWRMs = parseNumber(Bun.env.CACHE_L2_SWR_MS)
 const nominatimBaseUrl = Bun.env.NOMINATIM_BASE_URL
 const nominatimEmail = Bun.env.NOMINATIM_EMAIL
 const nominatimReferer = Bun.env.NOMINATIM_REFERER
+const hereApiKey = Bun.env.HERE_API_KEY
+const hereBaseUrl = Bun.env.HERE_DISCOVER_BASE_URL
+const hereLanguage = Bun.env.HERE_DISCOVER_LANGUAGE
+const hereInArea = Bun.env.HERE_DISCOVER_IN_AREA
+const hereAt = Bun.env.HERE_DISCOVER_AT
 
 const nominatimConfig = {
   userAgent: Bun.env.NOMINATIM_USER_AGENT ?? "smart-address-service",
@@ -45,12 +52,31 @@ const nominatimConfig = {
   ...(defaultLimit !== undefined ? { defaultLimit } : {})
 }
 
+const hereDiscoverConfig =
+  hereApiKey === undefined
+    ? null
+    : {
+        apiKey: hereApiKey,
+        ...(hereBaseUrl !== undefined ? { baseUrl: hereBaseUrl } : {}),
+        ...(hereDefaultLimit !== undefined ? { defaultLimit: hereDefaultLimit } : {}),
+        ...(hereLanguage !== undefined ? { language: hereLanguage } : {}),
+        ...(hereInArea !== undefined ? { inArea: hereInArea } : {}),
+        ...(hereAt !== undefined ? { at: hereAt } : {})
+      }
+
 const nominatimRateLimit =
   nominatimRateLimitMs === undefined
     ? Duration.seconds(1)
     : nominatimRateLimitMs <= 0
       ? null
       : Duration.millis(nominatimRateLimitMs)
+
+const hereDiscoverRateLimit =
+  hereRateLimitMs === undefined
+    ? null
+    : hereRateLimitMs <= 0
+      ? null
+      : Duration.millis(hereRateLimitMs)
 
 const cacheConfig = {
   ...(l1Capacity !== undefined ? { l1Capacity } : {}),
@@ -73,7 +99,9 @@ const suggestorLayer = AddressCachedSuggestorLayer.pipe(
     AddressSuggestorLayer({
       nominatim: nominatimConfig,
       providerTimeout: Duration.millis(timeoutMs),
-      nominatimRateLimit
+      nominatimRateLimit,
+      hereDiscover: hereDiscoverConfig,
+      hereDiscoverRateLimit
     })
   ),
   Layer.provide(cacheLayer),

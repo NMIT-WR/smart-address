@@ -16,6 +16,16 @@ Service environment variables (Bun). All values are read from the process enviro
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, set `0` to disable)
 
+## HERE Discover
+
+- `HERE_API_KEY` (string, required to enable)
+- `HERE_DISCOVER_BASE_URL`
+- `HERE_DISCOVER_DEFAULT_LIMIT` (number, default `5`)
+- `HERE_DISCOVER_LANGUAGE`
+- `HERE_DISCOVER_IN_AREA`
+- `HERE_DISCOVER_AT`
+- `HERE_DISCOVER_RATE_LIMIT_MS` (number, default `0`, set `0` to disable)
+
 ## Cache
 
 - `CACHE_L1_CAPACITY` (number, default `500`)
@@ -30,6 +40,8 @@ Service environment variables (Bun). All values are read from the process enviro
 - `SMART_ADDRESS_DB_PATH` (string, default `data/smart-address.db` relative to the service working directory)
 
 ## Minimal example
+
+Optional: add `HERE_API_KEY` to enable HERE Discover.
 
 ```bash
 PORT=8787

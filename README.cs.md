@@ -7,7 +7,7 @@ Spolehlivé našeptávání adres pro checkout a onboarding. Postaveno na Effect
 ## Co je v repozitáři
 
 - `packages/core` (`@smart-address/core`): doménové typy, plánování providerů, deduplikace a sběr chyb.
-- `packages/integrations` (`@smart-address/integrations`): integrace providerů (např. Nominatim) + HTTP/RL pomocníci.
+- `packages/integrations` (`@smart-address/integrations`): integrace providerů (např. Nominatim, HERE Discover) + HTTP/RL pomocníci.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC kontrakt + klientské utility.
 - `apps/service-bun` (`@smart-address/service-bun`): Bun služba s HTTP + MCP + RPC endpointy, cache a SQLite persistencí.
 - `apps/docs`: dokumentační web (Diataxis, EN + CS).
@@ -16,11 +16,14 @@ Spolehlivé našeptávání adres pro checkout a onboarding. Postaveno na Effect
 
 Požadavky: `pnpm` + `bun`.
 
+Volitelně: nastavte `HERE_API_KEY` pro zapnutí HERE Discover.
+
 ```bash
 pnpm install
 
 NOMINATIM_USER_AGENT="smart-address-dev" \
 NOMINATIM_EMAIL="you@example.com" \
+HERE_API_KEY="your-here-api-key" \
 pnpm --filter @smart-address/service-bun dev
 ```
 
@@ -53,4 +56,3 @@ pnpm --filter docs dev
 Služba publikuje MCP tool `suggest-address` na `http://localhost:8787/mcp`.
 
 Reference: `apps/docs/content/cs/reference/mcp-tool.md`
-
