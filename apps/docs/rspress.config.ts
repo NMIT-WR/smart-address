@@ -1,5 +1,8 @@
 import * as path from 'node:path';
 import { defineConfig } from 'rspress/config';
+import { pluginPlayground } from '@rspress/plugin-playground';
+import { pluginPreview } from '@rspress/plugin-preview';
+import { pluginShiki } from '@rspress/plugin-shiki';
 
 const enNav = [
   { text: 'Tutorials', link: '/tutorials/' },
@@ -24,7 +27,7 @@ const enSidebar = {
       items: [
         { text: 'Use the HTTP service', link: '/how-to/use-service' },
         { text: 'Add another provider', link: '/how-to/add-provider' },
-        { text: 'Integrate from legacy PHP', link: '/how-to/legacy-integration' },
+        { text: 'Integrate legacy checkout (Bootstrap + vanilla JS)', link: '/how-to/legacy-js-integration' },
       ],
     },
     {
@@ -78,7 +81,7 @@ const csSidebar = {
       items: [
         { text: 'Použití HTTP služby', link: '/cs/how-to/use-service' },
         { text: 'Přidání dalšího providera', link: '/cs/how-to/add-provider' },
-        { text: 'Integrace do legacy PHP', link: '/cs/how-to/legacy-integration' },
+        { text: 'Integrace legacy checkoutu (Bootstrap + vanilla JS)', link: '/cs/how-to/legacy-js-integration' },
       ],
     },
     {
@@ -122,6 +125,13 @@ export default defineConfig({
   route: {
     cleanUrls: true,
   },
+  plugins: [
+    pluginShiki(),
+    pluginPreview(),
+    pluginPlayground({
+      include: ['react', 'react-dom', '@smart-address/sdk'],
+    }),
+  ],
   themeConfig: {
     nav: enNav,
     sidebar: enSidebar,

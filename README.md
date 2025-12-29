@@ -9,6 +9,7 @@ Reliable address suggestions for checkout and onboarding. Built on Effect so you
 - `packages/core` (`@smart-address/core`): domain types, provider planning, dedupe, and error collection.
 - `packages/integrations` (`@smart-address/integrations`): provider adapters (e.g. Nominatim) + HTTP/RL helpers.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC contract + client helpers.
+- `packages/sdk` (`@smart-address/sdk`): tiny browser client (ESM module).
 - `apps/service-bun` (`@smart-address/service-bun`): Bun service exposing HTTP + MCP + RPC endpoints, caching, and SQLite persistence.
 - `apps/docs`: Rspress documentation site (Diataxis, EN + CS).
 
@@ -34,6 +35,23 @@ Health check:
 
 ```bash
 curl "http://localhost:8787/health"
+```
+
+## Browser SDK (module script)
+
+```html
+<script type="module">
+  import { createClient } from "https://api.example.com/demo/sdk.js"
+
+  const client = createClient({
+    baseUrl: "https://api.example.com",
+    key: "YOUR_KEY"
+  })
+
+  client
+    .suggest({ text: "Prague", limit: 5, countryCode: "CZ", strategy: "reliable" })
+    .then((result) => console.log(result.suggestions))
+</script>
 ```
 
 ## Docker (self-hosting)
@@ -78,7 +96,6 @@ Optional env vars:
 - `PORT` (default `8787`), `PROVIDER_TIMEOUT_MS`
 - Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
 - DB path override: `SMART_ADDRESS_DB_PATH`
-
 ## Docs
 
 - Website source: `apps/docs`

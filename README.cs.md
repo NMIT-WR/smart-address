@@ -9,6 +9,7 @@ Spolehlivé našeptávání adres pro checkout a onboarding. Postaveno na Effect
 - `packages/core` (`@smart-address/core`): doménové typy, plánování providerů, deduplikace a sběr chyb.
 - `packages/integrations` (`@smart-address/integrations`): integrace providerů (např. Nominatim) + HTTP/RL pomocníci.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC kontrakt + klientské utility.
+- `packages/sdk` (`@smart-address/sdk`): malý klient do prohlížeče (ESM modul).
 - `apps/service-bun` (`@smart-address/service-bun`): Bun služba s HTTP + MCP + RPC endpointy, cache a SQLite persistencí.
 - `apps/docs`: dokumentační web (Diataxis, EN + CS).
 
@@ -34,6 +35,23 @@ Health check:
 
 ```bash
 curl "http://localhost:8787/health"
+```
+
+## SDK pro prohlížeč (module script)
+
+```html
+<script type="module">
+  import { createClient } from "https://api.example.com/demo/sdk.js"
+
+  const client = createClient({
+    baseUrl: "https://api.example.com",
+    key: "YOUR_KEY"
+  })
+
+  client
+    .suggest({ text: "Praha", limit: 5, countryCode: "CZ", strategy: "reliable" })
+    .then((result) => console.log(result.suggestions))
+</script>
 ```
 
 ## Docker (self-hosting)
@@ -78,7 +96,6 @@ Volitelné env proměnné:
 - `PORT` (výchozí `8787`), `PROVIDER_TIMEOUT_MS`
 - Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
 - Přepsání cesty DB: `SMART_ADDRESS_DB_PATH`
-
 ## Dokumentace
 
 - Zdroj webu: `apps/docs`

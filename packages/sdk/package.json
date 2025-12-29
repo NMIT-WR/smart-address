@@ -1,0 +1,54 @@
+{
+  "name": "@smart-address/sdk",
+  "version": "0.1.0",
+  "description": "Tiny browser SDK for the Smart Address suggest API.",
+  "keywords": [
+    "smart-address",
+    "address",
+    "autocomplete",
+    "suggest",
+    "sdk",
+    "browser",
+    "checkout"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NMIT-WR/smart-address.git",
+    "directory": "packages/sdk"
+  },
+  "author": "NMIT-WR",
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/smart-address.d.ts",
+      "import": "./dist/smart-address.js"
+    }
+  },
+  "dependencies": {
+    "@smart-address/core": "workspace:*",
+    "effect": "catalog:prod"
+  },
+  "main": "./dist/smart-address.js",
+  "module": "./dist/smart-address.js",
+  "types": "./dist/smart-address.d.ts",
+  "unpkg": "./dist/smart-address.js",
+  "jsdelivr": "./dist/smart-address.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "publint": "publint",
+    "tree-shake": "is-tree-shakable"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:build",
+    "is-tree-shakable": "catalog:quality",
+    "publint": "catalog:quality",
+    "typescript": "catalog:types"
+  }
+}

@@ -15,6 +15,7 @@
     "fbtee:all": "pnpm fbtee:collect && pnpm fbtee:translate"
   },
   "dependencies": {
+    "@smart-address/sdk": "workspace:*",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.144.0",
     "@tanstack/react-router-ssr-query": "^1.144.0",
