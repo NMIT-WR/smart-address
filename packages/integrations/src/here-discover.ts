@@ -181,9 +181,7 @@ const buildRequest = (config: HereDiscoverConfig, query: AddressQuery): HttpClie
     apiKey: config.apiKey
   }
 
-  if (limit !== undefined) {
-    params.limit = String(limit)
-  }
+  params.limit = String(limit)
 
   if (language) {
     params.lang = language

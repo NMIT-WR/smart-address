@@ -76,11 +76,12 @@ Run with Docker Compose:
 ```bash
 NOMINATIM_USER_AGENT="your-app-name" \
 NOMINATIM_EMAIL="you@example.com" \
+HERE_API_KEY="your-here-api-key" \
 docker compose up -d
 ```
 
 Tip: `docker compose` reads `.env` in the repo root, so you can set
-`NOMINATIM_USER_AGENT` and `NOMINATIM_EMAIL` there instead of inline.
+`NOMINATIM_USER_AGENT`, `NOMINATIM_EMAIL`, and `HERE_API_KEY` there instead of inline.
 
 Persist the SQLite DB:
 
@@ -95,6 +96,7 @@ Recommended env vars (Nominatim usage policy):
 
 Optional env vars:
 
+- HERE Discover: `HERE_API_KEY`, `HERE_DISCOVER_BASE_URL`, `HERE_DISCOVER_DEFAULT_LIMIT`, `HERE_DISCOVER_LANGUAGE`, `HERE_DISCOVER_IN_AREA`, `HERE_DISCOVER_AT`, `HERE_DISCOVER_RATE_LIMIT_MS`
 - `NOMINATIM_BASE_URL`, `NOMINATIM_REFERER`, `NOMINATIM_DEFAULT_LIMIT`, `NOMINATIM_RATE_LIMIT_MS`
 - `PORT` (default `8787`), `PROVIDER_TIMEOUT_MS`
 - Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`

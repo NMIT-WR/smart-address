@@ -1,6 +1,6 @@
 # Runtime konfigurace
 
-Environment proměnné služby (Bun). Hodnoty se čtou z procesního prostředí (`Bun.env.*`).
+Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 
 ## Server
 
@@ -48,4 +48,5 @@ PORT=8787
 PROVIDER_TIMEOUT_MS=4000
 NOMINATIM_USER_AGENT="smart-address-dev"
 NOMINATIM_EMAIL="you@example.com"
+# HERE_API_KEY="your-here-api-key" # volitelné: zapne HERE Discover
 ```

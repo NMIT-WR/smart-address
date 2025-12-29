@@ -1,6 +1,6 @@
 # Runtime configuration
 
-Service environment variables (Bun). All values are read from the process environment (`Bun.env.*`).
+Service environment variables. All values are read from the process environment.
 
 ## Server
 
@@ -48,4 +48,5 @@ PORT=8787
 PROVIDER_TIMEOUT_MS=4000
 NOMINATIM_USER_AGENT="smart-address-dev"
 NOMINATIM_EMAIL="you@example.com"
+# HERE_API_KEY="your-here-api-key" # optional: enables HERE Discover
 ```

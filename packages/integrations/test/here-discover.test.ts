@@ -39,4 +39,50 @@ describe("here discover mapping", () => {
     expect(result[0]?.metadata?.lat).toBe("50.087")
     expect(result[0]?.metadata?.categoryName).toBe("Restaurant")
   })
+
+  it("returns empty results when there are no items", async () => {
+    const result = await Effect.runPromise(parseHereDiscoverResponse({ items: [] }))
+
+    expect(result).toHaveLength(0)
+  })
+
+  it("handles items with missing optional fields", async () => {
+    const payload = {
+      items: [
+        {
+          id: "here:cm:456",
+          title: "Fallback Title"
+        }
+      ]
+    }
+
+    const result = await Effect.runPromise(parseHereDiscoverResponse(payload))
+
+    expect(result).toHaveLength(1)
+    expect(result[0]?.id).toBe("here-discover:here:cm:456")
+    expect(result[0]?.label).toBe("Fallback Title")
+    expect(result[0]?.address).toEqual({})
+    expect(result[0]?.metadata).toBeUndefined()
+  })
+
+  it("falls back to title when the address label is missing", async () => {
+    const payload = {
+      items: [
+        {
+          id: "here:cm:789",
+          title: "Center Plaza",
+          address: {
+            street: "Main St"
+          }
+        }
+      ]
+    }
+
+    const result = await Effect.runPromise(parseHereDiscoverResponse(payload))
+
+    expect(result).toHaveLength(1)
+    expect(result[0]?.label).toBe("Center Plaza")
+    expect(result[0]?.address.line1).toBe("Main St")
+    expect(result[0]?.metadata).toBeUndefined()
+  })
 })

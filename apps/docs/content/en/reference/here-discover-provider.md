@@ -7,7 +7,7 @@ Expose the HERE Discover Search API as an `AddressProvider` powered by Effect an
 ## Prerequisites
 
 - A HERE API key with access to Geocoding & Search.
-- An `HttpClient` layer (for example `FetchHttpClient.layer`).
+- An `HttpClient` layer (for example, `FetchHttpClient.layer`).
 
 ## Inputs
 
