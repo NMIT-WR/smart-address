@@ -1,34 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { createClient, type AddressSuggestion } from '@smart-address/sdk'
 import { useLocaleContext } from 'fbtee'
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { availableLanguages } from '../i18n'
 
 export const Route = createFileRoute('/')({ component: Landing })
 
-type Suggestion = {
-  readonly id: string
-  readonly label: string
-  readonly address?: {
-    readonly line1?: string
-    readonly line2?: string
-    readonly city?: string
-    readonly region?: string
-    readonly postalCode?: string
-    readonly countryCode?: string
-  }
-  readonly source?: {
-    readonly provider?: string
-  }
-}
-
-type SuggestionResult = {
-  readonly suggestions?: ReadonlyArray<Suggestion>
-}
-
 const demoEndpoint =
   import.meta.env.VITE_SUGGEST_URL ?? 'http://localhost:8787/suggest'
+const demoClient = createClient({
+  baseUrl: demoEndpoint,
+  key: import.meta.env.VITE_SUGGEST_KEY,
+})
 
-const formatAddress = (suggestion: Suggestion) => {
+const formatAddress = (suggestion: AddressSuggestion) => {
   const address = suggestion.address ?? {}
   const parts = [
     address.line1,
@@ -42,7 +27,7 @@ const formatAddress = (suggestion: Suggestion) => {
 }
 
 const useSuggestions = (query: string) => {
-  const [results, setResults] = useState<ReadonlyArray<Suggestion>>([])
+  const [results, setResults] = useState<ReadonlyArray<AddressSuggestion>>([])
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'ready'>(
     'idle',
   )
@@ -62,18 +47,15 @@ const useSuggestions = (query: string) => {
       try {
         setStatus('loading')
         setHasError(false)
-        const url = new URL(demoEndpoint)
-        url.searchParams.set('text', trimmed)
-        url.searchParams.set('limit', '5')
-        url.searchParams.set('strategy', 'reliable')
-        const response = await fetch(url.toString(), {
-          signal: controller.signal,
-        })
-        if (!response.ok) {
-          throw new Error('Request failed')
-        }
-        const payload = (await response.json()) as SuggestionResult
-        setResults(payload.suggestions ?? [])
+        const payload = await demoClient.suggest(
+          {
+            text: trimmed,
+            limit: 5,
+            strategy: 'reliable',
+          },
+          { signal: controller.signal },
+        )
+        setResults(payload.suggestions)
         setStatus('ready')
       } catch (err) {
         if ((err as { name?: string }).name === 'AbortError') {

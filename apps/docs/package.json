@@ -8,6 +8,10 @@
     "preview": "rspress preview"
   },
   "dependencies": {
+    "@smart-address/sdk": "workspace:*",
+    "@rspress/plugin-playground": "^1.47.0",
+    "@rspress/plugin-preview": "^1.47.0",
+    "@rspress/plugin-shiki": "^1.47.0",
     "rspress": "^1.47.0"
   },
   "devDependencies": {

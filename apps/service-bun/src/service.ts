@@ -77,6 +77,16 @@ const makeService = (
 ): AddressSuggestionService<HttpClient.HttpClient> =>
   makeAddressSuggestionService(plan, { stopAtLimit: true })
 
+const sortSuggestionsByScore = (result: AddressSuggestionResult): AddressSuggestionResult => {
+  if (result.suggestions.length < 2) {
+    return result
+  }
+  const sorted = [...result.suggestions].sort(
+    (left, right) => (right.score ?? -1) - (left.score ?? -1)
+  )
+  return { ...result, suggestions: sorted }
+}
+
 export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
   Layer.effect(
     AddressSuggestor,
@@ -104,7 +114,9 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
 
       return {
         suggest: (request) =>
-          request.strategy === "fast" ? fastService.suggest(request.query) : reliableService.suggest(request.query)
+          (request.strategy === "fast" ? fastService.suggest(request.query) : reliableService.suggest(request.query)).pipe(
+            Effect.map(sortSuggestionsByScore)
+          )
       }
     })
   )

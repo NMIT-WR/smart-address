@@ -4,7 +4,9 @@
   "version": "0.1.1",
   "type": "module",
   "scripts": {
+    "predev": "pnpm --filter @smart-address/sdk build",
     "dev": "bun src/main.ts",
+    "prestart": "pnpm --filter @smart-address/sdk build",
     "start": "bun src/main.ts",
     "typecheck": "tsc --noEmit"
   },

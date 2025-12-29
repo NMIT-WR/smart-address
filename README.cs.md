@@ -9,6 +9,7 @@ Spolehlivé našeptávání adres pro checkout a onboarding. Postaveno na Effect
 - `packages/core` (`@smart-address/core`): doménové typy, plánování providerů, deduplikace a sběr chyb.
 - `packages/integrations` (`@smart-address/integrations`): integrace providerů (např. Nominatim, HERE Discover) + HTTP/RL pomocníci.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC kontrakt + klientské utility.
+- `packages/sdk` (`@smart-address/sdk`): malý klient do prohlížeče (ESM modul).
 - `apps/service-bun` (`@smart-address/service-bun`): Bun služba s HTTP + MCP + RPC endpointy, cache a SQLite persistencí.
 - `apps/docs`: dokumentační web (Diataxis, EN + CS).
 
@@ -39,6 +40,65 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+## SDK pro prohlížeč (module script)
+
+```html
+<script type="module">
+  import { createClient } from "https://api.example.com/demo/sdk.js"
+
+  const client = createClient({
+    baseUrl: "https://api.example.com",
+    key: "YOUR_KEY"
+  })
+
+  client
+    .suggest({ text: "Praha", limit: 5, countryCode: "CZ", strategy: "reliable" })
+    .then((result) => console.log(result.suggestions))
+</script>
+```
+
+## Docker (self-hosting)
+
+Sestavení image:
+
+```bash
+docker build -t smart-address-service .
+```
+
+Tip na tagování (doporučeno pro produkci):
+
+```bash
+docker build -t smart-address-service:$(git rev-parse --short HEAD) .
+```
+
+Spuštění přes Docker Compose:
+
+```bash
+NOMINATIM_USER_AGENT="your-app-name" \
+NOMINATIM_EMAIL="you@example.com" \
+docker compose up -d
+```
+
+Tip: `docker compose` načítá `.env` v kořeni repa, takže můžete nastavit
+`NOMINATIM_USER_AGENT` a `NOMINATIM_EMAIL` tam místo inline.
+
+Persistování SQLite DB:
+
+- Compose mountuje volume `smart-address-data` do `/app/data`.
+- Výchozí cesta DB je `data/smart-address.db` (relativně k `/app`).
+- Přepište přes `SMART_ADDRESS_DB_PATH` (např. `/app/data/custom.db`).
+
+Doporučené env proměnné (zásady Nominatim):
+
+- `NOMINATIM_USER_AGENT` (výchozí: `smart-address-service`, pokud je prázdné/nevyplněné)
+- `NOMINATIM_EMAIL` (volitelné, doporučeno pro produkci)
+
+Volitelné env proměnné:
+
+- `NOMINATIM_BASE_URL`, `NOMINATIM_REFERER`, `NOMINATIM_DEFAULT_LIMIT`, `NOMINATIM_RATE_LIMIT_MS`
+- `PORT` (výchozí `8787`), `PROVIDER_TIMEOUT_MS`
+- Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
+- Přepsání cesty DB: `SMART_ADDRESS_DB_PATH`
 ## Dokumentace
 
 - Zdroj webu: `apps/docs`
