@@ -3,9 +3,10 @@ import { Effect } from "effect"
 import { parseNominatimResponse } from "../src/nominatim"
 
 describe("nominatim mapping", () => {
-  it("maps nominatim response into suggestions", async () => {
-    const payload = [
-      {
+  it.effect("maps nominatim response into suggestions", () =>
+    Effect.gen(function* () {
+      const payload = [
+        {
         place_id: 123,
         osm_type: "way",
         osm_id: 456,
@@ -26,14 +27,15 @@ describe("nominatim mapping", () => {
       }
     ]
 
-    const result = await Effect.runPromise(parseNominatimResponse(payload))
+      const result = yield* parseNominatimResponse(payload)
 
-    expect(result).toHaveLength(1)
-    expect(result[0]?.id).toBe("nominatim:123")
-    expect(result[0]?.address.line1).toBe("1 Main St")
-    expect(result[0]?.address.city).toBe("Prague")
-    expect(result[0]?.address.countryCode).toBe("CZ")
-    expect(result[0]?.metadata?.lat).toBe("50.087")
-    expect(result[0]?.metadata?.osmId).toBe("456")
-  })
+      expect(result).toHaveLength(1)
+      expect(result[0]?.id).toBe("nominatim:123")
+      expect(result[0]?.address.line1).toBe("1 Main St")
+      expect(result[0]?.address.city).toBe("Prague")
+      expect(result[0]?.address.countryCode).toBe("CZ")
+      expect(result[0]?.metadata?.lat).toBe("50.087")
+      expect(result[0]?.metadata?.osmId).toBe("456")
+    })
+  )
 })

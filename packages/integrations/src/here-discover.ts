@@ -69,44 +69,19 @@ type HereAddress = Schema.Schema.Type<typeof HereAddressSchema>
 type HereCategory = Schema.Schema.Type<typeof HereCategorySchema>
 type HereItem = Schema.Schema.Type<typeof HereItemSchema>
 
-const compactString = (value: string | undefined): string | undefined => {
-  if (!value) {
-    return undefined
-  }
-  const trimmed = value.trim()
-  return trimmed.length === 0 ? undefined : trimmed
-}
-
-const firstNonEmpty = (...values: Array<string | undefined>): string | undefined => {
-  for (const value of values) {
-    const compacted = compactString(value)
-    if (compacted) {
-      return compacted
-    }
-  }
-  return undefined
-}
-
-const joinParts = (first?: string, second?: string): string | undefined => {
-  const left = compactString(first)
-  const right = compactString(second)
-  if (left && right) {
-    return `${left} ${right}`
-  }
-  return left ?? right
-}
-
 const addressFromHere = (address: HereAddress | undefined) => {
   if (!address) {
     return {}
   }
 
-  const line1 = joinParts(address.houseNumber, address.street) ?? address.street
-  const line2 = firstNonEmpty(address.district, address.subdistrict)
-  const city = firstNonEmpty(address.city, address.county)
-  const region = firstNonEmpty(address.state, address.stateCode)
-  const postalCode = compactString(address.postalCode)
-  const countryCode = compactString(address.countryCode)?.toUpperCase()
+  const line1 =
+    [address.houseNumber, address.street].map((value) => value?.trim()).filter(Boolean).join(" ") ||
+    undefined
+  const line2 = [address.district, address.subdistrict].map((value) => value?.trim()).find(Boolean)
+  const city = [address.city, address.county].map((value) => value?.trim()).find(Boolean)
+  const region = [address.state, address.stateCode].map((value) => value?.trim()).find(Boolean)
+  const postalCode = address.postalCode?.trim() || undefined
+  const countryCode = (address.countryCode?.trim() || undefined)?.toUpperCase()
 
   return {
     line1,
@@ -116,13 +91,6 @@ const addressFromHere = (address: HereAddress | undefined) => {
     postalCode,
     countryCode
   }
-}
-
-const selectCategory = (categories: ReadonlyArray<HereCategory> | undefined) => {
-  if (!categories || categories.length === 0) {
-    return undefined
-  }
-  return categories.find((category) => category.primary) ?? categories[0]
 }
 
 const metadataFromHere = (item: HereItem): Record<string, string> | undefined => {
@@ -141,7 +109,7 @@ const metadataFromHere = (item: HereItem): Record<string, string> | undefined =>
     metadata.distance = String(item.distance)
   }
 
-  const category = selectCategory(item.categories)
+  const category = item.categories?.find((entry) => entry.primary) ?? item.categories?.[0]
   if (category?.id) {
     metadata.categoryId = category.id
   }
@@ -157,7 +125,7 @@ const formatAt = (value: HereDiscoverConfig["at"]): string | undefined => {
     return undefined
   }
   if (typeof value === "string") {
-    return compactString(value)
+    return value.trim() || undefined
   }
   return `${value.lat},${value.lng}`
 }

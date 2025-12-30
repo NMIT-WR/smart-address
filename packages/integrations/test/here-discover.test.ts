@@ -3,9 +3,10 @@ import { Effect } from "effect"
 import { parseHereDiscoverResponse } from "../src/here-discover"
 
 describe("here discover mapping", () => {
-  it("maps discover response into suggestions", async () => {
-    const payload = {
-      items: [
+  it.effect("maps discover response into suggestions", () =>
+    Effect.gen(function* () {
+      const payload = {
+        items: [
         {
           id: "here:cm:123",
           title: "Main St 1",
@@ -28,27 +29,38 @@ describe("here discover mapping", () => {
       ]
     }
 
-    const result = await Effect.runPromise(parseHereDiscoverResponse(payload))
+      const result = yield* parseHereDiscoverResponse(payload)
 
-    expect(result).toHaveLength(1)
-    expect(result[0]?.id).toBe("here-discover:here:cm:123")
-    expect(result[0]?.label).toBe("Main St 1, Prague 11000, Czechia")
-    expect(result[0]?.address.line1).toBe("1 Main St")
-    expect(result[0]?.address.city).toBe("Prague")
-    expect(result[0]?.address.countryCode).toBe("CZE")
-    expect(result[0]?.metadata?.lat).toBe("50.087")
-    expect(result[0]?.metadata?.categoryName).toBe("Restaurant")
-  })
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: "here-discover:here:cm:123",
+          label: "Main St 1, Prague 11000, Czechia",
+          address: expect.objectContaining({
+            line1: "1 Main St",
+            city: "Prague",
+            countryCode: "CZE"
+          }),
+          metadata: expect.objectContaining({
+            lat: "50.087",
+            categoryName: "Restaurant"
+          })
+        })
+      ])
+    })
+  )
 
-  it("returns empty results when there are no items", async () => {
-    const result = await Effect.runPromise(parseHereDiscoverResponse({ items: [] }))
+  it.effect("returns empty results when there are no items", () =>
+    Effect.gen(function* () {
+      const result = yield* parseHereDiscoverResponse({ items: [] })
 
-    expect(result).toHaveLength(0)
-  })
+      expect(result).toEqual([])
+    })
+  )
 
-  it("handles items with missing optional fields", async () => {
-    const payload = {
-      items: [
+  it.effect("handles items with missing optional fields", () =>
+    Effect.gen(function* () {
+      const payload = {
+        items: [
         {
           id: "here:cm:456",
           title: "Fallback Title"
@@ -56,18 +68,23 @@ describe("here discover mapping", () => {
       ]
     }
 
-    const result = await Effect.runPromise(parseHereDiscoverResponse(payload))
+      const result = yield* parseHereDiscoverResponse(payload)
 
-    expect(result).toHaveLength(1)
-    expect(result[0]?.id).toBe("here-discover:here:cm:456")
-    expect(result[0]?.label).toBe("Fallback Title")
-    expect(result[0]?.address).toEqual({})
-    expect(result[0]?.metadata).toBeUndefined()
-  })
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: "here-discover:here:cm:456",
+          label: "Fallback Title",
+          address: {},
+          metadata: undefined
+        })
+      ])
+    })
+  )
 
-  it("falls back to title when the address label is missing", async () => {
-    const payload = {
-      items: [
+  it.effect("falls back to title when the address label is missing", () =>
+    Effect.gen(function* () {
+      const payload = {
+        items: [
         {
           id: "here:cm:789",
           title: "Center Plaza",
@@ -78,17 +95,24 @@ describe("here discover mapping", () => {
       ]
     }
 
-    const result = await Effect.runPromise(parseHereDiscoverResponse(payload))
+      const result = yield* parseHereDiscoverResponse(payload)
 
-    expect(result).toHaveLength(1)
-    expect(result[0]?.label).toBe("Center Plaza")
-    expect(result[0]?.address.line1).toBe("Main St")
-    expect(result[0]?.metadata).toBeUndefined()
-  })
+      expect(result).toEqual([
+        expect.objectContaining({
+          label: "Center Plaza",
+          address: expect.objectContaining({
+            line1: "Main St"
+          }),
+          metadata: undefined
+        })
+      ])
+    })
+  )
 
-  it("omits lat/lng metadata when position is missing", async () => {
-    const payload = {
-      items: [
+  it.effect("omits lat/lng metadata when position is missing", () =>
+    Effect.gen(function* () {
+      const payload = {
+        items: [
         {
           id: "here:cm:999",
           title: "No Position",
@@ -97,11 +121,16 @@ describe("here discover mapping", () => {
       ]
     }
 
-    const result = await Effect.runPromise(parseHereDiscoverResponse(payload))
+      const result = yield* parseHereDiscoverResponse(payload)
 
-    expect(result).toHaveLength(1)
-    expect(result[0]?.metadata?.lat).toBeUndefined()
-    expect(result[0]?.metadata?.lng).toBeUndefined()
-    expect(result[0]?.metadata?.categoryName).toBe("Shop")
-  })
+      expect(result).toEqual([
+        expect.objectContaining({
+          metadata: {
+            categoryId: "200-2000-0000",
+            categoryName: "Shop"
+          }
+        })
+      ])
+    })
+  )
 })

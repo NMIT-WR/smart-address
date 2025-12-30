@@ -34,11 +34,11 @@ const rawConfig = Config.all({
     Config.withDefault("smart-address-service")
   ),
   hereApiKey: Config.option(Config.redacted("HERE_API_KEY")),
-  hereBaseUrl: Config.string("HERE_DISCOVER_BASE_URL").pipe(Config.withDefault("")),
+  hereBaseUrl: Config.option(Config.string("HERE_DISCOVER_BASE_URL")),
   hereDefaultLimit: Config.option(Config.integer("HERE_DISCOVER_DEFAULT_LIMIT")),
-  hereLanguage: Config.string("HERE_DISCOVER_LANGUAGE").pipe(Config.withDefault("")),
-  hereInArea: Config.string("HERE_DISCOVER_IN_AREA").pipe(Config.withDefault("")),
-  hereAt: Config.string("HERE_DISCOVER_AT").pipe(Config.withDefault("")),
+  hereLanguage: Config.option(Config.string("HERE_DISCOVER_LANGUAGE")),
+  hereInArea: Config.option(Config.string("HERE_DISCOVER_IN_AREA")),
+  hereAt: Config.option(Config.string("HERE_DISCOVER_AT")),
   hereDefaultLat: Config.option(Config.number("HERE_DEFAULT_LAT")),
   hereDefaultLng: Config.option(Config.number("HERE_DEFAULT_LNG")),
   hereShowDetails: Config.boolean("HERE_DISCOVER_SHOW_DETAILS").pipe(Config.withDefault(false)),
@@ -66,10 +66,10 @@ export const addressServiceConfig = rawConfig.pipe(
     const nominatimEmail = raw.nominatimEmail.trim() || undefined
     const nominatimReferer = raw.nominatimReferer.trim() || undefined
     const nominatimUserAgent = raw.nominatimUserAgent.trim() || "smart-address-service"
-    const hereBaseUrl = raw.hereBaseUrl.trim() || undefined
-    const hereLanguage = raw.hereLanguage.trim() || undefined
-    const hereInArea = raw.hereInArea.trim() || undefined
-    const hereAt = raw.hereAt.trim() || undefined
+    const hereBaseUrl = Option.getOrUndefined(raw.hereBaseUrl)?.trim() || undefined
+    const hereLanguage = Option.getOrUndefined(raw.hereLanguage)?.trim() || undefined
+    const hereInArea = Option.getOrUndefined(raw.hereInArea)?.trim() || undefined
+    const hereAt = Option.getOrUndefined(raw.hereAt)?.trim() || undefined
     const hereApiKeyValue = hereApiKey ? Redacted.value(hereApiKey).trim() : undefined
     const sqlitePath = raw.sqlitePath.trim() || undefined
     const hereDefaultAt =
