@@ -20,54 +20,57 @@ const suggestor = {
   suggest: () => Effect.succeed(sampleResult)
 }
 
-const run = <A>(effect: Effect.Effect<A>) => Effect.runPromise(effect)
-
 describe("http handlers", () => {
-  it("handles GET /suggest", async () => {
-    const request = HttpServerRequest.fromWeb(
-      new Request("http://localhost/suggest?text=Main&strategy=fast")
-    )
+  it.effect("handles GET /suggest", () =>
+    Effect.gen(function* () {
+      const request = HttpServerRequest.fromWeb(
+        new Request("http://localhost/suggest?text=Main&strategy=fast")
+      )
 
-    const response = await run(handleSuggestGet(suggestor)(request))
-    const web = HttpServerResponse.toWeb(response)
-    const body = await web.json()
+      const response = yield* handleSuggestGet(suggestor)(request)
+      const web = HttpServerResponse.toWeb(response)
+      const body = yield* Effect.promise(() => web.json())
 
-    expect(web.status).toBe(200)
-    expect(body.suggestions[0]?.id).toBe("sample:1")
-  })
+      expect(web.status).toBe(200)
+      expect(body.suggestions[0]?.id).toBe("sample:1")
+    })
+  )
 
-  it("handles POST /suggest", async () => {
-    const request = HttpServerRequest.fromWeb(
-      new Request("http://localhost/suggest", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text: "Main" })
-      })
-    )
+  it.effect("handles POST /suggest", () =>
+    Effect.gen(function* () {
+      const request = HttpServerRequest.fromWeb(
+        new Request("http://localhost/suggest", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ text: "Main" })
+        })
+      )
 
-    const response = await run(handleSuggestPost(suggestor)(request))
-    const web = HttpServerResponse.toWeb(response)
-    const body = await web.json()
+      const response = yield* handleSuggestPost(suggestor)(request)
+      const web = HttpServerResponse.toWeb(response)
+      const body = yield* Effect.promise(() => web.json())
 
-    expect(web.status).toBe(200)
-    expect(body.suggestions[0]?.id).toBe("sample:1")
-  })
+      expect(web.status).toBe(200)
+      expect(body.suggestions[0]?.id).toBe("sample:1")
+    })
+  )
 
-  it("returns an error for missing text", async () => {
-    const request = HttpServerRequest.fromWeb(
-      new Request("http://localhost/suggest", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({})
-      })
-    )
+  it.effect("returns an error for missing text", () =>
+    Effect.gen(function* () {
+      const request = HttpServerRequest.fromWeb(
+        new Request("http://localhost/suggest", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({})
+        })
+      )
 
-    const response = await run(handleSuggestPost(suggestor)(request))
-    const web = HttpServerResponse.toWeb(response)
-    const body = await web.json()
+      const response = yield* handleSuggestPost(suggestor)(request)
+      const web = HttpServerResponse.toWeb(response)
+      const body = yield* Effect.promise(() => web.json())
 
-    expect(web.status).toBe(400)
-    expect(body.error).toBeTypeOf("string")
-  })
-
+      expect(web.status).toBe(400)
+      expect(body.error).toBeTypeOf("string")
+    })
+  )
 })

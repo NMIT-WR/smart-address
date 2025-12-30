@@ -12,10 +12,11 @@ import {
 } from "../src/rate-limit"
 
 describe("rate limiter", () => {
-  it("schedules effects with spacing", async () => {
-    const program = Effect.gen(function* () {
-      const limiter = yield* AddressRateLimiter
-      const times = yield* Ref.make<ReadonlyArray<number>>([])
+  it.effect("schedules effects with spacing", () =>
+    Effect.gen(function* () {
+      const program = Effect.gen(function* () {
+        const limiter = yield* AddressRateLimiter
+        const times = yield* Ref.make<ReadonlyArray<number>>([])
 
       const record = Effect.gen(function* () {
         const now = yield* Clock.currentTimeMillis
@@ -35,16 +36,18 @@ describe("rate limiter", () => {
       Effect.provide(TestContext.TestContext)
     )
 
-    const times = await Effect.runPromise(program)
+      const times = yield* program
 
-    expect(times).toHaveLength(2)
-    expect(times[1] - times[0]).toBeGreaterThanOrEqual(1000)
-  })
+      expect(times).toHaveLength(2)
+      expect(times[1] - times[0]).toBeGreaterThanOrEqual(1000)
+    })
+  )
 
-  it("uses a shared limiter when wrapping providers", async () => {
-    const program = Effect.gen(function* () {
-      const limiter = yield* makeAddressRateLimiter(Duration.seconds(1))
-      const times = yield* Ref.make<ReadonlyArray<number>>([])
+  it.effect("uses a shared limiter when wrapping providers", () =>
+    Effect.gen(function* () {
+      const program = Effect.gen(function* () {
+        const limiter = yield* makeAddressRateLimiter(Duration.seconds(1))
+        const times = yield* Ref.make<ReadonlyArray<number>>([])
       const provider = {
         name: "test",
         suggest: () =>
@@ -68,9 +71,10 @@ describe("rate limiter", () => {
       return yield* Ref.get(times)
     }).pipe(Effect.provide(TestContext.TestContext))
 
-    const times = await Effect.runPromise(program)
+      const times = yield* program
 
-    expect(times).toHaveLength(2)
-    expect(times[1] - times[0]).toBeGreaterThanOrEqual(1000)
-  })
+      expect(times).toHaveLength(2)
+      expect(times[1] - times[0]).toBeGreaterThanOrEqual(1000)
+    })
+  )
 })

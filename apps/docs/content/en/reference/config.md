@@ -1,6 +1,6 @@
 # Runtime configuration
 
-Service environment variables (Bun). All values are read from the process environment (`Bun.env.*`).
+Service environment variables. All values are read from the process environment.
 
 ## Server
 
@@ -15,6 +15,18 @@ Service environment variables (Bun). All values are read from the process enviro
 - `NOMINATIM_REFERER`
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, set `0` to disable)
+
+## HERE Discover
+
+- `HERE_API_KEY` (string, required to enable)
+- `HERE_DISCOVER_BASE_URL`
+- `HERE_DISCOVER_DEFAULT_LIMIT` (number, default `5`)
+- `HERE_DISCOVER_LANGUAGE` (string, optional, language code like `en` or `de`)
+- `HERE_DISCOVER_IN_AREA` (string, optional, HERE `in` filter like `countryCode:GBR` or bbox)
+- `HERE_DISCOVER_AT` (string, optional, `"lat,lng"` coordinates)
+- `HERE_DEFAULT_LAT` (number, used with `HERE_DEFAULT_LNG`)
+- `HERE_DEFAULT_LNG` (number, used with `HERE_DEFAULT_LAT`)
+- `HERE_DISCOVER_RATE_LIMIT_MS` (number, default `0`, set `0` to disable)
 
 ## Cache
 
@@ -31,9 +43,15 @@ Service environment variables (Bun). All values are read from the process enviro
 
 ## Minimal example
 
+Optional: add `HERE_API_KEY` to enable HERE Discover.
+If you set both `HERE_DEFAULT_LAT` and `HERE_DEFAULT_LNG`, they provide the default `at` coordinate unless `HERE_DISCOVER_AT` is set.
+
 ```bash
 PORT=8787
 PROVIDER_TIMEOUT_MS=4000
 NOMINATIM_USER_AGENT="smart-address-dev"
 NOMINATIM_EMAIL="you@example.com"
+# HERE_API_KEY="your-here-api-key" # optional: enables HERE Discover
+# HERE_DEFAULT_LAT=50.087 # optional: default discover position
+# HERE_DEFAULT_LNG=14.421 # optional: default discover position
 ```

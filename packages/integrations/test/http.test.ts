@@ -7,10 +7,11 @@ import * as UrlParams from "@effect/platform/UrlParams"
 import { makeHttpAddressProvider } from "../src/http"
 
 describe("http address provider", () => {
-  it("builds request and parses response", async () => {
-    const program = Effect.gen(function* () {
-      const requestRef = yield* Ref.make<HttpClientRequest.HttpClientRequest | null>(null)
-      const responsePayload = [
+  it.effect("builds request and parses response", () =>
+    Effect.gen(function* () {
+      const program = Effect.gen(function* () {
+        const requestRef = yield* Ref.make<HttpClientRequest.HttpClientRequest | null>(null)
+        const responsePayload = [
         {
           id: "demo:1",
           label: "Demo",
@@ -63,15 +64,16 @@ describe("http address provider", () => {
       return { suggestions, request }
     })
 
-    const { suggestions, request } = await Effect.runPromise(program)
+      const { suggestions, request } = yield* program
 
-    expect(suggestions[0]?.id).toBe("demo:1")
-    expect(request).not.toBeNull()
-    expect(request?.method).toBe("GET")
-    expect(request?.url).toBe("https://example.test/search")
-    if (request) {
-      const params = UrlParams.toRecord(request.urlParams)
-      expect(params.q).toBe("Main St")
-    }
-  })
+      expect(suggestions[0]?.id).toBe("demo:1")
+      expect(request).not.toBeNull()
+      expect(request?.method).toBe("GET")
+      expect(request?.url).toBe("https://example.test/search")
+      if (request) {
+        const params = UrlParams.toRecord(request.urlParams)
+        expect(params.q).toBe("Main St")
+      }
+    })
+  )
 })

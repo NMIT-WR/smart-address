@@ -6,10 +6,11 @@ import type * as HttpClientRequest from "@effect/platform/HttpClientRequest"
 import { makeAddressServiceClient } from "../src/service-client"
 
 describe("address service client", () => {
-  it("posts to the suggest endpoint and decodes the response", async () => {
-    const program = Effect.gen(function* () {
-      const requestRef = yield* Ref.make<HttpClientRequest.HttpClientRequest | null>(null)
-      const responsePayload = {
+  it.effect("posts to the suggest endpoint and decodes the response", () =>
+    Effect.gen(function* () {
+      const program = Effect.gen(function* () {
+        const requestRef = yield* Ref.make<HttpClientRequest.HttpClientRequest | null>(null)
+        const responsePayload = {
         suggestions: [
           {
             id: "svc:1",
@@ -43,11 +44,12 @@ describe("address service client", () => {
       return { result, request: yield* Ref.get(requestRef) }
     })
 
-    const { result, request } = await Effect.runPromise(program)
+      const { result, request } = yield* program
 
-    expect(result.suggestions[0]?.id).toBe("svc:1")
-    expect(request).not.toBeNull()
-    expect(request?.method).toBe("POST")
-    expect(request?.url).toBe("https://example.test/suggest")
-  })
+      expect(result.suggestions[0]?.id).toBe("svc:1")
+      expect(request).not.toBeNull()
+      expect(request?.method).toBe("POST")
+      expect(request?.url).toBe("https://example.test/suggest")
+    })
+  )
 })

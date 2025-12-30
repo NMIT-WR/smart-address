@@ -38,3 +38,5 @@ The tool returns `AddressSuggestionResult`:
   "errors": []
 }
 ```
+
+The `provider` value depends on configured providers (for example, `nominatim` or `here-discover` when `HERE_API_KEY` is set).

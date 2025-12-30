@@ -1,5 +1,6 @@
-import { Config, Option } from "effect"
+import { Config, Option, Redacted } from "effect"
 import * as Duration from "effect/Duration"
+import type { HereDiscoverConfig } from "@smart-address/integrations/here-discover"
 import type { NominatimConfig } from "@smart-address/integrations/nominatim"
 import type { AddressCacheConfig } from "./cache"
 import type { AddressSqliteConfig } from "./sqlite"
@@ -9,6 +10,8 @@ export type AddressServiceConfig = {
   readonly providerTimeout: Duration.Duration
   readonly nominatimRateLimit: Duration.Duration | null
   readonly nominatim: NominatimConfig
+  readonly hereDiscover: HereDiscoverConfig | null
+  readonly hereDiscoverRateLimit: Duration.Duration | null
   readonly cache: AddressCacheConfig
   readonly sqlite: AddressSqliteConfig
 }
@@ -30,6 +33,15 @@ const rawConfig = Config.all({
   nominatimUserAgent: Config.string("NOMINATIM_USER_AGENT").pipe(
     Config.withDefault("smart-address-service")
   ),
+  hereApiKey: Config.option(Config.redacted("HERE_API_KEY")),
+  hereBaseUrl: Config.option(Config.string("HERE_DISCOVER_BASE_URL")),
+  hereDefaultLimit: Config.option(Config.integer("HERE_DISCOVER_DEFAULT_LIMIT")),
+  hereLanguage: Config.option(Config.string("HERE_DISCOVER_LANGUAGE")),
+  hereInArea: Config.option(Config.string("HERE_DISCOVER_IN_AREA")),
+  hereAt: Config.option(Config.string("HERE_DISCOVER_AT")),
+  hereDefaultLat: Config.option(Config.number("HERE_DEFAULT_LAT")),
+  hereDefaultLng: Config.option(Config.number("HERE_DEFAULT_LNG")),
+  hereRateLimitMs: Config.option(Config.integer("HERE_DISCOVER_RATE_LIMIT_MS")),
   sqlitePath: Config.string("SMART_ADDRESS_DB_PATH").pipe(Config.withDefault(""))
 })
 
@@ -43,12 +55,26 @@ export const addressServiceConfig = rawConfig.pipe(
     const l2MinTtlMs = Option.getOrUndefined(raw.l2MinTtlMs)
     const l2MaxTtlMs = Option.getOrUndefined(raw.l2MaxTtlMs)
     const l2SWRMs = Option.getOrUndefined(raw.l2SWRMs)
+    const hereApiKey = Option.getOrUndefined(raw.hereApiKey)
+    const hereDefaultLimit = Option.getOrUndefined(raw.hereDefaultLimit)
+    const hereDefaultLat = Option.getOrUndefined(raw.hereDefaultLat)
+    const hereDefaultLng = Option.getOrUndefined(raw.hereDefaultLng)
+    const hereRateLimitMs = Option.getOrUndefined(raw.hereRateLimitMs)
 
     const nominatimBaseUrl = raw.nominatimBaseUrl.trim() || undefined
     const nominatimEmail = raw.nominatimEmail.trim() || undefined
     const nominatimReferer = raw.nominatimReferer.trim() || undefined
     const nominatimUserAgent = raw.nominatimUserAgent.trim() || "smart-address-service"
+    const hereBaseUrl = Option.getOrUndefined(raw.hereBaseUrl)?.trim() || undefined
+    const hereLanguage = Option.getOrUndefined(raw.hereLanguage)?.trim() || undefined
+    const hereInArea = Option.getOrUndefined(raw.hereInArea)?.trim() || undefined
+    const hereAt = Option.getOrUndefined(raw.hereAt)?.trim() || undefined
+    const hereApiKeyValue = hereApiKey ? Redacted.value(hereApiKey).trim() : undefined
     const sqlitePath = raw.sqlitePath.trim() || undefined
+    const hereDefaultAt =
+      hereDefaultLat !== undefined && hereDefaultLng !== undefined
+        ? { lat: hereDefaultLat, lng: hereDefaultLng }
+        : undefined
 
     const nominatimConfig: NominatimConfig = {
       userAgent: nominatimUserAgent,
@@ -64,6 +90,25 @@ export const addressServiceConfig = rawConfig.pipe(
         : nominatimRateLimitMs <= 0
           ? null
           : Duration.millis(nominatimRateLimitMs)
+
+    const hereDiscoverConfig: HereDiscoverConfig | null =
+      hereApiKeyValue === undefined || hereApiKeyValue.length === 0
+        ? null
+        : {
+            apiKey: hereApiKeyValue,
+            ...(hereBaseUrl !== undefined ? { baseUrl: hereBaseUrl } : {}),
+            ...(hereDefaultLimit !== undefined ? { defaultLimit: hereDefaultLimit } : {}),
+            ...(hereLanguage !== undefined ? { language: hereLanguage } : {}),
+            ...(hereInArea !== undefined ? { inArea: hereInArea } : {}),
+            ...((hereAt ?? hereDefaultAt) !== undefined ? { at: hereAt ?? hereDefaultAt } : {})
+          }
+
+    const hereDiscoverRateLimit =
+      hereRateLimitMs === undefined
+        ? null
+        : hereRateLimitMs <= 0
+          ? null
+          : Duration.millis(hereRateLimitMs)
 
     const cacheConfig: AddressCacheConfig = {
       ...(l1Capacity !== undefined ? { l1Capacity } : {}),
@@ -81,6 +126,8 @@ export const addressServiceConfig = rawConfig.pipe(
       providerTimeout: Duration.millis(raw.providerTimeoutMs),
       nominatimRateLimit,
       nominatim: nominatimConfig,
+      hereDiscover: hereDiscoverConfig,
+      hereDiscoverRateLimit,
       cache: cacheConfig,
       sqlite: sqliteConfig
     }

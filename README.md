@@ -7,7 +7,7 @@ Reliable address suggestions for checkout and onboarding. Built on Effect so you
 ## What’s in this repo
 
 - `packages/core` (`@smart-address/core`): domain types, provider planning, dedupe, and error collection.
-- `packages/integrations` (`@smart-address/integrations`): provider adapters (e.g. Nominatim) + HTTP/RL helpers.
+- `packages/integrations` (`@smart-address/integrations`): provider adapters (e.g. Nominatim, HERE Discover) + HTTP/RL helpers.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC contract + client helpers.
 - `packages/sdk` (`@smart-address/sdk`): tiny browser client (ESM module).
 - `apps/service-bun` (`@smart-address/service-bun`): Bun service exposing HTTP + MCP + RPC endpoints, caching, and SQLite persistence.
@@ -17,11 +17,14 @@ Reliable address suggestions for checkout and onboarding. Built on Effect so you
 
 Prereqs: `pnpm` + `bun`.
 
+Optional: set `HERE_API_KEY` to enable HERE Discover.
+
 ```bash
 pnpm install
 
 NOMINATIM_USER_AGENT="smart-address-dev" \
 NOMINATIM_EMAIL="you@example.com" \
+HERE_API_KEY="your-here-api-key" \
 pnpm --filter @smart-address/service-bun dev
 ```
 
@@ -73,11 +76,12 @@ Run with Docker Compose:
 ```bash
 NOMINATIM_USER_AGENT="your-app-name" \
 NOMINATIM_EMAIL="you@example.com" \
+HERE_API_KEY="your-here-api-key" \
 docker compose up -d
 ```
 
 Tip: `docker compose` reads `.env` in the repo root, so you can set
-`NOMINATIM_USER_AGENT` and `NOMINATIM_EMAIL` there instead of inline.
+`NOMINATIM_USER_AGENT`, `NOMINATIM_EMAIL`, and `HERE_API_KEY` there instead of inline.
 
 Persist the SQLite DB:
 
@@ -92,7 +96,11 @@ Recommended env vars (Nominatim usage policy):
 
 Optional env vars:
 
-- `NOMINATIM_BASE_URL`, `NOMINATIM_REFERER`, `NOMINATIM_DEFAULT_LIMIT`, `NOMINATIM_RATE_LIMIT_MS`
+- HERE Discover: `HERE_API_KEY`, `HERE_DISCOVER_BASE_URL`, `HERE_DISCOVER_DEFAULT_LIMIT`,
+  `HERE_DISCOVER_LANGUAGE`, `HERE_DISCOVER_IN_AREA`, `HERE_DISCOVER_AT`,
+  `HERE_DEFAULT_LAT`, `HERE_DEFAULT_LNG`, `HERE_DISCOVER_RATE_LIMIT_MS`
+- Nominatim: `NOMINATIM_BASE_URL`, `NOMINATIM_REFERER`, `NOMINATIM_DEFAULT_LIMIT`,
+  `NOMINATIM_RATE_LIMIT_MS`
 - `PORT` (default `8787`), `PROVIDER_TIMEOUT_MS`
 - Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
 - DB path override: `SMART_ADDRESS_DB_PATH`

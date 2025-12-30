@@ -64,6 +64,8 @@ Same fields as `GET /suggest`.
 }
 ```
 
+The `provider` value depends on configured providers (for example, `nominatim` or `here-discover` when `HERE_API_KEY` is set).
+
 ## GET /health
 
 Output: text `ok`

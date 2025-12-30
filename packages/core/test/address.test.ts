@@ -24,9 +24,10 @@ describe("address core", () => {
     })
   })
 
-  it("dedupes providers and respects limit", async () => {
-    const providerA = makeAddressProvider("a", () =>
-      Effect.succeed([
+  it.effect("dedupes providers and respects limit", () =>
+    Effect.gen(function* () {
+      const providerA = makeAddressProvider("a", () =>
+        Effect.succeed([
         {
           id: "one",
           label: "One",
@@ -65,19 +66,22 @@ describe("address core", () => {
       ]
     }
 
-    const service = makeAddressSuggestionService(plan)
-    const result = await Effect.runPromise(service.suggest({ text: "Main", limit: 2 }))
+      const service = makeAddressSuggestionService(plan)
+      const result = yield* service.suggest({ text: "Main", limit: 2 })
 
-    expect(result.suggestions.map((item) => item.id)).toEqual(["one", "two"])
-    expect(result.errors).toEqual([])
-  })
+      expect(result.suggestions.map((item) => item.id)).toEqual(["one", "two"])
+      expect(result.errors).toEqual([])
+    })
+  )
 
-  it("collects provider errors without failing", async () => {
-    const provider = makeAddressProvider("boom", () => Effect.fail(new Error("nope")))
-    const service = makeAddressSuggestionService([provider])
-    const result = await Effect.runPromise(service.suggest({ text: "Main" }))
+  it.effect("collects provider errors without failing", () =>
+    Effect.gen(function* () {
+      const provider = makeAddressProvider("boom", () => Effect.fail(new Error("nope")))
+      const service = makeAddressSuggestionService([provider])
+      const result = yield* service.suggest({ text: "Main" })
 
-    expect(result.suggestions).toEqual([])
-    expect(result.errors).toEqual([{ provider: "boom", message: "nope" }])
-  })
+      expect(result.suggestions).toEqual([])
+      expect(result.errors).toEqual([{ provider: "boom", message: "nope" }])
+    })
+  )
 })

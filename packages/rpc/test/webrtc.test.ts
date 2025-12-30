@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@effect-native/bun-test"
+import { describe, expect, it } from "@effect-native/bun-test"
 import { Deferred, Effect, Fiber, Layer, Ref } from "effect"
 import * as RpcClient from "@effect/rpc/RpcClient"
 import * as RpcServer from "@effect/rpc/RpcServer"
@@ -108,136 +108,146 @@ const makePairedChannels = () => {
 }
 
 describe("webrtc socket adapter", () => {
-  test("writes data to the data channel", async () => {
-    const channel = new TestDataChannel()
-    const program = Effect.scoped(
-      makeDataChannelSocket(channel).pipe(
-        Effect.flatMap((socket) =>
-          Effect.gen(function* () {
-            const opened = yield* Deferred.make<void>()
-            const write = yield* socket.writer
-            const fiber = yield* Effect.fork(
-              socket.runRaw(() => undefined, {
-                onOpen: Deferred.succeed(opened, undefined)
-              })
-            )
-
-            yield* Deferred.await(opened)
-            yield* write(new Uint8Array([1, 2, 3]))
-            channel.close()
-            yield* Fiber.join(fiber)
-
-            return channel.sent.length
-          })
-        )
-      )
-    )
-
-    const sentCount = await Effect.runPromise(program)
-    expect(sentCount).toBe(1)
-  })
-
-  test("delivers incoming messages to the handler", async () => {
-    const channel = new TestDataChannel()
-    const program = Effect.gen(function* () {
-      const socket = yield* makeDataChannelSocket(channel)
-      const received = yield* Ref.make<Array<string | Uint8Array>>([])
-      const fiber = yield* Effect.fork(
-        socket.runRaw((data) => Ref.update(received, (current) => [...current, data]))
-      )
-
-      yield* Effect.yieldNow()
-      channel.emitMessage("hello")
-      channel.close()
-
-      yield* Fiber.join(fiber)
-      return yield* Ref.get(received)
-    })
-
-    const received = await Effect.runPromise(program)
-    expect(received).toEqual(["hello"])
-  })
-
-  test("wraps a data channel as a socket server", async () => {
-    const channel = new TestDataChannel()
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const server = yield* makeDataChannelSocketServer(channel)
-        const written = yield* Deferred.make<void>()
-
-        const fiber = yield* Effect.fork(
-          server.run((socket) =>
+  it.effect("writes data to the data channel", () =>
+    Effect.gen(function* () {
+      const channel = new TestDataChannel()
+      const program = Effect.scoped(
+        makeDataChannelSocket(channel).pipe(
+          Effect.flatMap((socket) =>
             Effect.gen(function* () {
               const opened = yield* Deferred.make<void>()
-              const runner = yield* Effect.fork(
+              const write = yield* socket.writer
+              const fiber = yield* Effect.fork(
                 socket.runRaw(() => undefined, {
                   onOpen: Deferred.succeed(opened, undefined)
                 })
               )
-              const write = yield* socket.writer
+
               yield* Deferred.await(opened)
-              yield* write(new Uint8Array([7, 8, 9]))
-              yield* Deferred.succeed(written, undefined)
+              yield* write(new Uint8Array([1, 2, 3]))
               channel.close()
-              yield* Fiber.join(runner)
+              yield* Fiber.join(fiber)
+
+              return channel.sent.length
             })
           )
         )
-
-        yield* Deferred.await(written)
-        yield* Fiber.interrupt(fiber)
-
-        return channel.sent.length
-      })
-    )
-
-    const sentCount = await Effect.runPromise(program)
-    expect(sentCount).toBe(1)
-  })
-
-  test("supports RPC over a paired data channel", async () => {
-    const { client, server } = makePairedChannels()
-    const handlers = SuggestAddressRpcGroup.of({
-      "suggest-address": () =>
-        Effect.succeed({
-          suggestions: [
-            {
-              id: "webrtc:1",
-              label: "WebRTC",
-              address: { line1: "WebRTC" },
-              source: { provider: "webrtc" }
-            }
-          ],
-          errors: []
-        })
-    })
-
-    const serverProtocolLayer = RpcServer.layerProtocolSocketServer.pipe(
-      Layer.provide(layerDataChannelSocketServer(server)),
-      Layer.provide(RpcSerialization.layerJson)
-    )
-
-    const serverLayer = RpcServer.layer(SuggestAddressRpcGroup).pipe(
-      Layer.provide(SuggestAddressRpcGroup.toLayer(handlers)),
-      Layer.provide(serverProtocolLayer),
-      Layer.provide(RpcSerialization.layerJson)
-    )
-
-    const clientProtocolLayer = RpcClient.layerProtocolSocket().pipe(
-      Layer.provide(layerDataChannelSocket(client)),
-      Layer.provide(RpcSerialization.layerJson)
-    )
-
-    const clientLayer = Layer.mergeAll(clientProtocolLayer, RpcSerialization.layerJson)
-
-    const program = Effect.scoped(
-      RpcClient.make(SuggestAddressRpcGroup).pipe(
-        Effect.flatMap((rpcClient) => rpcClient["suggest-address"]({ text: "WebRTC" })),
-        Effect.provide(Layer.mergeAll(serverLayer, clientLayer))
       )
-    )
 
-    const result = await Effect.runPromise(program)
-    expect(result.suggestions[0]?.id).toBe("webrtc:1")
-  })
+      const sentCount = yield* program
+      expect(sentCount).toBe(1)
+    })
+  )
+
+  it.effect("delivers incoming messages to the handler", () =>
+    Effect.gen(function* () {
+      const channel = new TestDataChannel()
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const socket = yield* makeDataChannelSocket(channel)
+          const received = yield* Ref.make<Array<string | Uint8Array>>([])
+          const fiber = yield* Effect.fork(
+            socket.runRaw((data) => Ref.update(received, (current) => [...current, data]))
+          )
+
+          yield* Effect.yieldNow()
+          channel.emitMessage("hello")
+          channel.close()
+
+          yield* Fiber.join(fiber)
+          return yield* Ref.get(received)
+        })
+      )
+
+      const received = yield* program
+      expect(received).toEqual(["hello"])
+    })
+  )
+
+  it.effect("wraps a data channel as a socket server", () =>
+    Effect.gen(function* () {
+      const channel = new TestDataChannel()
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const server = yield* makeDataChannelSocketServer(channel)
+          const written = yield* Deferred.make<void>()
+
+          const fiber = yield* Effect.fork(
+            server.run((socket) =>
+              Effect.gen(function* () {
+                const opened = yield* Deferred.make<void>()
+                const runner = yield* Effect.fork(
+                  socket.runRaw(() => undefined, {
+                    onOpen: Deferred.succeed(opened, undefined)
+                  })
+                )
+                const write = yield* socket.writer
+                yield* Deferred.await(opened)
+                yield* write(new Uint8Array([7, 8, 9]))
+                yield* Deferred.succeed(written, undefined)
+                channel.close()
+                yield* Fiber.join(runner)
+              })
+            )
+          )
+
+          yield* Deferred.await(written)
+          yield* Fiber.interrupt(fiber)
+
+          return channel.sent.length
+        })
+      )
+
+      const sentCount = yield* program
+      expect(sentCount).toBe(1)
+    })
+  )
+
+  it.effect("supports RPC over a paired data channel", () =>
+    Effect.gen(function* () {
+      const { client, server } = makePairedChannels()
+      const handlers = SuggestAddressRpcGroup.of({
+        "suggest-address": () =>
+          Effect.succeed({
+            suggestions: [
+              {
+                id: "webrtc:1",
+                label: "WebRTC",
+                address: { line1: "WebRTC" },
+                source: { provider: "webrtc" }
+              }
+            ],
+            errors: []
+          })
+      })
+
+      const serverProtocolLayer = RpcServer.layerProtocolSocketServer.pipe(
+        Layer.provide(layerDataChannelSocketServer(server)),
+        Layer.provide(RpcSerialization.layerJson)
+      )
+
+      const serverLayer = RpcServer.layer(SuggestAddressRpcGroup).pipe(
+        Layer.provide(SuggestAddressRpcGroup.toLayer(handlers)),
+        Layer.provide(serverProtocolLayer),
+        Layer.provide(RpcSerialization.layerJson)
+      )
+
+      const clientProtocolLayer = RpcClient.layerProtocolSocket().pipe(
+        Layer.provide(layerDataChannelSocket(client)),
+        Layer.provide(RpcSerialization.layerJson)
+      )
+
+      const clientLayer = Layer.mergeAll(clientProtocolLayer, RpcSerialization.layerJson)
+
+      const program = Effect.scoped(
+        RpcClient.make(SuggestAddressRpcGroup).pipe(
+          Effect.flatMap((rpcClient) => rpcClient["suggest-address"]({ text: "WebRTC" })),
+          Effect.provide(Layer.mergeAll(serverLayer, clientLayer))
+        )
+      )
+
+      const result = yield* program
+      expect(result.suggestions[0]?.id).toBe("webrtc:1")
+    })
+  )
 })

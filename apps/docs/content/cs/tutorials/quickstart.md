@@ -9,6 +9,7 @@ Spustit Bun službu lokálně a získat reálné návrhy adres přes HTTP.
 - `pnpm`
 - `bun`
 - Pro Nominatim je potřeba reálný `User-Agent` (a ideálně i email).
+- Volitelně: nastavte `HERE_API_KEY` pro zapnutí HERE Discover.
 
 ## Kroky
 
@@ -49,7 +50,7 @@ Očekávaná odpověď: `ok`
 
 ## Co jste právě použili
 
-- Provider: Nominatim (public)
+- Provider: Nominatim (public). Pokud je `HERE_API_KEY` nastavený, fast používá HERE Discover a reliable používá HERE Discover s Nominatim fallbackem.
 - Strategie: `reliable` (default)
 - Cache: L1 v paměti + L2 SQLite
 

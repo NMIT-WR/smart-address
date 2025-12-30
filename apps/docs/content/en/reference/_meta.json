@@ -1,6 +1,7 @@
 [
   "index",
   "core-types",
+  "here-discover-provider",
   "service-api",
   "mcp-tool",
   "rpc",

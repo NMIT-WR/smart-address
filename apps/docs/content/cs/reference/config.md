@@ -1,6 +1,6 @@
 # Runtime konfigurace
 
-Environment proměnné služby (Bun). Hodnoty se čtou z procesního prostředí (`Bun.env.*`).
+Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 
 ## Server
 
@@ -15,6 +15,18 @@ Environment proměnné služby (Bun). Hodnoty se čtou z procesního prostředí
 - `NOMINATIM_REFERER`
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, `0` = vypnout)
+
+## HERE Discover
+
+- `HERE_API_KEY` (string, povinné pro zapnutí)
+- `HERE_DISCOVER_BASE_URL`
+- `HERE_DISCOVER_DEFAULT_LIMIT` (number, default `5`)
+- `HERE_DISCOVER_LANGUAGE` (string, volitelné, jazykový kód např. `en` nebo `de`)
+- `HERE_DISCOVER_IN_AREA` (string, volitelné, HERE `in` filtr např. `countryCode:GBR` nebo bbox)
+- `HERE_DISCOVER_AT` (string, volitelné, souřadnice `"lat,lng"`)
+- `HERE_DEFAULT_LAT` (number, použije se s `HERE_DEFAULT_LNG`)
+- `HERE_DEFAULT_LNG` (number, použije se s `HERE_DEFAULT_LAT`)
+- `HERE_DISCOVER_RATE_LIMIT_MS` (number, default `0`, `0` = vypnout)
 
 ## Cache
 
@@ -31,9 +43,15 @@ Environment proměnné služby (Bun). Hodnoty se čtou z procesního prostředí
 
 ## Minimální příklad
 
+Volitelně přidejte `HERE_API_KEY` pro zapnutí HERE Discover.
+Pokud nastavíte `HERE_DEFAULT_LAT` a `HERE_DEFAULT_LNG`, použijí se jako výchozí `at`, pokud není nastavené `HERE_DISCOVER_AT`.
+
 ```bash
 PORT=8787
 PROVIDER_TIMEOUT_MS=4000
 NOMINATIM_USER_AGENT="smart-address-dev"
 NOMINATIM_EMAIL="you@example.com"
+# HERE_API_KEY="your-here-api-key" # volitelné: zapne HERE Discover
+# HERE_DEFAULT_LAT=50.087 # volitelné: výchozí poloha pro discover
+# HERE_DEFAULT_LNG=14.421 # volitelné: výchozí poloha pro discover
 ```
