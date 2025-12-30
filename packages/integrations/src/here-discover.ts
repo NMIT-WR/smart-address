@@ -1,8 +1,9 @@
 import { Effect } from "effect"
+import * as Clock from "effect/Clock"
 import * as Schema from "effect/Schema"
 import * as HttpClient from "@effect/platform/HttpClient"
 import * as HttpClientRequest from "@effect/platform/HttpClientRequest"
-import * as HttpClientResponse from "@effect/platform/HttpClientResponse"
+import * as UrlParams from "@effect/platform/UrlParams"
 import {
   makeAddressProvider,
   normalizeAddressQuery,
@@ -17,7 +18,6 @@ export type HereDiscoverConfig = {
   readonly language?: string
   readonly inArea?: string
   readonly at?: string | { lat: number; lng: number }
-  readonly showDetails?: boolean
 }
 
 const HerePositionSchema = Schema.Struct({
@@ -153,7 +153,11 @@ const buildRequest = (config: HereDiscoverConfig, query: AddressQuery): HttpClie
   const normalized = normalizeAddressQuery(query)
   const limit = normalized.limit ?? config.defaultLimit ?? 5
   const language = normalized.locale ?? config.language
-  const inArea = normalized.countryCode ? `countryCode:${normalized.countryCode}` : config.inArea
+  const inAreaFromQuery =
+    normalized.countryCode && normalized.countryCode.length === 3
+      ? `countryCode:${normalized.countryCode}`
+      : undefined
+  const inArea = inAreaFromQuery ?? config.inArea
   const at = formatAt(config.at)
 
   const params: Record<string, string> = {
@@ -162,10 +166,6 @@ const buildRequest = (config: HereDiscoverConfig, query: AddressQuery): HttpClie
   }
 
   params.limit = String(limit)
-
-  if (config.showDetails) {
-    params.show = "details"
-  }
 
   if (language) {
     params.lang = language
@@ -186,10 +186,51 @@ const buildRequest = (config: HereDiscoverConfig, query: AddressQuery): HttpClie
 }
 
 export const makeHereDiscoverProvider = (config: HereDiscoverConfig) =>
-  makeAddressProvider("here-discover", (query) =>
-    HttpClient.execute(buildRequest(config, query)).pipe(
-      Effect.flatMap(HttpClientResponse.filterStatusOk),
-      Effect.flatMap((response) => response.json),
-      Effect.flatMap(parseHereDiscoverResponse)
+  makeAddressProvider("here-discover", (query) => {
+    const request = buildRequest(config, query)
+    const params = UrlParams.toRecord(request.urlParams)
+
+    return Effect.gen(function* () {
+      const start = yield* Clock.currentTimeMillis
+      yield* Effect.logInfo("here-discover request", {
+        url: request.url,
+        params,
+        query
+      })
+
+      const response = yield* HttpClient.execute(request)
+      const elapsedMs = (yield* Clock.currentTimeMillis) - start
+
+      yield* Effect.logInfo("here-discover response", {
+        status: response.status,
+        elapsedMs,
+        headers: response.headers
+      })
+
+      if (response.status < 200 || response.status >= 300) {
+        const body = yield* response.text
+        yield* Effect.logError("here-discover response error", {
+          status: response.status,
+          elapsedMs,
+          body
+        })
+        return yield* Effect.fail(new Error(`HERE discover failed: ${response.status}`))
+      }
+
+      const body = yield* response.json
+      yield* Effect.logInfo("here-discover response body", body)
+
+      return yield* parseHereDiscoverResponse(body).pipe(
+        Effect.tapError((error) => Effect.logError("here-discover parse error", error))
+      )
+    }).pipe(
+      Effect.withSpan("here-discover.request", {
+        attributes: {
+          url: request.url,
+          params,
+          provider: "here-discover"
+        }
+      }),
+      Effect.onInterrupt(() => Effect.logWarning("here-discover request interrupted"))
     )
-  )
+  })

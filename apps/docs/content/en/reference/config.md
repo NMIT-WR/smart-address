@@ -26,7 +26,6 @@ Service environment variables. All values are read from the process environment.
 - `HERE_DISCOVER_AT` (string, optional, `"lat,lng"` coordinates)
 - `HERE_DEFAULT_LAT` (number, used with `HERE_DEFAULT_LNG`)
 - `HERE_DEFAULT_LNG` (number, used with `HERE_DEFAULT_LAT`)
-- `HERE_DISCOVER_SHOW_DETAILS` (boolean, default `false`, sets `show=details`)
 - `HERE_DISCOVER_RATE_LIMIT_MS` (number, default `0`, set `0` to disable)
 
 ## Cache
@@ -55,5 +54,4 @@ NOMINATIM_EMAIL="you@example.com"
 # HERE_API_KEY="your-here-api-key" # optional: enables HERE Discover
 # HERE_DEFAULT_LAT=50.087 # optional: default discover position
 # HERE_DEFAULT_LNG=14.421 # optional: default discover position
-# HERE_DISCOVER_SHOW_DETAILS=true # optional: request details in HERE responses
 ```

@@ -14,13 +14,12 @@ Define the scope and expectations for the HERE Discover provider integration and
 
 - `AddressQuery` fields: `text` (required), `limit`, `countryCode`, `locale`.
 - Service env vars: `HERE_API_KEY`, `HERE_DISCOVER_*`, `HERE_DEFAULT_LAT`, `HERE_DEFAULT_LNG`.
-- Optional provider config: `at` (string or `{ lat; lng }`), `showDetails`.
+- Optional provider config: `at` (string or `{ lat; lng }`).
 
 ## Output
 
 - `fast` strategy uses HERE Discover when configured; `reliable` falls back to Nominatim.
 - Suggestions are returned as `AddressSuggestion` with normalized address fields and metadata.
-- When `showDetails` is enabled, HERE responses include `show=details`.
 
 ## Errors
 

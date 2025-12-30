@@ -19,7 +19,6 @@ Zpřístupnit HERE Discover Search API jako `AddressProvider` postavený na Effe
 - `language` (string, volitelné, posílá se jako `lang`)
 - `inArea` (string, volitelné, posílá se jako `in`)
 - `at` (string nebo `{ lat: number; lng: number }`, volitelné, souřadnice `"lat,lng"`)
-- `showDetails` (boolean, volitelné, nastaví `show=details`)
 
 Mapování `AddressQuery`:
 

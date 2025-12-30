@@ -41,7 +41,6 @@ const rawConfig = Config.all({
   hereAt: Config.option(Config.string("HERE_DISCOVER_AT")),
   hereDefaultLat: Config.option(Config.number("HERE_DEFAULT_LAT")),
   hereDefaultLng: Config.option(Config.number("HERE_DEFAULT_LNG")),
-  hereShowDetails: Config.boolean("HERE_DISCOVER_SHOW_DETAILS").pipe(Config.withDefault(false)),
   hereRateLimitMs: Config.option(Config.integer("HERE_DISCOVER_RATE_LIMIT_MS")),
   sqlitePath: Config.string("SMART_ADDRESS_DB_PATH").pipe(Config.withDefault(""))
 })
@@ -101,8 +100,7 @@ export const addressServiceConfig = rawConfig.pipe(
             ...(hereDefaultLimit !== undefined ? { defaultLimit: hereDefaultLimit } : {}),
             ...(hereLanguage !== undefined ? { language: hereLanguage } : {}),
             ...(hereInArea !== undefined ? { inArea: hereInArea } : {}),
-            ...((hereAt ?? hereDefaultAt) !== undefined ? { at: hereAt ?? hereDefaultAt } : {}),
-            ...(raw.hereShowDetails ? { showDetails: true } : {})
+            ...((hereAt ?? hereDefaultAt) !== undefined ? { at: hereAt ?? hereDefaultAt } : {})
           }
 
     const hereDiscoverRateLimit =
