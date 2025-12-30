@@ -142,20 +142,22 @@ describe("webrtc socket adapter", () => {
   it.effect("delivers incoming messages to the handler", () =>
     Effect.gen(function* () {
       const channel = new TestDataChannel()
-      const program = Effect.gen(function* () {
-        const socket = yield* makeDataChannelSocket(channel)
-        const received = yield* Ref.make<Array<string | Uint8Array>>([])
-        const fiber = yield* Effect.fork(
-          socket.runRaw((data) => Ref.update(received, (current) => [...current, data]))
-        )
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const socket = yield* makeDataChannelSocket(channel)
+          const received = yield* Ref.make<Array<string | Uint8Array>>([])
+          const fiber = yield* Effect.fork(
+            socket.runRaw((data) => Ref.update(received, (current) => [...current, data]))
+          )
 
-        yield* Effect.yieldNow()
-        channel.emitMessage("hello")
-        channel.close()
+          yield* Effect.yieldNow()
+          channel.emitMessage("hello")
+          channel.close()
 
-        yield* Fiber.join(fiber)
-        return yield* Ref.get(received)
-      })
+          yield* Fiber.join(fiber)
+          return yield* Ref.get(received)
+        })
+      )
 
       const received = yield* program
       expect(received).toEqual(["hello"])
