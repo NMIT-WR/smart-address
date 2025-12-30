@@ -187,14 +187,26 @@ const buildRequest = (config: HereDiscoverConfig, query: AddressQuery): HttpClie
 
 export const makeHereDiscoverProvider = (config: HereDiscoverConfig) =>
   makeAddressProvider("here-discover", (query) => {
+    const normalized = normalizeAddressQuery(query)
     const request = buildRequest(config, query)
     const params = UrlParams.toRecord(request.urlParams)
+    const logParams = { ...params, apiKey: "[REDACTED]" }
 
     return Effect.gen(function* () {
+      if (normalized.countryCode && normalized.countryCode.length !== 3) {
+        yield* Effect.logWarning(
+          "here-discover ignores countryCode: expected ISO 3166-1 alpha-3; falling back to HERE_DISCOVER_IN_AREA",
+          {
+            countryCode: normalized.countryCode,
+            inArea: config.inArea
+          }
+        )
+      }
+
       const start = yield* Clock.currentTimeMillis
       yield* Effect.logInfo("here-discover request", {
         url: request.url,
-        params,
+        params: logParams,
         query
       })
 
@@ -227,7 +239,7 @@ export const makeHereDiscoverProvider = (config: HereDiscoverConfig) =>
       Effect.withSpan("here-discover.request", {
         attributes: {
           url: request.url,
-          params,
+          params: logParams,
           provider: "here-discover"
         }
       }),
