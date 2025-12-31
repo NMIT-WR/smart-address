@@ -1,4 +1,4 @@
-import { defineConfig } from "@rslib/core"
+import { defineConfig } from "@rslib/core";
 
 export default defineConfig({
   lib: [
@@ -8,9 +8,9 @@ export default defineConfig({
       source: {
         entry: {
           address: "./src/address.ts",
-          schema: "./src/schema.ts"
-        }
-      }
-    }
-  ]
-})
+          schema: "./src/schema.ts",
+        },
+      },
+    },
+  ],
+});

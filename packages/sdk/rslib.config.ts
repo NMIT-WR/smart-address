@@ -1,8 +1,8 @@
-import { defineConfig } from "@rslib/core"
+import { defineConfig } from "@rslib/core";
 
 const entry = {
-  "smart-address": "./src/client.ts"
-}
+  "smart-address": "./src/client.ts",
+};
 
 export default defineConfig({
   lib: [
@@ -10,11 +10,11 @@ export default defineConfig({
       format: "esm",
       dts: true,
       source: {
-        entry
-      }
-    }
+        entry,
+      },
+    },
   ],
   output: {
-    target: "web"
-  }
-})
+    target: "web",
+  },
+});

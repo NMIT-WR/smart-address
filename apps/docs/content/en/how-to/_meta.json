@@ -1,6 +1,1 @@
-[
-  "index",
-  "use-service",
-  "add-provider",
-  "legacy-js-integration"
-]
+["index", "use-service", "add-provider", "legacy-js-integration"]
