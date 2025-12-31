@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.26.2",
   "scripts": {
-    "prepare": "effect-language-service patch",
+    "prepare": "effect-language-service patch && lefthook install",
     "build": "pnpm -r --filter ./packages/* run build",
     "typecheck": "pnpm -r --filter \"./packages/*\" --filter \"./apps/*\" run typecheck",
     "check": "ultracite check",
@@ -16,6 +16,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
     "@effect/language-service": "catalog:tooling",
+    "lefthook": "^2.0.13",
     "typescript": "catalog:types",
     "ultracite": "6.5.0"
   }

@@ -1,0 +1,4 @@
+pre-commit:
+  commands:
+    ultracite:
+      run: pnpm check
