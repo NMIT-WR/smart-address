@@ -2,3 +2,8 @@ pre-commit:
   commands:
     ultracite:
       run: pnpm check
+
+pre-push:
+  commands:
+    tests:
+      run: pnpm test
