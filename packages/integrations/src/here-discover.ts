@@ -66,7 +66,6 @@ const HereDiscoverResponseSchema = Schema.Struct({
 })
 
 type HereAddress = Schema.Schema.Type<typeof HereAddressSchema>
-type HereCategory = Schema.Schema.Type<typeof HereCategorySchema>
 type HereItem = Schema.Schema.Type<typeof HereItemSchema>
 
 const addressFromHere = (address: HereAddress | undefined) => {

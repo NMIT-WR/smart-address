@@ -14,6 +14,7 @@ COPY apps/service-bun/package.json apps/service-bun/package.json
 COPY packages/core/package.json packages/core/package.json
 COPY packages/integrations/package.json packages/integrations/package.json
 COPY packages/rpc/package.json packages/rpc/package.json
+COPY packages/sdk/package.json packages/sdk/package.json
 
 RUN pnpm install --frozen-lockfile --ignore-scripts
 

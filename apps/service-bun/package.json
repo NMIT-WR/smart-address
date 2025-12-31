@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "predev": "pnpm --filter @smart-address/sdk build",
-    "dev": "bun src/main.ts",
+    "dev": "bun --no-env-file --env-file .env src/main.ts",
     "prestart": "pnpm --filter @smart-address/sdk build",
-    "start": "bun src/main.ts",
+    "start": "bun --no-env-file --env-file .env src/main.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

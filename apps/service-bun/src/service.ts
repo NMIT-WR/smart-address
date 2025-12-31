@@ -10,6 +10,10 @@ import {
 } from "@smart-address/core"
 import { makeHereDiscoverProvider, type HereDiscoverConfig } from "@smart-address/integrations/here-discover"
 import { makeNominatimProvider, type NominatimConfig } from "@smart-address/integrations/nominatim"
+import {
+  makeRadarAutocompleteProvider,
+  type RadarAutocompleteConfig
+} from "@smart-address/integrations/radar-autocomplete"
 import { makeAddressRateLimiter, withRateLimiter } from "@smart-address/integrations/rate-limit"
 import type * as HttpClient from "@effect/platform/HttpClient"
 import type { SuggestRequest } from "./request"
@@ -26,6 +30,8 @@ export type AddressSuggestorConfig = {
   readonly nominatim: NominatimConfig
   readonly providerTimeout?: Duration.DurationInput
   readonly nominatimRateLimit?: Duration.DurationInput | null
+  readonly radarAutocomplete?: RadarAutocompleteConfig | null
+  readonly radarAutocompleteRateLimit?: Duration.DurationInput | null
   readonly hereDiscover?: HereDiscoverConfig | null
   readonly hereDiscoverRateLimit?: Duration.DurationInput | null
 }
@@ -45,23 +51,15 @@ const makePlan = (
   ]
 })
 
-const makeFallbackPlan = (
-  primary: HttpAddressProvider,
-  fallback: HttpAddressProvider,
+const makeSequentialPlan = (
+  providers: ReadonlyArray<HttpAddressProvider>,
   name: string
 ): AddressProviderPlan<HttpClient.HttpClient> => ({
-  stages: [
-    {
-      name,
-      providers: [primary],
-      concurrency: 1
-    },
-    {
-      name: `${name}-fallback`,
-      providers: [fallback],
-      concurrency: 1
-    }
-  ]
+  stages: providers.map((provider, index) => ({
+    name: index === 0 ? name : `${name}-fallback${index === 1 ? "" : `-${index}`}`,
+    providers: [provider],
+    concurrency: 1
+  }))
 })
 
 const withOptionalRateLimit = <R>(
@@ -97,6 +95,13 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
         config.nominatimRateLimit === null ? null : config.nominatimRateLimit ?? Duration.seconds(1)
       const nominatimProvider = yield* withOptionalRateLimit(baseNominatim, nominatimRateLimit)
 
+      const radarProvider = config.radarAutocomplete
+        ? yield* withOptionalRateLimit(
+            withProviderTimeout(makeRadarAutocompleteProvider(config.radarAutocomplete), timeout),
+            config.radarAutocompleteRateLimit ?? null
+          )
+        : null
+
       const hereProvider = config.hereDiscover
         ? yield* withOptionalRateLimit(
             withProviderTimeout(makeHereDiscoverProvider(config.hereDiscover), timeout),
@@ -104,11 +109,11 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
           )
         : null
 
-      const fastProvider = hereProvider ?? nominatimProvider
-      const fastPlan = makePlan([fastProvider], "public-fast")
-      const reliablePlan = hereProvider
-        ? makeFallbackPlan(hereProvider, nominatimProvider, "public-reliable")
-        : makePlan([nominatimProvider], "public-reliable")
+      const providers = [radarProvider, hereProvider, nominatimProvider].filter(
+        (provider): provider is HttpAddressProvider => provider !== null
+      )
+      const fastPlan = makePlan([providers[0] ?? nominatimProvider], "public-fast")
+      const reliablePlan = makeSequentialPlan(providers, "public-reliable")
       const fastService = makeService(fastPlan)
       const reliableService = makeService(reliablePlan)
 

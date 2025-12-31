@@ -25,6 +25,8 @@ const serverLayer = Layer.unwrapEffect(
           nominatim: config.nominatim,
           providerTimeout: config.providerTimeout,
           nominatimRateLimit: config.nominatimRateLimit,
+          radarAutocomplete: config.radarAutocomplete,
+          radarAutocompleteRateLimit: config.radarAutocompleteRateLimit,
           hereDiscover: config.hereDiscover,
           hereDiscoverRateLimit: config.hereDiscoverRateLimit
         })

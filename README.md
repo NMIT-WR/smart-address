@@ -7,7 +7,7 @@ Reliable address suggestions for checkout and onboarding. Built on Effect so you
 ## What’s in this repo
 
 - `packages/core` (`@smart-address/core`): domain types, provider planning, dedupe, and error collection.
-- `packages/integrations` (`@smart-address/integrations`): provider adapters (e.g. Nominatim, HERE Discover) + HTTP/RL helpers.
+- `packages/integrations` (`@smart-address/integrations`): provider adapters (e.g. Nominatim, Radar Autocomplete, HERE Discover) + HTTP/RL helpers.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC contract + client helpers.
 - `packages/sdk` (`@smart-address/sdk`): tiny browser client (ESM module).
 - `apps/service-bun` (`@smart-address/service-bun`): Bun service exposing HTTP + MCP + RPC endpoints, caching, and SQLite persistence.
@@ -17,13 +17,14 @@ Reliable address suggestions for checkout and onboarding. Built on Effect so you
 
 Prereqs: `pnpm` + `bun`.
 
-Optional: set `HERE_API_KEY` to enable HERE Discover.
+Optional: set `RADAR_API_KEY` to enable Radar Autocomplete or `HERE_API_KEY` to enable HERE Discover.
 
 ```bash
 pnpm install
 
 NOMINATIM_USER_AGENT="smart-address-dev" \
 NOMINATIM_EMAIL="you@example.com" \
+RADAR_API_KEY="your-radar-api-key" \
 HERE_API_KEY="your-here-api-key" \
 pnpm --filter @smart-address/service-bun dev
 ```
@@ -76,12 +77,13 @@ Run with Docker Compose:
 ```bash
 NOMINATIM_USER_AGENT="your-app-name" \
 NOMINATIM_EMAIL="you@example.com" \
+RADAR_API_KEY="your-radar-api-key" \
 HERE_API_KEY="your-here-api-key" \
 docker compose up -d
 ```
 
 Tip: `docker compose` reads `.env` in the repo root, so you can set
-`NOMINATIM_USER_AGENT`, `NOMINATIM_EMAIL`, and `HERE_API_KEY` there instead of inline.
+`NOMINATIM_USER_AGENT`, `NOMINATIM_EMAIL`, `RADAR_API_KEY`, and `HERE_API_KEY` there instead of inline.
 
 Persist the SQLite DB:
 
@@ -96,6 +98,9 @@ Recommended env vars (Nominatim usage policy):
 
 Optional env vars:
 
+- Radar Autocomplete: `RADAR_API_KEY`, `RADAR_AUTOCOMPLETE_BASE_URL`, `RADAR_AUTOCOMPLETE_DEFAULT_LIMIT`,
+  `RADAR_AUTOCOMPLETE_LAYERS`, `RADAR_AUTOCOMPLETE_NEAR`, `RADAR_AUTOCOMPLETE_COUNTRY_CODE`,
+  `RADAR_AUTOCOMPLETE_RATE_LIMIT_MS`
 - HERE Discover: `HERE_API_KEY`, `HERE_DISCOVER_BASE_URL`, `HERE_DISCOVER_DEFAULT_LIMIT`,
   `HERE_DISCOVER_LANGUAGE`, `HERE_DISCOVER_IN_AREA`, `HERE_DISCOVER_AT`,
   `HERE_DEFAULT_LAT`, `HERE_DEFAULT_LNG`, `HERE_DISCOVER_RATE_LIMIT_MS`

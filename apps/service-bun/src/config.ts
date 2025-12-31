@@ -2,6 +2,7 @@ import { Config, Option, Redacted } from "effect"
 import * as Duration from "effect/Duration"
 import type { HereDiscoverConfig } from "@smart-address/integrations/here-discover"
 import type { NominatimConfig } from "@smart-address/integrations/nominatim"
+import type { RadarAutocompleteConfig } from "@smart-address/integrations/radar-autocomplete"
 import type { AddressCacheConfig } from "./cache"
 import type { AddressSqliteConfig } from "./sqlite"
 
@@ -10,6 +11,8 @@ export type AddressServiceConfig = {
   readonly providerTimeout: Duration.Duration
   readonly nominatimRateLimit: Duration.Duration | null
   readonly nominatim: NominatimConfig
+  readonly radarAutocomplete: RadarAutocompleteConfig | null
+  readonly radarAutocompleteRateLimit: Duration.Duration | null
   readonly hereDiscover: HereDiscoverConfig | null
   readonly hereDiscoverRateLimit: Duration.Duration | null
   readonly cache: AddressCacheConfig
@@ -33,6 +36,13 @@ const rawConfig = Config.all({
   nominatimUserAgent: Config.string("NOMINATIM_USER_AGENT").pipe(
     Config.withDefault("smart-address-service")
   ),
+  radarApiKey: Config.option(Config.redacted("RADAR_API_KEY")),
+  radarBaseUrl: Config.option(Config.string("RADAR_AUTOCOMPLETE_BASE_URL")),
+  radarDefaultLimit: Config.option(Config.integer("RADAR_AUTOCOMPLETE_DEFAULT_LIMIT")),
+  radarLayers: Config.option(Config.string("RADAR_AUTOCOMPLETE_LAYERS")),
+  radarNear: Config.option(Config.string("RADAR_AUTOCOMPLETE_NEAR")),
+  radarCountryCode: Config.option(Config.string("RADAR_AUTOCOMPLETE_COUNTRY_CODE")),
+  radarRateLimitMs: Config.option(Config.integer("RADAR_AUTOCOMPLETE_RATE_LIMIT_MS")),
   hereApiKey: Config.option(Config.redacted("HERE_API_KEY")),
   hereBaseUrl: Config.option(Config.string("HERE_DISCOVER_BASE_URL")),
   hereDefaultLimit: Config.option(Config.integer("HERE_DISCOVER_DEFAULT_LIMIT")),
@@ -55,6 +65,9 @@ export const addressServiceConfig = rawConfig.pipe(
     const l2MinTtlMs = Option.getOrUndefined(raw.l2MinTtlMs)
     const l2MaxTtlMs = Option.getOrUndefined(raw.l2MaxTtlMs)
     const l2SWRMs = Option.getOrUndefined(raw.l2SWRMs)
+    const radarApiKey = Option.getOrUndefined(raw.radarApiKey)
+    const radarDefaultLimit = Option.getOrUndefined(raw.radarDefaultLimit)
+    const radarRateLimitMs = Option.getOrUndefined(raw.radarRateLimitMs)
     const hereApiKey = Option.getOrUndefined(raw.hereApiKey)
     const hereDefaultLimit = Option.getOrUndefined(raw.hereDefaultLimit)
     const hereDefaultLat = Option.getOrUndefined(raw.hereDefaultLat)
@@ -65,16 +78,22 @@ export const addressServiceConfig = rawConfig.pipe(
     const nominatimEmail = raw.nominatimEmail.trim() || undefined
     const nominatimReferer = raw.nominatimReferer.trim() || undefined
     const nominatimUserAgent = raw.nominatimUserAgent.trim() || "smart-address-service"
+    const radarBaseUrl = Option.getOrUndefined(raw.radarBaseUrl)?.trim() || undefined
+    const radarLayers = Option.getOrUndefined(raw.radarLayers)?.trim() || undefined
+    const radarNear = Option.getOrUndefined(raw.radarNear)?.trim() || undefined
+    const radarCountryCode = Option.getOrUndefined(raw.radarCountryCode)?.trim() || undefined
     const hereBaseUrl = Option.getOrUndefined(raw.hereBaseUrl)?.trim() || undefined
     const hereLanguage = Option.getOrUndefined(raw.hereLanguage)?.trim() || undefined
     const hereInArea = Option.getOrUndefined(raw.hereInArea)?.trim() || undefined
     const hereAt = Option.getOrUndefined(raw.hereAt)?.trim() || undefined
+    const radarApiKeyValue = radarApiKey ? Redacted.value(radarApiKey).trim() : undefined
     const hereApiKeyValue = hereApiKey ? Redacted.value(hereApiKey).trim() : undefined
     const sqlitePath = raw.sqlitePath.trim() || undefined
     const hereDefaultAt =
       hereDefaultLat !== undefined && hereDefaultLng !== undefined
         ? { lat: hereDefaultLat, lng: hereDefaultLng }
         : undefined
+    const hereAtValue = hereAt ?? hereDefaultAt
 
     const nominatimConfig: NominatimConfig = {
       userAgent: nominatimUserAgent,
@@ -91,6 +110,25 @@ export const addressServiceConfig = rawConfig.pipe(
           ? null
           : Duration.millis(nominatimRateLimitMs)
 
+    const radarAutocompleteConfig: RadarAutocompleteConfig | null =
+      radarApiKeyValue === undefined || radarApiKeyValue.length === 0
+        ? null
+        : {
+            apiKey: radarApiKeyValue,
+            ...(radarBaseUrl !== undefined ? { baseUrl: radarBaseUrl } : {}),
+            ...(radarDefaultLimit !== undefined ? { defaultLimit: radarDefaultLimit } : {}),
+            ...(radarLayers !== undefined ? { layers: radarLayers } : {}),
+            ...(radarNear !== undefined ? { near: radarNear } : {}),
+            ...(radarCountryCode !== undefined ? { countryCode: radarCountryCode } : {})
+          }
+
+    const radarAutocompleteRateLimit =
+      radarRateLimitMs === undefined
+        ? null
+        : radarRateLimitMs <= 0
+          ? null
+          : Duration.millis(radarRateLimitMs)
+
     const hereDiscoverConfig: HereDiscoverConfig | null =
       hereApiKeyValue === undefined || hereApiKeyValue.length === 0
         ? null
@@ -100,7 +138,7 @@ export const addressServiceConfig = rawConfig.pipe(
             ...(hereDefaultLimit !== undefined ? { defaultLimit: hereDefaultLimit } : {}),
             ...(hereLanguage !== undefined ? { language: hereLanguage } : {}),
             ...(hereInArea !== undefined ? { inArea: hereInArea } : {}),
-            ...((hereAt ?? hereDefaultAt) !== undefined ? { at: hereAt ?? hereDefaultAt } : {})
+            ...(hereAtValue === undefined ? {} : { at: hereAtValue })
           }
 
     const hereDiscoverRateLimit =
@@ -126,6 +164,8 @@ export const addressServiceConfig = rawConfig.pipe(
       providerTimeout: Duration.millis(raw.providerTimeoutMs),
       nominatimRateLimit,
       nominatim: nominatimConfig,
+      radarAutocomplete: radarAutocompleteConfig,
+      radarAutocompleteRateLimit,
       hereDiscover: hereDiscoverConfig,
       hereDiscoverRateLimit,
       cache: cacheConfig,

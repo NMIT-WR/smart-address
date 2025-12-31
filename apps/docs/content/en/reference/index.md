@@ -4,6 +4,7 @@ Exact interfaces, schemas, and runtime configuration. Treat these pages as the s
 
 - [Core types](/reference/core-types)
 - [HERE Discover provider](/reference/here-discover-provider)
+- [Radar Autocomplete provider](/reference/radar-autocomplete-provider)
 - [Service API](/reference/service-api)
 - [MCP tool](/reference/mcp-tool)
 - [Effect RPC](/reference/rpc)
