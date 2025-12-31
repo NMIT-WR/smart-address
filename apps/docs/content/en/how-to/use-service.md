@@ -58,7 +58,7 @@ curl -X POST "http://localhost:8787/suggest" \
 }
 ```
 
-The `provider` value depends on configured providers (for example, `nominatim` or `here-discover` when `HERE_API_KEY` is set).
+The `provider` value depends on configured providers (for example, `nominatim`, `radar-autocomplete` when `RADAR_API_KEY` is set, or `here-discover` when `HERE_API_KEY` is set).
 
 ## Strategy
 

@@ -17,6 +17,7 @@ https://github.com/PaulJPhilp/EffectPatterns#getting-started
 
 - No barrel files (avoid index.ts re-export hubs).
 - No `.js` extensions in TypeScript imports (bundler resolution is configured).
+- Always add tests for changes and run them.
 - Documentation follows Diataxis (tutorials, how-to, reference, explanation).
 - Docs live in `apps/docs/content/en` and `apps/docs/content/cs` and must stay structurally mirrored (same pages, same paths).
 - Update docs (EN + CS) whenever APIs, behavior, or versions change (also keep `README.md` and `README.cs.md` in sync).

@@ -1,5 +1,6 @@
 import type { HereDiscoverConfig } from "@smart-address/integrations/here-discover";
 import type { NominatimConfig } from "@smart-address/integrations/nominatim";
+import type { RadarAutocompleteConfig } from "@smart-address/integrations/radar-autocomplete";
 import { Config, Option, Redacted } from "effect";
 import { type Duration, millis, seconds } from "effect/Duration";
 import type { AddressCacheConfig } from "./cache";
@@ -10,6 +11,8 @@ export interface AddressServiceConfig {
   readonly providerTimeout: Duration;
   readonly nominatimRateLimit: Duration | null;
   readonly nominatim: NominatimConfig;
+  readonly radarAutocomplete: RadarAutocompleteConfig | null;
+  readonly radarAutocompleteRateLimit: Duration | null;
   readonly hereDiscover: HereDiscoverConfig | null;
   readonly hereDiscoverRateLimit: Duration | null;
   readonly cache: AddressCacheConfig;
@@ -40,6 +43,19 @@ const rawConfig = Config.all({
   ),
   nominatimUserAgent: Config.string("NOMINATIM_USER_AGENT").pipe(
     Config.withDefault("smart-address-service")
+  ),
+  radarApiKey: Config.option(Config.redacted("RADAR_API_KEY")),
+  radarBaseUrl: Config.option(Config.string("RADAR_AUTOCOMPLETE_BASE_URL")),
+  radarDefaultLimit: Config.option(
+    Config.integer("RADAR_AUTOCOMPLETE_DEFAULT_LIMIT")
+  ),
+  radarLayers: Config.option(Config.string("RADAR_AUTOCOMPLETE_LAYERS")),
+  radarNear: Config.option(Config.string("RADAR_AUTOCOMPLETE_NEAR")),
+  radarCountryCode: Config.option(
+    Config.string("RADAR_AUTOCOMPLETE_COUNTRY_CODE")
+  ),
+  radarRateLimitMs: Config.option(
+    Config.integer("RADAR_AUTOCOMPLETE_RATE_LIMIT_MS")
   ),
   hereApiKey: Config.option(Config.redacted("HERE_API_KEY")),
   hereBaseUrl: Config.option(Config.string("HERE_DISCOVER_BASE_URL")),
@@ -155,6 +171,39 @@ const buildNominatimConfig = (options: {
   return config;
 };
 
+const buildRadarAutocompleteConfig = (options: {
+  apiKey: string | undefined;
+  baseUrl: string | undefined;
+  defaultLimit: number | undefined;
+  layers: string | undefined;
+  near: string | undefined;
+  countryCode: string | undefined;
+}): RadarAutocompleteConfig | null => {
+  if (!options.apiKey) {
+    return null;
+  }
+
+  const config: RadarAutocompleteConfig = { apiKey: options.apiKey };
+
+  if (options.baseUrl) {
+    config.baseUrl = options.baseUrl;
+  }
+  if (options.defaultLimit !== undefined) {
+    config.defaultLimit = options.defaultLimit;
+  }
+  if (options.layers) {
+    config.layers = options.layers;
+  }
+  if (options.near) {
+    config.near = options.near;
+  }
+  if (options.countryCode) {
+    config.countryCode = options.countryCode;
+  }
+
+  return config;
+};
+
 const buildHereDiscoverConfig = (options: {
   apiKey: string | undefined;
   baseUrl: string | undefined;
@@ -204,6 +253,8 @@ export const addressServiceConfig = rawConfig.pipe(
     const l2MinTtlMs = optionalValue(raw.l2MinTtlMs);
     const l2MaxTtlMs = optionalValue(raw.l2MaxTtlMs);
     const l2SWRMs = optionalValue(raw.l2SWRMs);
+    const radarDefaultLimit = optionalValue(raw.radarDefaultLimit);
+    const radarRateLimitMs = optionalValue(raw.radarRateLimitMs);
     const hereDefaultLimit = optionalValue(raw.hereDefaultLimit);
     const hereDefaultLat = optionalValue(raw.hereDefaultLat);
     const hereDefaultLng = optionalValue(raw.hereDefaultLng);
@@ -220,6 +271,15 @@ export const addressServiceConfig = rawConfig.pipe(
       referer: trimmedOptional(raw.nominatimReferer),
       userAgent: nominatimUserAgent,
       defaultLimit,
+    });
+
+    const radarAutocompleteConfig = buildRadarAutocompleteConfig({
+      apiKey: redactedOptional(optionalValue(raw.radarApiKey)),
+      baseUrl: trimmedOptionalFromOption(raw.radarBaseUrl),
+      defaultLimit: radarDefaultLimit,
+      layers: trimmedOptionalFromOption(raw.radarLayers),
+      near: trimmedOptionalFromOption(raw.radarNear),
+      countryCode: trimmedOptionalFromOption(raw.radarCountryCode),
     });
 
     const hereDiscoverConfig = buildHereDiscoverConfig({
@@ -246,6 +306,8 @@ export const addressServiceConfig = rawConfig.pipe(
       providerTimeout: millis(raw.providerTimeoutMs),
       nominatimRateLimit: toRateLimit(nominatimRateLimitMs, seconds(1)),
       nominatim: nominatimConfig,
+      radarAutocomplete: radarAutocompleteConfig,
+      radarAutocompleteRateLimit: toRateLimit(radarRateLimitMs, null),
       hereDiscover: hereDiscoverConfig,
       hereDiscoverRateLimit: toRateLimit(hereRateLimitMs, null),
       cache: cacheConfig,

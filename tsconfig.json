@@ -11,6 +11,9 @@
       "@smart-address/integrations/nominatim": [
         "packages/integrations/src/nominatim.ts"
       ],
+      "@smart-address/integrations/radar-autocomplete": [
+        "packages/integrations/src/radar-autocomplete.ts"
+      ],
       "@smart-address/integrations/rate-limit": [
         "packages/integrations/src/rate-limit.ts"
       ],

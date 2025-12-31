@@ -2,6 +2,7 @@
   "index",
   "core-types",
   "here-discover-provider",
+  "radar-autocomplete-provider",
   "service-api",
   "mcp-tool",
   "rpc",
