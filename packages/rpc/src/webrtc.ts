@@ -58,8 +58,9 @@ export interface DataChannelLike {
 
 const makeReadableStream = (
   channel: DataChannelLike
-): ReadableStream<Uint8Array | string> =>
-  new ReadableStream<Uint8Array | string>({
+): ReadableStream<Uint8Array | string> => {
+  let cleanup: (() => void) | null = null;
+  return new ReadableStream<Uint8Array | string>({
     start(controller) {
       const onMessage: DataChannelListener<"message"> = (event) => {
         const data = event.data;
@@ -71,21 +72,31 @@ const makeReadableStream = (
           typeof data === "string" ? data : new Uint8Array(data)
         );
       };
-      const onClose: DataChannelListener<"close"> = () => controller.close();
-      const onError: DataChannelListener<"error"> = (event) =>
+      const onClose: DataChannelListener<"close"> = () => {
+        cleanup?.();
+        controller.close();
+      };
+      const onError: DataChannelListener<"error"> = (event) => {
+        cleanup?.();
         controller.error(event.error ?? event);
+      };
+
+      cleanup = () => {
+        channel.removeEventListener("message", onMessage);
+        channel.removeEventListener("close", onClose);
+        channel.removeEventListener("error", onError);
+        cleanup = null;
+      };
 
       channel.addEventListener("message", onMessage);
       channel.addEventListener("close", onClose);
       channel.addEventListener("error", onError);
-
-      return () => {
-        channel.removeEventListener("message", onMessage);
-        channel.removeEventListener("close", onClose);
-        channel.removeEventListener("error", onError);
-      };
+    },
+    cancel() {
+      cleanup?.();
     },
   });
+};
 
 const makeWritableStream = (
   channel: DataChannelLike

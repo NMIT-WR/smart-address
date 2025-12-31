@@ -3,12 +3,14 @@ import { type AddressStrategy, createClient } from "../src/client";
 
 const makeFetch =
   (calls: string[], payload = { suggestions: [], errors: [] }) =>
-  (input: RequestInfo | URL) => {
+  (input: RequestInfo | URL, _init?: RequestInit) => {
     calls.push(String(input));
-    return new Response(JSON.stringify(payload), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
+    return Promise.resolve(
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    );
   };
 
 describe("smart-address sdk", () => {
@@ -32,6 +34,19 @@ describe("smart-address sdk", () => {
     expect(calls[0]).toBe(
       "https://example.test/suggest?text=Prague&limit=5&countryCode=CZ&sessionToken=session-1&strategy=reliable&key=docs-demo"
     );
+  });
+
+  it("preserves base path when building suggest url", async () => {
+    const calls: string[] = [];
+    const client = createClient({
+      baseUrl: "https://example.test/api/v1/",
+      fetch: makeFetch(calls),
+    });
+
+    await client.suggest({ text: "Prague" });
+
+    const url = new URL(calls[0] ?? "");
+    expect(url.pathname).toBe("/api/v1/suggest");
   });
 
   it("omits limit when zero or negative", async () => {

@@ -232,12 +232,7 @@ class AddressCacheKey implements Equal {
   }
 
   [equalSymbol](that: Equal): boolean {
-    return (
-      typeof that === "object" &&
-      that !== null &&
-      "key" in that &&
-      (that as { key: string }).key === this.key
-    );
+    return that instanceof AddressCacheKey && that.key === this.key;
   }
 }
 

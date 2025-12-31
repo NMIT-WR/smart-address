@@ -19,8 +19,6 @@ describe("address core", () => {
       text: "Main St",
       limit: 4,
       countryCode: "CZ",
-      locale: undefined,
-      sessionToken: undefined,
     });
   });
 

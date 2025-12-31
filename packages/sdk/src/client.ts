@@ -77,9 +77,11 @@ const resolveSuggestUrl = (baseUrl: string): URL => {
   const url = new URL(trimmed);
   const path = url.pathname.replace(trailingSlashRegex, "");
   if (path.endsWith("/suggest")) {
+    url.pathname = path;
     return url;
   }
-  return new URL("/suggest", url);
+  url.pathname = path.length === 0 ? "/suggest" : `${path}/suggest`;
+  return url;
 };
 
 const resolveFetch = (override?: typeof fetch): typeof fetch => {
