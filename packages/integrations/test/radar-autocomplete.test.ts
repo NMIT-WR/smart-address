@@ -62,6 +62,16 @@ describe("radar autocomplete mapping", () => {
     })
   )
 
+  it.effect("fails on invalid response schema", () =>
+    Effect.gen(function* () {
+      const result = yield* parseRadarAutocompleteResponse({ invalid: "data" }).pipe(
+        Effect.either
+      )
+
+      expect(result._tag).toBe("Left")
+    })
+  )
+
   it.effect("handles items with missing optional fields", () =>
     Effect.gen(function* () {
       const payload = {
