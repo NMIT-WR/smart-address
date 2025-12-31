@@ -1,91 +1,142 @@
-import { Effect, Layer } from "effect"
-import * as Context from "effect/Context"
-import * as Socket from "@effect/platform/Socket"
-import * as SocketServer from "@effect/platform/SocketServer"
+import {
+  fromTransformStream,
+  type InputTransformStream,
+  Socket,
+} from "@effect/platform/Socket";
+import { SocketServer, SocketServerError } from "@effect/platform/SocketServer";
+import { Effect, Layer } from "effect";
+import type { Context } from "effect/Context";
 
-export type DataChannelLike = {
-  readonly readyState: "connecting" | "open" | "closing" | "closed"
-  binaryType?: string
-  addEventListener: (type: string, listener: (event: any) => void, options?: any) => void
-  removeEventListener: (type: string, listener: (event: any) => void, options?: any) => void
-  send: (data: string | ArrayBuffer | ArrayBufferView) => void
-  close: () => void
+export interface DataChannelMessageEvent {
+  readonly data: string | ArrayBuffer | ArrayBufferView;
 }
 
-const makeReadableStream = (channel: DataChannelLike): ReadableStream<Uint8Array | string> =>
+export interface DataChannelCloseEvent {
+  readonly type?: "close";
+}
+
+export interface DataChannelErrorEvent {
+  readonly error?: unknown;
+}
+
+export interface DataChannelEventMap {
+  readonly message: DataChannelMessageEvent;
+  readonly close: DataChannelCloseEvent;
+  readonly error: DataChannelErrorEvent;
+}
+
+export type DataChannelEventType = keyof DataChannelEventMap;
+
+export type DataChannelListener<K extends DataChannelEventType> = (
+  event: DataChannelEventMap[K]
+) => void;
+
+export type DataChannelListenerOptions =
+  | boolean
+  | {
+      readonly capture?: boolean;
+      readonly once?: boolean;
+      readonly passive?: boolean;
+    };
+
+export interface DataChannelLike {
+  readonly readyState: "connecting" | "open" | "closing" | "closed";
+  binaryType?: string;
+  addEventListener: <K extends DataChannelEventType>(
+    type: K,
+    listener: DataChannelListener<K>,
+    options?: DataChannelListenerOptions
+  ) => void;
+  removeEventListener: <K extends DataChannelEventType>(
+    type: K,
+    listener: DataChannelListener<K>,
+    options?: DataChannelListenerOptions
+  ) => void;
+  send: (data: string | ArrayBuffer | ArrayBufferView) => void;
+  close: () => void;
+}
+
+const makeReadableStream = (
+  channel: DataChannelLike
+): ReadableStream<Uint8Array | string> =>
   new ReadableStream<Uint8Array | string>({
     start(controller) {
-      const onMessage = (event: any) => {
-        const data = event.data
+      const onMessage: DataChannelListener<"message"> = (event) => {
+        const data = event.data;
         if (data instanceof ArrayBuffer) {
-          controller.enqueue(new Uint8Array(data))
-          return
+          controller.enqueue(new Uint8Array(data));
+          return;
         }
-        controller.enqueue(typeof data === "string" ? data : new Uint8Array(data))
-      }
-      const onClose = () => controller.close()
-      const onError = (event: any) => controller.error(event)
+        controller.enqueue(
+          typeof data === "string" ? data : new Uint8Array(data)
+        );
+      };
+      const onClose: DataChannelListener<"close"> = () => controller.close();
+      const onError: DataChannelListener<"error"> = (event) =>
+        controller.error(event.error ?? event);
 
-      channel.addEventListener("message", onMessage)
-      channel.addEventListener("close", onClose)
-      channel.addEventListener("error", onError)
+      channel.addEventListener("message", onMessage);
+      channel.addEventListener("close", onClose);
+      channel.addEventListener("error", onError);
 
       return () => {
-        channel.removeEventListener("message", onMessage)
-        channel.removeEventListener("close", onClose)
-        channel.removeEventListener("error", onError)
-      }
-    }
-  })
+        channel.removeEventListener("message", onMessage);
+        channel.removeEventListener("close", onClose);
+        channel.removeEventListener("error", onError);
+      };
+    },
+  });
 
-const makeWritableStream = (channel: DataChannelLike): WritableStream<Uint8Array> =>
+const makeWritableStream = (
+  channel: DataChannelLike
+): WritableStream<Uint8Array> =>
   new WritableStream<Uint8Array>({
     write(chunk) {
-      channel.send(chunk)
+      channel.send(chunk);
     },
     close() {
-      channel.close()
-    }
-  })
+      channel.close();
+    },
+  });
 
-const toInputStream = (channel: DataChannelLike): Socket.InputTransformStream => {
+const toInputStream = (channel: DataChannelLike): InputTransformStream => {
   if (typeof channel.binaryType === "string") {
-    channel.binaryType = "arraybuffer"
+    channel.binaryType = "arraybuffer";
   }
   return {
     readable: makeReadableStream(channel),
-    writable: makeWritableStream(channel)
-  }
-}
+    writable: makeWritableStream(channel),
+  };
+};
 
 export const makeDataChannelSocket = (channel: DataChannelLike) =>
-  Socket.fromTransformStream(Effect.sync(() => toInputStream(channel)))
+  fromTransformStream(Effect.sync(() => toInputStream(channel)));
 
 export const layerDataChannelSocket = (channel: DataChannelLike) =>
-  Layer.effect(Socket.Socket, makeDataChannelSocket(channel))
+  Layer.effect(Socket, makeDataChannelSocket(channel));
 
-type SocketServerService = Context.Tag.Service<typeof SocketServer.SocketServer>
+type SocketServerService = Context.Tag.Service<typeof SocketServer>;
 
 export const makeDataChannelSocketServer = (channel: DataChannelLike) =>
   Effect.succeed<SocketServerService>({
     address: {
       _tag: "UnixAddress",
-      path: "webrtc:data-channel"
+      path: "webrtc:data-channel",
     },
-    run: (handler: (socket: Socket.Socket) => Effect.Effect<any, any, any>) =>
+    run: <A, E, R>(handler: (socket: Socket) => Effect.Effect<A, E, R>) =>
       makeDataChannelSocket(channel).pipe(
         Effect.flatMap(handler),
         Effect.catchAllCause((cause) =>
           Effect.fail(
-            new SocketServer.SocketServerError({
+            new SocketServerError({
               reason: "Unknown",
-              cause
+              cause,
             })
           )
         ),
         Effect.zipRight(Effect.never)
-      )
-  })
+      ),
+  });
 
 export const layerDataChannelSocketServer = (channel: DataChannelLike) =>
-  Layer.effect(SocketServer.SocketServer, makeDataChannelSocketServer(channel))
+  Layer.effect(SocketServer, makeDataChannelSocketServer(channel));

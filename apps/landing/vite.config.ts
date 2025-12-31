@@ -1,15 +1,15 @@
-import { defineConfig } from 'vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
-import viteReact from '@vitejs/plugin-react'
-import viteTsConfigPaths from 'vite-tsconfig-paths'
-import tailwindcss from '@tailwindcss/vite'
-import fbteePreset from '@nkzw/babel-preset-fbtee'
+import fbteePreset from "@nkzw/babel-preset-fbtee";
+import tailwindcss from "@tailwindcss/vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import viteTsConfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
   plugins: [
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
-      projects: ['./tsconfig.json'],
+      projects: ["./tsconfig.json"],
     }),
     tailwindcss(),
     tanstackStart(),
@@ -19,6 +19,6 @@ const config = defineConfig({
       },
     }),
   ],
-})
+});
 
-export default config
+export default config;

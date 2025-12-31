@@ -1,23 +1,31 @@
-import { Context, Effect, Layer } from "effect"
-import { addressQueryKey, normalizeAddressQuery, type AddressSuggestionResult } from "@smart-address/core"
-import type { SuggestRequest } from "./request"
-import { openAddressSqlite, type AddressSqliteConfig } from "./sqlite"
+import {
+  type AddressSuggestionResult,
+  addressQueryKey,
+  normalizeAddressQuery,
+} from "@smart-address/core";
+import { Context, Effect, Layer } from "effect";
+import type { SuggestRequest } from "./request";
+import { type AddressSqliteConfig, openAddressSqlite } from "./sqlite";
 
 export interface AddressSearchLog {
-  readonly record: (request: SuggestRequest, result: AddressSuggestionResult) => Effect.Effect<void>
+  readonly record: (
+    request: SuggestRequest,
+    result: AddressSuggestionResult
+  ) => Effect.Effect<void>;
 }
 
-export const AddressSearchLog = Context.GenericTag<AddressSearchLog>("AddressSearchLog")
+export const AddressSearchLog =
+  Context.GenericTag<AddressSearchLog>("AddressSearchLog");
 
 export const AddressSearchLogNone = Layer.succeed(AddressSearchLog, {
-  record: () => Effect.void
-})
+  record: () => Effect.void,
+});
 
 export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(
     AddressSearchLog,
     Effect.sync(() => {
-      const { db } = openAddressSqlite(config)
+      const { db } = openAddressSqlite(config);
       const insert = db.prepare(`
         INSERT INTO address_search_log (
           created_at,
@@ -33,12 +41,12 @@ export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
           cache_key,
           result_json
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-      `)
+      `);
 
       return {
         record: (request, result) =>
           Effect.sync(() => {
-            const normalized = normalizeAddressQuery(request.query)
+            const normalized = normalizeAddressQuery(request.query);
             insert.run(
               Date.now(),
               request.query.text,
@@ -52,8 +60,8 @@ export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
               result.errors.length,
               `${request.strategy}:${addressQueryKey(normalized)}`,
               JSON.stringify(result)
-            )
-          })
-      }
+            );
+          }),
+      };
     })
-  )
+  );

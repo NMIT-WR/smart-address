@@ -1,4 +1,4 @@
-import { defineConfig } from "@rslib/core"
+import { defineConfig } from "@rslib/core";
 
 export default defineConfig({
   lib: [
@@ -11,9 +11,9 @@ export default defineConfig({
           "rate-limit": "./src/rate-limit.ts",
           nominatim: "./src/nominatim.ts",
           "here-discover": "./src/here-discover.ts",
-          "service-client": "./src/service-client.ts"
-        }
-      }
-    }
-  ]
-})
+          "service-client": "./src/service-client.ts",
+        },
+      },
+    },
+  ],
+});

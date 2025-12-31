@@ -1,211 +1,241 @@
-import { describe, expect, it } from "@effect-native/bun-test"
-import { Deferred, Effect, Fiber, Layer, Ref } from "effect"
-import * as RpcClient from "@effect/rpc/RpcClient"
-import * as RpcServer from "@effect/rpc/RpcServer"
-import * as RpcSerialization from "@effect/rpc/RpcSerialization"
-import { SuggestAddressRpcGroup } from "../src/suggest"
 import {
-  makeDataChannelSocket,
-  makeDataChannelSocketServer,
+  layerProtocolSocket,
+  make as makeRpcClient,
+} from "@effect/rpc/RpcClient";
+import { layerJson } from "@effect/rpc/RpcSerialization";
+import { layer, layerProtocolSocketServer } from "@effect/rpc/RpcServer";
+import { describe, expect, it } from "@effect-native/bun-test";
+import { Deferred, Effect, Fiber, Layer, Ref } from "effect";
+import { SuggestAddressRpcGroup } from "../src/suggest";
+import {
+  type DataChannelEventMap,
+  type DataChannelEventType,
+  type DataChannelLike,
+  type DataChannelListener,
   layerDataChannelSocket,
   layerDataChannelSocketServer,
-  type DataChannelLike
-} from "../src/webrtc"
+  makeDataChannelSocket,
+  makeDataChannelSocketServer,
+} from "../src/webrtc";
 
 class TestDataChannel implements DataChannelLike {
-  readonly readyState = "open"
-  binaryType?: string = "arraybuffer"
-  readonly sent: Array<string | ArrayBuffer | ArrayBufferView> = []
-  readonly listeners = new Map<string, Set<(event: any) => void>>()
+  readonly readyState = "open";
+  binaryType?: string = "arraybuffer";
+  readonly sent: Array<string | ArrayBuffer | ArrayBufferView> = [];
+  readonly listeners = new Map<
+    DataChannelEventType,
+    Set<DataChannelListener<DataChannelEventType>>
+  >();
 
-  addEventListener(type: string, listener: (event: any) => void) {
-    const existing = this.listeners.get(type) ?? new Set()
-    existing.add(listener)
-    this.listeners.set(type, existing)
+  addEventListener<K extends DataChannelEventType>(
+    type: K,
+    listener: DataChannelListener<K>
+  ) {
+    const existing =
+      this.listeners.get(type) ??
+      new Set<DataChannelListener<DataChannelEventType>>();
+    existing.add(listener as DataChannelListener<DataChannelEventType>);
+    this.listeners.set(type, existing);
   }
 
-  removeEventListener(type: string, listener: (event: any) => void) {
-    const existing = this.listeners.get(type)
+  removeEventListener<K extends DataChannelEventType>(
+    type: K,
+    listener: DataChannelListener<K>
+  ) {
+    const existing = this.listeners.get(type);
     if (existing) {
-      existing.delete(listener)
+      existing.delete(listener as DataChannelListener<DataChannelEventType>);
       if (existing.size === 0) {
-        this.listeners.delete(type)
+        this.listeners.delete(type);
       }
     }
   }
 
   send(data: string | ArrayBuffer | ArrayBufferView) {
-    this.sent.push(data)
+    this.sent.push(data);
   }
 
   close() {
-    this.emit("close", {})
+    this.emit("close", {});
   }
 
   emitMessage(data: string | ArrayBuffer | ArrayBufferView) {
-    this.emit("message", { data })
+    this.emit("message", { data });
   }
 
-  emit(type: string, event: any) {
-    const existing = this.listeners.get(type)
+  emit<K extends DataChannelEventType>(type: K, event: DataChannelEventMap[K]) {
+    const existing = this.listeners.get(type);
     if (!existing) {
-      return
+      return;
     }
     for (const listener of existing) {
-      listener(event)
+      listener(event);
     }
   }
 }
 
 class PairedDataChannel implements DataChannelLike {
-  readonly readyState = "open"
-  binaryType?: string = "arraybuffer"
-  peer?: PairedDataChannel
-  readonly listeners = new Map<string, Set<(event: any) => void>>()
+  readonly readyState = "open";
+  binaryType?: string = "arraybuffer";
+  peer?: PairedDataChannel;
+  readonly listeners = new Map<
+    DataChannelEventType,
+    Set<DataChannelListener<DataChannelEventType>>
+  >();
 
-  addEventListener(type: string, listener: (event: any) => void) {
-    const existing = this.listeners.get(type) ?? new Set()
-    existing.add(listener)
-    this.listeners.set(type, existing)
+  addEventListener<K extends DataChannelEventType>(
+    type: K,
+    listener: DataChannelListener<K>
+  ) {
+    const existing =
+      this.listeners.get(type) ??
+      new Set<DataChannelListener<DataChannelEventType>>();
+    existing.add(listener as DataChannelListener<DataChannelEventType>);
+    this.listeners.set(type, existing);
   }
 
-  removeEventListener(type: string, listener: (event: any) => void) {
-    const existing = this.listeners.get(type)
+  removeEventListener<K extends DataChannelEventType>(
+    type: K,
+    listener: DataChannelListener<K>
+  ) {
+    const existing = this.listeners.get(type);
     if (existing) {
-      existing.delete(listener)
+      existing.delete(listener as DataChannelListener<DataChannelEventType>);
       if (existing.size === 0) {
-        this.listeners.delete(type)
+        this.listeners.delete(type);
       }
     }
   }
 
   send(data: string | ArrayBuffer | ArrayBufferView) {
-    this.peer?.emit("message", { data })
+    this.peer?.emit("message", { data });
   }
 
   close() {
-    this.emit("close", {})
-    this.peer?.emit("close", {})
+    this.emit("close", {});
+    this.peer?.emit("close", {});
   }
 
-  emit(type: string, event: any) {
-    const existing = this.listeners.get(type)
+  emit<K extends DataChannelEventType>(type: K, event: DataChannelEventMap[K]) {
+    const existing = this.listeners.get(type);
     if (!existing) {
-      return
+      return;
     }
     for (const listener of existing) {
-      listener(event)
+      listener(event);
     }
   }
 }
 
 const makePairedChannels = () => {
-  const client = new PairedDataChannel()
-  const server = new PairedDataChannel()
-  client.peer = server
-  server.peer = client
-  return { client, server }
-}
+  const client = new PairedDataChannel();
+  const server = new PairedDataChannel();
+  client.peer = server;
+  server.peer = client;
+  return { client, server };
+};
 
 describe("webrtc socket adapter", () => {
   it.effect("writes data to the data channel", () =>
     Effect.gen(function* () {
-      const channel = new TestDataChannel()
+      const channel = new TestDataChannel();
       const program = Effect.scoped(
         makeDataChannelSocket(channel).pipe(
           Effect.flatMap((socket) =>
             Effect.gen(function* () {
-              const opened = yield* Deferred.make<void>()
-              const write = yield* socket.writer
+              const opened = yield* Deferred.make<void>();
+              const write = yield* socket.writer;
               const fiber = yield* Effect.fork(
                 socket.runRaw(() => undefined, {
-                  onOpen: Deferred.succeed(opened, undefined)
+                  onOpen: Deferred.succeed(opened, undefined),
                 })
-              )
+              );
 
-              yield* Deferred.await(opened)
-              yield* write(new Uint8Array([1, 2, 3]))
-              channel.close()
-              yield* Fiber.join(fiber)
+              yield* Deferred.await(opened);
+              yield* write(new Uint8Array([1, 2, 3]));
+              channel.close();
+              yield* Fiber.join(fiber);
 
-              return channel.sent.length
+              return channel.sent.length;
             })
           )
         )
-      )
+      );
 
-      const sentCount = yield* program
-      expect(sentCount).toBe(1)
+      const sentCount = yield* program;
+      expect(sentCount).toBe(1);
     })
-  )
+  );
 
   it.effect("delivers incoming messages to the handler", () =>
     Effect.gen(function* () {
-      const channel = new TestDataChannel()
+      const channel = new TestDataChannel();
       const program = Effect.scoped(
         Effect.gen(function* () {
-          const socket = yield* makeDataChannelSocket(channel)
-          const received = yield* Ref.make<Array<string | Uint8Array>>([])
+          const socket = yield* makeDataChannelSocket(channel);
+          const received = yield* Ref.make<Array<string | Uint8Array>>([]);
           const fiber = yield* Effect.fork(
-            socket.runRaw((data) => Ref.update(received, (current) => [...current, data]))
-          )
+            socket.runRaw((data) =>
+              Ref.update(received, (current) => [...current, data])
+            )
+          );
 
-          yield* Effect.yieldNow()
-          channel.emitMessage("hello")
-          channel.close()
+          yield* Effect.yieldNow();
+          channel.emitMessage("hello");
+          channel.close();
 
-          yield* Fiber.join(fiber)
-          return yield* Ref.get(received)
+          yield* Fiber.join(fiber);
+          return yield* Ref.get(received);
         })
-      )
+      );
 
-      const received = yield* program
-      expect(received).toEqual(["hello"])
+      const received = yield* program;
+      expect(received).toEqual(["hello"]);
     })
-  )
+  );
 
   it.effect("wraps a data channel as a socket server", () =>
     Effect.gen(function* () {
-      const channel = new TestDataChannel()
+      const channel = new TestDataChannel();
       const program = Effect.scoped(
         Effect.gen(function* () {
-          const server = yield* makeDataChannelSocketServer(channel)
-          const written = yield* Deferred.make<void>()
+          const server = yield* makeDataChannelSocketServer(channel);
+          const written = yield* Deferred.make<void>();
 
           const fiber = yield* Effect.fork(
             server.run((socket) =>
               Effect.gen(function* () {
-                const opened = yield* Deferred.make<void>()
+                const opened = yield* Deferred.make<void>();
                 const runner = yield* Effect.fork(
                   socket.runRaw(() => undefined, {
-                    onOpen: Deferred.succeed(opened, undefined)
+                    onOpen: Deferred.succeed(opened, undefined),
                   })
-                )
-                const write = yield* socket.writer
-                yield* Deferred.await(opened)
-                yield* write(new Uint8Array([7, 8, 9]))
-                yield* Deferred.succeed(written, undefined)
-                channel.close()
-                yield* Fiber.join(runner)
+                );
+                const write = yield* socket.writer;
+                yield* Deferred.await(opened);
+                yield* write(new Uint8Array([7, 8, 9]));
+                yield* Deferred.succeed(written, undefined);
+                channel.close();
+                yield* Fiber.join(runner);
               })
             )
-          )
+          );
 
-          yield* Deferred.await(written)
-          yield* Fiber.interrupt(fiber)
+          yield* Deferred.await(written);
+          yield* Fiber.interrupt(fiber);
 
-          return channel.sent.length
+          return channel.sent.length;
         })
-      )
+      );
 
-      const sentCount = yield* program
-      expect(sentCount).toBe(1)
+      const sentCount = yield* program;
+      expect(sentCount).toBe(1);
     })
-  )
+  );
 
   it.effect("supports RPC over a paired data channel", () =>
     Effect.gen(function* () {
-      const { client, server } = makePairedChannels()
+      const { client, server } = makePairedChannels();
       const handlers = SuggestAddressRpcGroup.of({
         "suggest-address": () =>
           Effect.succeed({
@@ -214,40 +244,42 @@ describe("webrtc socket adapter", () => {
                 id: "webrtc:1",
                 label: "WebRTC",
                 address: { line1: "WebRTC" },
-                source: { provider: "webrtc" }
-              }
+                source: { provider: "webrtc" },
+              },
             ],
-            errors: []
-          })
-      })
+            errors: [],
+          }),
+      });
 
-      const serverProtocolLayer = RpcServer.layerProtocolSocketServer.pipe(
+      const serverProtocolLayer = layerProtocolSocketServer.pipe(
         Layer.provide(layerDataChannelSocketServer(server)),
-        Layer.provide(RpcSerialization.layerJson)
-      )
+        Layer.provide(layerJson)
+      );
 
-      const serverLayer = RpcServer.layer(SuggestAddressRpcGroup).pipe(
+      const serverLayer = layer(SuggestAddressRpcGroup).pipe(
         Layer.provide(SuggestAddressRpcGroup.toLayer(handlers)),
         Layer.provide(serverProtocolLayer),
-        Layer.provide(RpcSerialization.layerJson)
-      )
+        Layer.provide(layerJson)
+      );
 
-      const clientProtocolLayer = RpcClient.layerProtocolSocket().pipe(
+      const clientProtocolLayer = layerProtocolSocket().pipe(
         Layer.provide(layerDataChannelSocket(client)),
-        Layer.provide(RpcSerialization.layerJson)
-      )
+        Layer.provide(layerJson)
+      );
 
-      const clientLayer = Layer.mergeAll(clientProtocolLayer, RpcSerialization.layerJson)
+      const clientLayer = Layer.mergeAll(clientProtocolLayer, layerJson);
 
       const program = Effect.scoped(
-        RpcClient.make(SuggestAddressRpcGroup).pipe(
-          Effect.flatMap((rpcClient) => rpcClient["suggest-address"]({ text: "WebRTC" })),
+        makeRpcClient(SuggestAddressRpcGroup).pipe(
+          Effect.flatMap((rpcClient) =>
+            rpcClient["suggest-address"]({ text: "WebRTC" })
+          ),
           Effect.provide(Layer.mergeAll(serverLayer, clientLayer))
         )
-      )
+      );
 
-      const result = yield* program
-      expect(result.suggestions[0]?.id).toBe("webrtc:1")
+      const result = yield* program;
+      expect(result.suggestions[0]?.id).toBe("webrtc:1");
     })
-  )
-})
+  );
+});

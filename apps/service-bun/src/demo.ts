@@ -1,12 +1,12 @@
-import { Effect } from "effect"
-import * as HttpServerResponse from "@effect/platform/HttpServerResponse"
-import { fileURLToPath } from "node:url"
+import { fileURLToPath } from "node:url";
+import { file, html } from "@effect/platform/HttpServerResponse";
+import { Effect } from "effect";
 
 const sdkPath = fileURLToPath(
   new URL("../../../packages/sdk/dist/smart-address.js", import.meta.url)
-)
+);
 
-const legacyDemoHtml = String.raw`<!doctype html>
+const legacyDemoHtml = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -167,11 +167,11 @@ const legacyDemoHtml = String.raw`<!doctype html>
       })
     </script>
   </body>
-</html>`
+</html>`;
 
-export const handleLegacyDemo = () => HttpServerResponse.html(legacyDemoHtml)
+export const handleLegacyDemo = () => html(legacyDemoHtml);
 
 export const handleSdkModule = () =>
-  HttpServerResponse.file(sdkPath, {
-    contentType: "text/javascript"
-  }).pipe(Effect.orDie)
+  file(sdkPath, {
+    contentType: "text/javascript",
+  }).pipe(Effect.orDie);
