@@ -15,14 +15,14 @@ In the Bun service, strategies map to different plans in `apps/service-bun/src/s
 - Minimal provider set
 - Low latency
 - Good for search-as-you-type
-- Uses HERE Discover when configured, otherwise Nominatim
+- Uses Radar Autocomplete when configured, otherwise HERE Discover, otherwise Nominatim
 
 ## reliable
 
 - Allows deeper provider nesting
 - Collects more evidence before returning
 - Default for checkout and onboarding
-- Uses HERE Discover with Nominatim fallback when configured
+- Uses Radar Autocomplete first, then HERE Discover, then Nominatim fallback when configured
 
 ## reliable-fast (planned)
 

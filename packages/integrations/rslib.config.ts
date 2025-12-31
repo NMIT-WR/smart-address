@@ -11,6 +11,7 @@ export default defineConfig({
           "rate-limit": "./src/rate-limit.ts",
           nominatim: "./src/nominatim.ts",
           "here-discover": "./src/here-discover.ts",
+          "radar-autocomplete": "./src/radar-autocomplete.ts",
           "service-client": "./src/service-client.ts"
         }
       }

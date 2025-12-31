@@ -16,6 +16,16 @@ Service environment variables. All values are read from the process environment.
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, set `0` to disable)
 
+## Radar Autocomplete
+
+- `RADAR_API_KEY` (string, required to enable)
+- `RADAR_AUTOCOMPLETE_BASE_URL`
+- `RADAR_AUTOCOMPLETE_DEFAULT_LIMIT` (number, default `5`)
+- `RADAR_AUTOCOMPLETE_LAYERS` (string, optional, comma-separated)
+- `RADAR_AUTOCOMPLETE_NEAR` (string, optional, `"lat,lng"` coordinates)
+- `RADAR_AUTOCOMPLETE_COUNTRY_CODE` (string, optional, comma-separated)
+- `RADAR_AUTOCOMPLETE_RATE_LIMIT_MS` (number, default `0`, set `0` to disable)
+
 ## HERE Discover
 
 - `HERE_API_KEY` (string, required to enable)
@@ -43,7 +53,7 @@ Service environment variables. All values are read from the process environment.
 
 ## Minimal example
 
-Optional: add `HERE_API_KEY` to enable HERE Discover.
+Optional: add `RADAR_API_KEY` to enable Radar Autocomplete or `HERE_API_KEY` to enable HERE Discover.
 If you set both `HERE_DEFAULT_LAT` and `HERE_DEFAULT_LNG`, they provide the default `at` coordinate unless `HERE_DISCOVER_AT` is set.
 
 ```bash
@@ -51,6 +61,7 @@ PORT=8787
 PROVIDER_TIMEOUT_MS=4000
 NOMINATIM_USER_AGENT="smart-address-dev"
 NOMINATIM_EMAIL="you@example.com"
+# RADAR_API_KEY="your-radar-api-key" # optional: enables Radar Autocomplete
 # HERE_API_KEY="your-here-api-key" # optional: enables HERE Discover
 # HERE_DEFAULT_LAT=50.087 # optional: default discover position
 # HERE_DEFAULT_LNG=14.421 # optional: default discover position
