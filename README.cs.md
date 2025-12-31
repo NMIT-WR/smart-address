@@ -109,6 +109,7 @@ Volitelné env proměnné:
 - `PORT` (výchozí `8787`), `PROVIDER_TIMEOUT_MS`
 - Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
 - Přepsání cesty DB: `SMART_ADDRESS_DB_PATH`
+
 ## Dokumentace
 
 - Zdroj webu: `apps/docs`

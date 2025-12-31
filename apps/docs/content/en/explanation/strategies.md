@@ -16,6 +16,7 @@ In the Bun service, strategies map to different plans in `apps/service-bun/src/s
 - Low latency
 - Good for search-as-you-type
 - Uses Radar Autocomplete when configured, otherwise HERE Discover, otherwise Nominatim
+- No fallback if the selected provider fails
 
 ## reliable
 

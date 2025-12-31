@@ -16,6 +16,7 @@ V Bun službě mapují strategie na plány v `apps/service-bun/src/service.ts`.
 - Nízká latence
 - Vhodné pro search‑as‑you‑type
 - Pokud je Radar Autocomplete nakonfigurovaný, používá Radar, jinak HERE Discover, jinak Nominatim
+- Při chybě providera se fallback nespouští
 
 ## reliable
 
