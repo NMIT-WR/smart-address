@@ -3,6 +3,7 @@ import { bodyJson, post } from "@effect/platform/HttpClientRequest";
 import { filterStatusOk } from "@effect/platform/HttpClientResponse";
 import {
   type AddressQuery,
+  type AddressStrategy,
   type AddressSuggestionResult,
   normalizeAddressQuery,
 } from "@smart-address/core";
@@ -10,7 +11,7 @@ import { AddressSuggestionResultSchema } from "@smart-address/core/schema";
 import { Data, Effect } from "effect";
 import { decodeUnknown } from "effect/Schema";
 
-export type AddressStrategy = "fast" | "reliable";
+export type { AddressStrategy } from "@smart-address/core";
 
 export type AddressServiceRequest = AddressQuery & {
   readonly strategy?: AddressStrategy;

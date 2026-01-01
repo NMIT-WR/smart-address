@@ -9,7 +9,6 @@ import { currentTimeMillis } from "effect/Clock";
 import {
   type DurationInput,
   hours,
-  millis,
   minutes,
   seconds,
   toMillis,
@@ -42,11 +41,7 @@ const AddressCacheEntrySchema = Struct({
 
 export interface AddressCacheStore {
   readonly get: (key: string) => Effect.Effect<AddressCacheEntry | null>;
-  readonly set: (
-    key: string,
-    entry: AddressCacheEntry,
-    ttl: DurationInput
-  ) => Effect.Effect<void>;
+  readonly set: (key: string, entry: AddressCacheEntry) => Effect.Effect<void>;
 }
 
 export const AddressCacheStore =
@@ -109,14 +104,14 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
 
       return {
         get: (key) =>
-          Effect.sync(() => {
+          Effect.gen(function* () {
             const row = select.get(key) as
               | { entry_json: string; expires_at: number }
               | undefined;
             if (!row) {
               return null;
             }
-            const now = Date.now();
+            const now = yield* currentTimeMillis;
             if (row.expires_at <= now) {
               remove.run(key);
               return null;
@@ -274,7 +269,7 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
             expiresAt: now + policy.ttlMs,
             result,
           };
-          yield* store.set(key, entry, millis(policy.ttlMs));
+          yield* store.set(key, entry);
         }).pipe(Effect.catchAll(() => Effect.void));
 
       const revalidate = (

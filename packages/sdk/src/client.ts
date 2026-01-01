@@ -1,14 +1,15 @@
 import type {
   AddressParts,
+  AddressStrategy,
   AddressSuggestion,
   AddressSuggestionError,
   AddressSuggestionResult,
   AddressSuggestionSource,
 } from "@smart-address/core";
 
-export type AddressStrategy = "fast" | "reliable";
 export type {
   AddressParts,
+  AddressStrategy,
   AddressSuggestion,
   AddressSuggestionError,
   AddressSuggestionResult,

@@ -1,6 +1,8 @@
 import { Context, Data, Effect, Layer } from "effect";
 import { type DurationInput, toMillis } from "effect/Duration";
 
+export type AddressStrategy = "fast" | "reliable";
+
 export interface AddressQuery {
   readonly text: string;
   readonly limit?: number | undefined;
