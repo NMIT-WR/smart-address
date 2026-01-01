@@ -44,6 +44,27 @@ const migrate = (db: Database) => {
       result_json TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS address_accept_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at INTEGER NOT NULL,
+      query_text TEXT NOT NULL,
+      query_normalized TEXT NOT NULL,
+      strategy TEXT NOT NULL,
+      limit_value INTEGER,
+      country_code TEXT,
+      locale TEXT,
+      session_token TEXT,
+      cache_key TEXT NOT NULL,
+      suggestion_id TEXT NOT NULL,
+      suggestion_label TEXT NOT NULL,
+      suggestion_source_provider TEXT NOT NULL,
+      suggestion_source_kind TEXT,
+      suggestion_source_reference TEXT,
+      result_index INTEGER,
+      result_count INTEGER,
+      suggestion_json TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_address_cache_expires
       ON address_cache (expires_at);
 
@@ -52,6 +73,18 @@ const migrate = (db: Database) => {
 
     CREATE INDEX IF NOT EXISTS idx_address_search_log_query
       ON address_search_log (query_normalized);
+
+    CREATE INDEX IF NOT EXISTS idx_address_accept_log_created_at
+      ON address_accept_log (created_at);
+
+    CREATE INDEX IF NOT EXISTS idx_address_accept_log_query
+      ON address_accept_log (query_normalized);
+
+    CREATE INDEX IF NOT EXISTS idx_address_accept_log_suggestion_id
+      ON address_accept_log (suggestion_id);
+
+    CREATE INDEX IF NOT EXISTS idx_address_accept_log_session_token
+      ON address_accept_log (session_token);
   `);
 };
 

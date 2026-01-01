@@ -4,7 +4,7 @@
 
 Spustit Bun službu lokálně a získat reálné návrhy adres přes HTTP.
 
-## Požadavky
+## Předpoklady
 
 - `pnpm`
 - `bun`

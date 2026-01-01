@@ -297,7 +297,7 @@ export const makeRadarAutocompleteProvider = (
       }
 
       const body = yield* response.json;
-      yield* Effect.logInfo("radar-autocomplete response body", body);
+      yield* Effect.logDebug("radar-autocomplete response body", body);
 
       return yield* parseRadarAutocompleteResponse(body).pipe(
         Effect.tapError((error) =>

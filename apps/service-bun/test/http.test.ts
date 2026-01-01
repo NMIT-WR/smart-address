@@ -1,8 +1,12 @@
 import { fromWeb } from "@effect/platform/HttpServerRequest";
 import { toWeb } from "@effect/platform/HttpServerResponse";
 import { describe, expect, it } from "@effect-native/bun-test";
-import { Effect } from "effect";
-import { handleSuggestGet, handleSuggestPost } from "../src/http";
+import { Effect, Ref } from "effect";
+import {
+  handleAcceptPost,
+  handleSuggestGet,
+  handleSuggestPost,
+} from "../src/http";
 
 const sampleResult = {
   suggestions: [
@@ -18,6 +22,18 @@ const sampleResult = {
 
 const suggestor = {
   suggest: () => Effect.succeed(sampleResult),
+};
+
+const acceptPayload = {
+  text: "Main",
+  suggestion: {
+    id: "sample:1",
+    label: "Sample",
+    address: { line1: "Sample" },
+    source: { provider: "sample" },
+  },
+  resultIndex: 0,
+  resultCount: 1,
 };
 
 describe("http handlers", () => {
@@ -66,6 +82,74 @@ describe("http handlers", () => {
       );
 
       const response = yield* handleSuggestPost(suggestor)(request);
+      const web = toWeb(response);
+      const body = yield* Effect.promise(() => web.json());
+
+      expect(web.status).toBe(400);
+      expect(body.error).toBeTypeOf("string");
+    })
+  );
+
+  it.effect("handles POST /accept", () =>
+    Effect.gen(function* () {
+      const request = fromWeb(
+        new Request("http://localhost/accept", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(acceptPayload),
+        })
+      );
+
+      const response = yield* handleAcceptPost({
+        record: () => Effect.void,
+      })(request);
+      const web = toWeb(response);
+      const body = yield* Effect.promise(() => web.json());
+
+      expect(web.status).toBe(200);
+      expect(body.ok).toBe(true);
+    })
+  );
+
+  it.effect("invokes accept log for POST /accept", () =>
+    Effect.gen(function* () {
+      const recorded = yield* Ref.make<unknown>(null);
+      const request = fromWeb(
+        new Request("http://localhost/accept", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(acceptPayload),
+        })
+      );
+
+      const response = yield* handleAcceptPost({
+        record: (payload) => Ref.set(recorded, payload),
+      })(request);
+      const web = toWeb(response);
+      yield* Effect.promise(() => web.json());
+      const logged = yield* Ref.get(recorded);
+
+      expect(web.status).toBe(200);
+      expect(logged).not.toBeNull();
+      expect((logged as { suggestion?: { id?: string } }).suggestion?.id).toBe(
+        "sample:1"
+      );
+    })
+  );
+
+  it.effect("returns an error for invalid accept payload", () =>
+    Effect.gen(function* () {
+      const request = fromWeb(
+        new Request("http://localhost/accept", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ suggestion: acceptPayload.suggestion }),
+        })
+      );
+
+      const response = yield* handleAcceptPost({
+        record: () => Effect.void,
+      })(request);
       const web = toWeb(response);
       const body = yield* Effect.promise(() => web.json());
 

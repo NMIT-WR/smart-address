@@ -29,11 +29,31 @@ export interface SuggestAddressOptions {
   readonly signal?: AbortSignal;
 }
 
+export interface AcceptAddressRequest {
+  readonly text: string;
+  readonly limit?: number | undefined;
+  readonly countryCode?: string | undefined;
+  readonly locale?: string | undefined;
+  readonly sessionToken?: string | undefined;
+  readonly strategy?: AddressStrategy | undefined;
+  readonly suggestion: AddressSuggestion;
+  readonly resultIndex?: number | undefined;
+  readonly resultCount?: number | undefined;
+}
+
+export interface AcceptAddressOptions {
+  readonly signal?: AbortSignal;
+}
+
 export interface SmartAddressClient {
   readonly suggest: (
     request: SuggestAddressRequest,
     options?: SuggestAddressOptions
   ) => Promise<AddressSuggestionResult>;
+  readonly accept: (
+    request: AcceptAddressRequest,
+    options?: AcceptAddressOptions
+  ) => Promise<void>;
 }
 
 export interface SmartAddressClientConfig {
@@ -61,6 +81,14 @@ const normalizeLimit = (value: number | undefined): number | undefined => {
   return normalized;
 };
 
+const normalizeCount = (value: number | undefined): number | undefined => {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return undefined;
+  }
+  const normalized = Math.floor(value);
+  return normalized >= 0 ? normalized : undefined;
+};
+
 const normalizeStrategy = (value: unknown): AddressStrategy | undefined => {
   if (value === undefined) {
     return undefined;
@@ -73,15 +101,20 @@ const normalizeStrategy = (value: unknown): AddressStrategy | undefined => {
 
 const trailingSlashRegex = /\/+$/;
 
-const resolveSuggestUrl = (baseUrl: string): URL => {
+const resolveEndpointUrl = (
+  baseUrl: string,
+  endpoint: "suggest" | "accept"
+): URL => {
   const trimmed = baseUrl.trim();
   const url = new URL(trimmed);
   const path = url.pathname.replace(trailingSlashRegex, "");
-  if (path.endsWith("/suggest")) {
-    url.pathname = path;
-    return url;
+  const segments = path.split("/").filter(Boolean);
+  const last = segments.at(-1);
+  if (last === "suggest" || last === "accept") {
+    segments.pop();
   }
-  url.pathname = path.length === 0 ? "/suggest" : `${path}/suggest`;
+  const basePath = segments.length === 0 ? "" : `/${segments.join("/")}`;
+  url.pathname = `${basePath}/${endpoint}`;
   return url;
 };
 
@@ -269,16 +302,99 @@ const buildRequestInit = (
   return requestInit;
 };
 
+const buildAcceptUrl = (baseUrl: URL, key: string | undefined): URL => {
+  const url = new URL(baseUrl.toString());
+  if (key) {
+    url.searchParams.set("key", key);
+  }
+  return url;
+};
+
+const buildAcceptPayload = (
+  request: AcceptAddressRequest
+): Record<string, unknown> => {
+  const text = normalizeOptional(request.text);
+  if (!text) {
+    throw new Error("Missing required 'text' field.");
+  }
+  if (!request.suggestion) {
+    throw new Error("Missing required 'suggestion' field.");
+  }
+
+  const payload: Record<string, unknown> = {
+    text,
+    suggestion: request.suggestion,
+  };
+
+  const limit = normalizeLimit(request.limit);
+  if (limit !== undefined) {
+    payload.limit = limit;
+  }
+
+  const countryCode = normalizeOptional(request.countryCode);
+  if (countryCode) {
+    payload.countryCode = countryCode.toUpperCase();
+  }
+
+  const locale = normalizeOptional(request.locale);
+  if (locale) {
+    payload.locale = locale;
+  }
+
+  const sessionToken = normalizeOptional(request.sessionToken);
+  if (sessionToken) {
+    payload.sessionToken = sessionToken;
+  }
+
+  const strategy = normalizeStrategy(request.strategy);
+  if (strategy) {
+    payload.strategy = strategy;
+  }
+
+  const resultIndex = normalizeCount(request.resultIndex);
+  if (resultIndex !== undefined) {
+    payload.resultIndex = resultIndex;
+  }
+
+  const resultCount = normalizeCount(request.resultCount);
+  if (resultCount !== undefined) {
+    payload.resultCount = resultCount;
+  }
+
+  return payload;
+};
+
+const buildAcceptRequestInit = (
+  payload: Record<string, unknown>,
+  options: AcceptAddressOptions | undefined
+): RequestInit => {
+  const requestInit: RequestInit = {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  };
+
+  if (options?.signal) {
+    requestInit.signal = options.signal;
+  }
+
+  return requestInit;
+};
+
 export const createClient = (
   config: SmartAddressClientConfig
 ): SmartAddressClient => {
-  const baseUrl = resolveSuggestUrl(config.baseUrl);
+  const suggestUrl = resolveEndpointUrl(config.baseUrl, "suggest");
+  const acceptUrl = resolveEndpointUrl(config.baseUrl, "accept");
   const key = normalizeOptional(config.key);
   const fetcher = resolveFetch(config.fetch);
 
   return {
     suggest: async (request, options) => {
-      const url = buildSuggestUrl(baseUrl, request, key);
+      const url = buildSuggestUrl(suggestUrl, request, key);
       const requestInit = buildRequestInit(options);
       const response = await fetcher(url.toString(), requestInit);
 
@@ -287,6 +403,16 @@ export const createClient = (
       }
 
       return readResult(response);
+    },
+    accept: async (request, options) => {
+      const url = buildAcceptUrl(acceptUrl, key);
+      const payload = buildAcceptPayload(request);
+      const requestInit = buildAcceptRequestInit(payload, options);
+      const response = await fetcher(url.toString(), requestInit);
+
+      if (!response.ok) {
+        throw new Error(await parseErrorMessage(response));
+      }
     },
   };
 };

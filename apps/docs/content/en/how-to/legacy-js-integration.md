@@ -15,6 +15,7 @@ Add address suggestions to a legacy checkout page using the Smart Address SDK wi
 
 - SDK config: `baseUrl`, `key` (sent as `?key=`).
 - Suggest request: `text` (required), `limit`, `countryCode`, `locale`, `sessionToken`, `strategy`.
+- Accept request: `text` (required), `suggestion` (required), `resultIndex`, `resultCount`, `strategy`.
 
 ## Steps
 
@@ -84,12 +85,12 @@ const htmlSnippet = String.raw`<!doctype html>
           return
         }
 
-        suggestions.forEach((suggestion) => {
+        suggestions.forEach((suggestion, index) => {
           const item = document.createElement("button")
           item.type = "button"
           item.className = "list-group-item list-group-item-action"
           item.textContent = suggestion.label
-          item.addEventListener("click", () => selectSuggestion(suggestion))
+          item.addEventListener("click", () => selectSuggestion(suggestion, index))
           results.appendChild(item)
         })
 
@@ -115,9 +116,21 @@ const htmlSnippet = String.raw`<!doctype html>
         updateActive()
       }
 
-      const selectSuggestion = (suggestion) => {
+      const selectSuggestion = (suggestion, index) => {
+        const text = input.value.trim()
         input.value = suggestion.label
         clearResults()
+        client
+          .accept({
+            text: text || suggestion.label,
+            strategy: "reliable",
+            suggestion,
+            resultIndex: index,
+            resultCount: items.length
+          })
+          .catch((error) => {
+            console.warn("Smart Address accept failed", error)
+          })
       }
 
       input.addEventListener("keydown", (event) => {
@@ -129,7 +142,7 @@ const htmlSnippet = String.raw`<!doctype html>
           moveActive(-1)
         } else if (event.key === "Enter" && activeIndex >= 0) {
           event.preventDefault()
-          selectSuggestion(items[activeIndex])
+          selectSuggestion(items[activeIndex], activeIndex)
         } else if (event.key === "Escape") {
           clearResults()
         }
@@ -272,12 +285,12 @@ export default function LegacyDemoPreview() {
           return
         }
 
-        suggestions.forEach((suggestion) => {
+        suggestions.forEach((suggestion, index) => {
           const item = document.createElement("button")
           item.type = "button"
           item.className = "list-group-item list-group-item-action"
           item.textContent = suggestion.label
-          item.addEventListener("click", () => selectSuggestion(suggestion))
+          item.addEventListener("click", () => selectSuggestion(suggestion, index))
           results.appendChild(item)
         })
 
@@ -303,9 +316,21 @@ export default function LegacyDemoPreview() {
         updateActive()
       }
 
-      const selectSuggestion = (suggestion) => {
+      const selectSuggestion = (suggestion, index) => {
+        const text = input.value.trim()
         input.value = suggestion.label
         clearResults()
+        client
+          .accept({
+            text: text || suggestion.label,
+            strategy: "reliable",
+            suggestion,
+            resultIndex: index,
+            resultCount: items.length
+          })
+          .catch((error) => {
+            console.warn("Smart Address accept failed", error)
+          })
       }
 
       input.addEventListener("keydown", (event) => {
@@ -317,7 +342,7 @@ export default function LegacyDemoPreview() {
           moveActive(-1)
         } else if (event.key === "Enter" && activeIndex >= 0) {
           event.preventDefault()
-          selectSuggestion(items[activeIndex])
+          selectSuggestion(items[activeIndex], activeIndex)
         } else if (event.key === "Escape") {
           clearResults()
         }

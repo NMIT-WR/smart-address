@@ -66,8 +66,7 @@ const makeSequentialPlan = (
   name: string
 ): AddressProviderPlan<HttpClient> => ({
   stages: providers.map((provider, index) => ({
-    name:
-      index === 0 ? name : `${name}-fallback${index === 1 ? "" : `-${index}`}`,
+    name: index === 0 ? name : `${name}-fallback-${index}`,
     providers: [provider],
     concurrency: 1,
   })),

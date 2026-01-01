@@ -22,7 +22,7 @@ https://github.com/PaulJPhilp/EffectPatterns#getting-started
 - Docs live in `apps/docs/content/en` and `apps/docs/content/cs` and must stay structurally mirrored (same pages, same paths).
 - Update docs (EN + CS) whenever APIs, behavior, or versions change (also keep `README.md` and `README.cs.md` in sync).
 - Write AI-friendly docs:
-  - Use stable section headings (`## Goal`, `## Prerequisites`, `## Inputs`, `## Output`, `## Errors`, `## See also`).
+  - Use stable section headings (EN: `## Goal`, `## Prerequisites`, `## Inputs`, `## Output`, `## Errors`, `## See also`; CS: `## Cíl`, `## Předpoklady`, `## Vstupy`, `## Výstup`, `## Chyby`, `## Viz také`).
   - Prefer explicit contracts (inputs/outputs/defaults) over narrative.
   - Include copy-paste examples that work end-to-end.
   - Keep terminology consistent with code identifiers and package exports.

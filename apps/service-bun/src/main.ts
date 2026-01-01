@@ -2,6 +2,7 @@ import { layer as fetchHttpClientLayer } from "@effect/platform/FetchHttpClient"
 import { serve } from "@effect/platform/HttpLayerRouter";
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
 import { Effect, Layer } from "effect";
+import { AddressAcceptLogSqlite } from "./accept-log";
 import {
   AddressCachedSuggestorLayer,
   AddressCacheStoreSqlite,
@@ -21,6 +22,7 @@ const serverLayer = Layer.unwrapEffect(
     const cacheLayer = AddressSuggestionCacheLayer(config.cache).pipe(
       Layer.provide(cacheStoreLayer)
     );
+    const acceptLogLayer = AddressAcceptLogSqlite(config.sqlite);
     const suggestorLayer = AddressCachedSuggestorLayer.pipe(
       Layer.provide(
         AddressSuggestorLayer({
@@ -44,6 +46,7 @@ const serverLayer = Layer.unwrapEffect(
       AddressMcpLayer
     ).pipe(
       Layer.provide(suggestorLayer),
+      Layer.provide(acceptLogLayer),
       Layer.provide(AddressMcpHandlersLayer)
     );
 
