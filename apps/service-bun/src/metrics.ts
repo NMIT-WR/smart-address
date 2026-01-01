@@ -96,7 +96,7 @@ const updateCache = (cache: CacheCounters, event: CacheMetricEvent) => {
 };
 
 const normalizeDuration = (value: number): number =>
-  Number.isFinite(value) && value > 0 ? Math.round(value) : 0;
+  Number.isFinite(value) && value >= 0 ? Math.round(value) : 0;
 
 const updateProvider = (
   current: ProviderCounters,
@@ -127,6 +127,7 @@ const toSnapshot = (state: MetricsState): AddressMetricsSnapshot => {
   const l1Requests = state.cache.l1Hits + state.cache.l1Misses;
   const l2Requests = state.cache.l2Hits + state.cache.l2Misses;
   const hits = state.cache.l1Hits + state.cache.l2Hits;
+  // hitRate uses L1 request volume; L2 hits still count as hits.
   const hitRate = l1Requests > 0 ? hits / l1Requests : 0;
   const l1HitRate = l1Requests > 0 ? state.cache.l1Hits / l1Requests : 0;
   const l2HitRate = l2Requests > 0 ? state.cache.l2Hits / l2Requests : 0;

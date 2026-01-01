@@ -8,6 +8,7 @@ import {
   handleSuggestGet,
   handleSuggestPost,
 } from "../src/http";
+import type { AddressMetrics } from "../src/metrics";
 
 const sampleResult = {
   suggestions: [
@@ -52,6 +53,12 @@ const metricsSnapshot = {
     l2HitRate: 0,
   },
   providers: [],
+};
+
+const metrics: AddressMetrics = {
+  recordCache: () => Effect.void,
+  recordProvider: () => Effect.void,
+  snapshot: Effect.succeed(metricsSnapshot),
 };
 
 describe("http handlers", () => {
@@ -179,9 +186,7 @@ describe("http handlers", () => {
   it.effect("handles GET /metrics", () =>
     Effect.gen(function* () {
       const request = fromWeb(new Request("http://localhost/metrics"));
-      const response = yield* handleMetricsGet({
-        snapshot: Effect.succeed(metricsSnapshot),
-      })(request);
+      const response = yield* handleMetricsGet(metrics)(request);
       const web = toWeb(response);
       const body = yield* Effect.promise(() => web.json());
 

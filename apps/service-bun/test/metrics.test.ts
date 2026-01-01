@@ -48,4 +48,44 @@ describe("address metrics", () => {
       expect(nominatim?.latencyMs.max).toBe(300);
     }).pipe(Effect.provide(AddressMetricsLayer), Effect.provide(TestContext))
   );
+
+  it.effect("handles cache-only snapshots", () =>
+    Effect.gen(function* () {
+      const metrics = yield* AddressMetrics;
+
+      yield* metrics.recordCache("l1-hit");
+      yield* metrics.recordCache("l2-miss");
+
+      const snapshot = yield* metrics.snapshot;
+
+      expect(snapshot.providers).toHaveLength(0);
+      expect(snapshot.cache.requests).toBe(1);
+      expect(snapshot.cache.hits).toBe(1);
+      expect(snapshot.cache.hitRate).toBe(1);
+      expect(snapshot.cache.l2HitRate).toBe(0);
+    }).pipe(Effect.provide(AddressMetricsLayer), Effect.provide(TestContext))
+  );
+
+  it.effect("records zero-duration provider calls", () =>
+    Effect.gen(function* () {
+      const metrics = yield* AddressMetrics;
+
+      yield* metrics.recordProvider({
+        provider: "instant",
+        durationMs: 0,
+        ok: true,
+      });
+
+      const snapshot = yield* metrics.snapshot;
+      const provider = snapshot.providers.find(
+        (entry) => entry.provider === "instant"
+      );
+
+      expect(provider?.calls).toBe(1);
+      expect(provider?.errors).toBe(0);
+      expect(provider?.latencyMs.avg).toBe(0);
+      expect(provider?.latencyMs.min).toBe(0);
+      expect(provider?.latencyMs.max).toBe(0);
+    }).pipe(Effect.provide(AddressMetricsLayer), Effect.provide(TestContext))
+  );
 });

@@ -102,7 +102,8 @@ export const handleAcceptPost =
       Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
     );
 
-export const handleMetricsGet = (metrics: AddressMetrics) => () =>
-  metrics.snapshot.pipe(Effect.map((snapshot) => jsonResponse(snapshot)));
+export const handleMetricsGet =
+  (metrics: AddressMetrics) => (_request: HttpServerRequest) =>
+    metrics.snapshot.pipe(Effect.map((snapshot) => jsonResponse(snapshot)));
 
 export const optionsResponse = withCors(text("", { status: 204 }));
