@@ -334,7 +334,9 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
       return {
         getOrFetch: (request, fetch) =>
           l1
-            .getEither(new AddressCacheKey(makeCacheKey(request), request, fetch))
+            .getEither(
+              new AddressCacheKey(makeCacheKey(request), request, fetch)
+            )
             .pipe(
               Effect.tap((result) =>
                 recordCache(Either.isLeft(result) ? "l1-hit" : "l1-miss")

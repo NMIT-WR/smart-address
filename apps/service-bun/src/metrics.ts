@@ -90,6 +90,8 @@ const updateCache = (cache: CacheCounters, event: CacheMetricEvent) => {
       return { ...cache, l2Hits: cache.l2Hits + 1 };
     case "l2-miss":
       return { ...cache, l2Misses: cache.l2Misses + 1 };
+    default:
+      return cache;
   }
 };
 
@@ -135,8 +137,7 @@ const toSnapshot = (state: MetricsState): AddressMetricsSnapshot => {
         metrics.calls > 0
           ? Math.round(metrics.totalLatencyMs / metrics.calls)
           : 0;
-      const errorRate =
-        metrics.calls > 0 ? metrics.errors / metrics.calls : 0;
+      const errorRate = metrics.calls > 0 ? metrics.errors / metrics.calls : 0;
       return {
         provider,
         calls: metrics.calls,

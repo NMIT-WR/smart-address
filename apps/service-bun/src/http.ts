@@ -13,12 +13,12 @@ import { Effect } from "effect";
 import type { AddressAcceptLog } from "./accept-log";
 import { decodeAcceptPayload, toAcceptRequest } from "./accept-request";
 import type { AddressCachedSuggestor } from "./cache";
+import type { AddressMetrics } from "./metrics";
 import {
   decodeSuggestPayload,
   payloadFromSearchParams,
   toSuggestRequest,
 } from "./request";
-import type { AddressMetrics } from "./metrics";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",

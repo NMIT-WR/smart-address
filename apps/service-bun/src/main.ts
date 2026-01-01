@@ -10,11 +10,11 @@ import {
 } from "./cache";
 import { addressServiceConfig } from "./config";
 import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp";
+import { AddressMetricsLayer } from "./metrics";
 import { AddressRoutesLayer } from "./routes";
 import { AddressRpcServerLayer } from "./rpc";
 import { AddressSearchLogSqlite } from "./search-log";
 import { AddressSuggestorLayer } from "./service";
-import { AddressMetricsLayer } from "./metrics";
 
 const serverLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
