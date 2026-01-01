@@ -11,12 +11,12 @@ import {
 import { toRecord } from "@effect/platform/UrlParams";
 import { Effect } from "effect";
 import type { AddressAcceptLog } from "./accept-log";
-import type { AddressCachedSuggestor } from "./cache";
 import {
-  decodeAcceptPayload,
   type AcceptRequestError,
+  decodeAcceptPayload,
   toAcceptRequest,
 } from "./accept-request";
+import type { AddressCachedSuggestor } from "./cache";
 import {
   decodeSuggestPayload,
   payloadFromSearchParams,

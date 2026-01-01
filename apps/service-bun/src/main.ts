@@ -2,6 +2,7 @@ import { layer as fetchHttpClientLayer } from "@effect/platform/FetchHttpClient"
 import { serve } from "@effect/platform/HttpLayerRouter";
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
 import { Effect, Layer } from "effect";
+import { AddressAcceptLogSqlite } from "./accept-log";
 import {
   AddressCachedSuggestorLayer,
   AddressCacheStoreSqlite,
@@ -11,7 +12,6 @@ import { addressServiceConfig } from "./config";
 import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp";
 import { AddressRoutesLayer } from "./routes";
 import { AddressRpcServerLayer } from "./rpc";
-import { AddressAcceptLogSqlite } from "./accept-log";
 import { AddressSearchLogSqlite } from "./search-log";
 import { AddressSuggestorLayer } from "./service";
 

@@ -11,12 +11,12 @@ import {
 import { Data, Effect } from "effect";
 import {
   decodeUnknown,
-  Number as SchemaNumber,
   NumberFromString,
   optional,
+  type Schema,
+  Number as SchemaNumber,
   String as SchemaString,
   Struct,
-  type Schema,
   Union,
 } from "effect/Schema";
 
@@ -46,9 +46,7 @@ export interface AcceptRequest {
   readonly resultCount?: number;
 }
 
-export class AcceptRequestError extends Data.TaggedError(
-  "AcceptRequestError"
-)<{
+export class AcceptRequestError extends Data.TaggedError("AcceptRequestError")<{
   readonly message: string;
 }> {}
 

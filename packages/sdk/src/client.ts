@@ -109,7 +109,7 @@ const resolveEndpointUrl = (
   const url = new URL(trimmed);
   const path = url.pathname.replace(trailingSlashRegex, "");
   const segments = path.split("/").filter(Boolean);
-  const last = segments[segments.length - 1];
+  const last = segments.at(-1);
   if (last === "suggest" || last === "accept") {
     segments.pop();
   }

@@ -14,10 +14,7 @@ const makeFetch =
   };
 
 const makeFetchWithInit =
-  (
-    calls: Array<{ url: string; init?: RequestInit }>,
-    payload = { ok: true }
-  ) =>
+  (calls: Array<{ url: string; init?: RequestInit }>, payload = { ok: true }) =>
   (input: RequestInfo | URL, init?: RequestInit) => {
     calls.push({ url: String(input), init });
     return Promise.resolve(

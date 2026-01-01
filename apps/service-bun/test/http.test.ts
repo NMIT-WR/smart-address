@@ -2,7 +2,11 @@ import { fromWeb } from "@effect/platform/HttpServerRequest";
 import { toWeb } from "@effect/platform/HttpServerResponse";
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect, Ref } from "effect";
-import { handleAcceptPost, handleSuggestGet, handleSuggestPost } from "../src/http";
+import {
+  handleAcceptPost,
+  handleSuggestGet,
+  handleSuggestPost,
+} from "../src/http";
 
 const sampleResult = {
   suggestions: [

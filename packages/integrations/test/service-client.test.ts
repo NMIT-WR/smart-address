@@ -76,18 +76,20 @@ describe("address service client", () => {
         const serviceClient = makeAddressServiceClient({
           baseUrl: "https://example.test",
         });
-        yield* serviceClient.accept({
-          text: "Main St",
-          strategy: "reliable",
-          suggestion: {
-            id: "svc:1",
-            label: "Service",
-            address: { line1: "Service" },
-            source: { provider: "service" },
-          },
-          resultIndex: 0,
-          resultCount: 1,
-        }).pipe(Effect.provideService(HttpClient, client));
+        yield* serviceClient
+          .accept({
+            text: "Main St",
+            strategy: "reliable",
+            suggestion: {
+              id: "svc:1",
+              label: "Service",
+              address: { line1: "Service" },
+              source: { provider: "service" },
+            },
+            resultIndex: 0,
+            resultCount: 1,
+          })
+          .pipe(Effect.provideService(HttpClient, client));
 
         return { request: yield* Ref.get(requestRef) };
       });

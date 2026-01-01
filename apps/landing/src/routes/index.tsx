@@ -164,34 +164,31 @@ function Landing() {
       <ul className="mt-4 flex flex-col gap-3">
         {results.map((suggestion, index) => (
           <li
-            className="flex cursor-pointer flex-col gap-1 border-[color:var(--border)] border-b pb-3 last:border-b-0"
+            className="border-[color:var(--border)] border-b pb-3 last:border-b-0"
             key={suggestion.id}
-            onClick={() => handleAccept(suggestion, index)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                handleAccept(suggestion, index);
-              }
-            }}
-            role="button"
-            tabIndex={0}
           >
-            <span className="font-semibold text-[color:var(--text)] text-base">
-              {suggestion.label}
-            </span>
-            <span className="text-[color:var(--muted)] text-sm">
-              {formatAddress(suggestion)}
-            </span>
-            {suggestion.source?.provider ? (
-              <span className="text-[color:var(--muted)] text-xs uppercase tracking-[0.15em]">
-                <fbt desc="Suggestion source label">
-                  via{" "}
-                  <fbt:param name="provider">
-                    {suggestion.source.provider}
-                  </fbt:param>
-                </fbt>
+            <button
+              className="flex w-full flex-col gap-1 text-left"
+              onClick={() => handleAccept(suggestion, index)}
+              type="button"
+            >
+              <span className="font-semibold text-[color:var(--text)] text-base">
+                {suggestion.label}
               </span>
-            ) : null}
+              <span className="text-[color:var(--muted)] text-sm">
+                {formatAddress(suggestion)}
+              </span>
+              {suggestion.source?.provider ? (
+                <span className="text-[color:var(--muted)] text-xs uppercase tracking-[0.15em]">
+                  <fbt desc="Suggestion source label">
+                    via{" "}
+                    <fbt:param name="provider">
+                      {suggestion.source.provider}
+                    </fbt:param>
+                  </fbt>
+                </span>
+              ) : null}
+            </button>
           </li>
         ))}
       </ul>
