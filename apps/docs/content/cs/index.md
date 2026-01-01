@@ -49,7 +49,7 @@ curl "http://localhost:8787/health"
 
 ## API rozhraní
 
-- HTTP: `/suggest`, `/accept`, `/health`
+- HTTP: `/suggest`, `/accept`, `/metrics`, `/health`
 - MCP: `/mcp` publikuje tool `suggest-address`
 - RPC: `/rpc` publikuje proceduru `suggest-address`
 

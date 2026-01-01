@@ -4,6 +4,7 @@ import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect, Ref } from "effect";
 import {
   handleAcceptPost,
+  handleMetricsGet,
   handleSuggestGet,
   handleSuggestPost,
 } from "../src/http";
@@ -34,6 +35,23 @@ const acceptPayload = {
   },
   resultIndex: 0,
   resultCount: 1,
+};
+
+const metricsSnapshot = {
+  startedAt: 1000,
+  updatedAt: 2000,
+  cache: {
+    requests: 2,
+    hits: 1,
+    l1Hits: 1,
+    l1Misses: 1,
+    l2Hits: 0,
+    l2Misses: 1,
+    hitRate: 0.5,
+    l1HitRate: 0.5,
+    l2HitRate: 0,
+  },
+  providers: [],
 };
 
 describe("http handlers", () => {
@@ -155,6 +173,21 @@ describe("http handlers", () => {
 
       expect(web.status).toBe(400);
       expect(body.error).toBeTypeOf("string");
+    })
+  );
+
+  it.effect("handles GET /metrics", () =>
+    Effect.gen(function* () {
+      const request = fromWeb(new Request("http://localhost/metrics"));
+      const response = yield* handleMetricsGet({
+        snapshot: Effect.succeed(metricsSnapshot),
+      })(request);
+      const web = toWeb(response);
+      const body = yield* Effect.promise(() => web.json());
+
+      expect(web.status).toBe(200);
+      expect(body.cache.requests).toBe(2);
+      expect(body.cache.hitRate).toBe(0.5);
     })
   );
 });

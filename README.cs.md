@@ -49,6 +49,12 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+Metriky (cache + zdraví providerů):
+
+```bash
+curl "http://localhost:8787/metrics"
+```
+
 ## SDK pro prohlížeč (module script)
 
 ```html

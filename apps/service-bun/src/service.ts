@@ -23,8 +23,10 @@ import {
   makeAddressRateLimiter,
   withRateLimiter,
 } from "@smart-address/integrations/rate-limit";
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Exit, Layer } from "effect";
+import { currentTimeMillis } from "effect/Clock";
 import { type DurationInput, seconds } from "effect/Duration";
+import { AddressMetrics } from "./metrics";
 import type { SuggestRequest } from "./request";
 
 export interface AddressSuggestor {
@@ -82,6 +84,27 @@ const withOptionalRateLimit = <R>(
       )
     : Effect.succeed(provider);
 
+const withProviderMetrics = <R>(
+  provider: AddressProvider<R>,
+  metrics: AddressMetrics
+): AddressProvider<R> => ({
+  name: provider.name,
+  suggest: (query) =>
+    Effect.gen(function* () {
+      const start = yield* currentTimeMillis;
+      const exit = yield* Effect.exit(provider.suggest(query));
+      const durationMs = (yield* currentTimeMillis) - start;
+      yield* metrics
+        .recordProvider({
+          provider: provider.name,
+          durationMs,
+          ok: Exit.isSuccess(exit),
+        })
+        .pipe(Effect.catchAll(() => Effect.void));
+      return yield* Effect.done(exit);
+    }),
+});
+
 const makeService = (
   plan: AddressProviderPlan<HttpClient>
 ): AddressSuggestionService<HttpClient> =>
@@ -103,7 +126,10 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
   Layer.effect(
     AddressSuggestor,
     Effect.gen(function* () {
+      const metrics = yield* AddressMetrics;
       const timeout = config.providerTimeout ?? seconds(4);
+      const applyMetrics = <R>(provider: AddressProvider<R>) =>
+        withProviderMetrics(provider, metrics);
       const baseNominatim = withProviderTimeout(
         makeNominatimProvider(config.nominatim),
         timeout
@@ -115,7 +141,7 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
       const nominatimProvider = yield* withOptionalRateLimit(
         baseNominatim,
         nominatimRateLimit
-      );
+      ).pipe(Effect.map(applyMetrics));
 
       const radarProvider = config.radarAutocomplete
         ? yield* withOptionalRateLimit(
@@ -124,7 +150,7 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
               timeout
             ),
             config.radarAutocompleteRateLimit ?? null
-          )
+          ).pipe(Effect.map(applyMetrics))
         : null;
 
       const hereProvider = config.hereDiscover
@@ -134,7 +160,7 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
               timeout
             ),
             config.hereDiscoverRateLimit ?? null
-          )
+          ).pipe(Effect.map(applyMetrics))
         : null;
 
       const providers = [radarProvider, hereProvider, nominatimProvider].filter(

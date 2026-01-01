@@ -18,6 +18,7 @@ import {
   payloadFromSearchParams,
   toSuggestRequest,
 } from "./request";
+import type { AddressMetrics } from "./metrics";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -100,5 +101,8 @@ export const handleAcceptPost =
       Effect.flatMap((payload) => handleAcceptPayload(log, payload)),
       Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
     );
+
+export const handleMetricsGet = (metrics: AddressMetrics) => () =>
+  metrics.snapshot.pipe(Effect.map((snapshot) => jsonResponse(snapshot)));
 
 export const optionsResponse = withCors(text("", { status: 204 }));

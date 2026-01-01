@@ -9,6 +9,7 @@ import {
   AddressSuggestionCache,
   AddressSuggestionCacheLayer,
 } from "../src/cache";
+import { AddressMetricsLayer } from "../src/metrics";
 
 const sampleResult = {
   suggestions: [
@@ -44,6 +45,7 @@ describe("address cache", () => {
       }).pipe(
         Effect.provide(AddressSuggestionCacheLayer({ l1Ttl: seconds(60) })),
         Effect.provide(AddressCacheStoreMemory),
+        Effect.provide(AddressMetricsLayer),
         Effect.provide(TestContext)
       );
 
@@ -84,6 +86,7 @@ describe("address cache", () => {
       }).pipe(
         Effect.provide(AddressSuggestionCacheLayer()),
         Effect.provide(AddressCacheStoreMemory),
+        Effect.provide(AddressMetricsLayer),
         Effect.provide(TestContext)
       );
 

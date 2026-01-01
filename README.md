@@ -49,6 +49,12 @@ Health check:
 curl "http://localhost:8787/health"
 ```
 
+Metrics snapshot (cache + provider health):
+
+```bash
+curl "http://localhost:8787/metrics"
+```
+
 ## Browser SDK (module script)
 
 ```html
