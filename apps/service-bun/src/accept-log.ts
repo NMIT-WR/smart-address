@@ -17,7 +17,7 @@ export const AddressAcceptLogNone = Layer.succeed(AddressAcceptLog, {
 export const AddressAcceptLogSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(
     AddressAcceptLog,
-    Effect.sync(() => {
+    Effect.try(() => {
       const { db } = openAddressSqlite(config);
       const insert = db.prepare(`
         INSERT INTO address_accept_log (
