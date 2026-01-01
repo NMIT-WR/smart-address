@@ -1,17 +1,17 @@
 # Integrace legacy checkoutu (Bootstrap + vanilla JS)
 
-## Goal
+## Cíl
 
 Přidejte našeptávání adres do legacy checkoutu pomocí Smart Address SDK bez bundleru.
 
-## Prerequisites
+## Předpoklady
 
 - Base URL Smart Address služby (například `https://api.example.com`).
 - API klíč pro `?key=`.
 - Bootstrap 5 CSS (volitelné, použito v ukázce).
 - Prohlížeč s `fetch` a `AbortController`.
 
-## Inputs
+## Vstupy
 
 - Konfigurace SDK: `baseUrl`, `key` (posílá se jako `?key=`).
 - Request pro suggest: `text` (povinné), `limit`, `countryCode`, `locale`, `sessionToken`, `strategy`.
@@ -388,18 +388,18 @@ export default function LegacyDemoPreview() {
 </html>
 ```
 
-## Output
+## Výstup
 
 - Návrhy se zobrazí pod inputem.
 - Výběr návrhu vyplní input.
 
-## Errors
+## Chyby
 
 - Síťové chyby nebo 4xx/5xx odpovědi vyhodí chybu.
 - Neplatný payload vrací `400` s `{ "error": "..." }`.
 - Zrušené requesty vyhodí `AbortError`.
 
-## See also
+## Viz také
 
 - [Klienti a SDK](/cs/reference/sdk)
 - [Reference API služby](/cs/reference/service-api)

@@ -1,10 +1,10 @@
 # Quickstart
 
-## Goal
+## Cíl
 
 Spustit Bun službu lokálně a získat reálné návrhy adres přes HTTP.
 
-## Prerequisites
+## Předpoklady
 
 - `pnpm`
 - `bun`

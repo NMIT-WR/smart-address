@@ -1,15 +1,15 @@
 # Radar Autocomplete provider
 
-## Goal
+## Cíl
 
 Zpřístupnit Radar autocomplete API jako `AddressProvider` postavený na Effectu a `@effect/platform` HTTP klientovi.
 
-## Prerequisites
+## Předpoklady
 
 - Radar publishable API klíč s přístupem k Maps/Search.
 - `HttpClient` layer (například `FetchHttpClient.layer`).
 
-## Inputs
+## Vstupy
 
 `RadarAutocompleteConfig`:
 
@@ -48,7 +48,7 @@ const program = provider
 Effect.runPromise(program)
 ```
 
-## Output
+## Výstup
 
 Provider vrací `ReadonlyArray<AddressSuggestion>` s:
 
@@ -57,11 +57,11 @@ Provider vrací `ReadonlyArray<AddressSuggestion>` s:
 - `address`: odvozeno z `number`, `street`, `neighborhood`, `city`, `state`, `postalCode`, `countryCode`
 - `metadata`: `lat`, `lng`, `distance`, `layer` a `placeLabel` pokud existují
 
-## Errors
+## Chyby
 
 Chyby se mapují na `AddressProviderError` přes `makeAddressProvider`. HTTP chyby a problémy se schématy se projeví jako provider errors a suggestion služba je sbírá.
 
-## See also
+## Viz také
 
 - [Core typy](/cs/reference/core-types)
 - [Přidání dalšího providera](/cs/how-to/add-provider)

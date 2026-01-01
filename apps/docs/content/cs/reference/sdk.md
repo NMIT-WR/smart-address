@@ -1,28 +1,28 @@
 # Klienti a SDK
 
-## Goal
+## Cíl
 
 Použít klienty Smart Address pro návrhy a logování přijatých návrhů.
 
-## Prerequisites
+## Předpoklady
 
 - Base URL služby (např. `http://localhost:8787`).
 - Pro HTTP klienta v Effectu: Effect runtime + HttpClient z `@effect/platform`.
 - Pro browser SDK: `fetch` a `AbortController` v runtime.
 
-## Inputs
+## Vstupy
 
 - Konfigurace klienta: `baseUrl`, volitelně `key` (posílá se jako `?key=`).
 - Suggest request: `text` (povinné), `limit`, `countryCode`, `locale`, `sessionToken`, `strategy`.
 - Accept request: `text` (povinné), `suggestion` (povinné), `limit`, `countryCode`, `locale`, `sessionToken`, `strategy`, `resultIndex`, `resultCount`.
 - `accept` je dostupné přes HTTP (SDK nebo Effect service client), ne přes RPC.
 
-## Output
+## Výstup
 
 - `suggest` vrací `{ suggestions, errors }`.
 - `accept` vrací `void` a HTTP odpověď je `{ "ok": true }`.
 
-## Errors
+## Chyby
 
 - SDK vyhazuje `Error` při non-2xx odpovědi.
 - Effect service client selhává s `AddressServiceClientError`.
@@ -254,7 +254,7 @@ export default function SmartAddressReactDemo() {
 }
 ```
 
-## See also
+## Viz také
 
 - [Service API reference](/cs/reference/service-api)
 - [Použití HTTP služby](/cs/how-to/use-service)

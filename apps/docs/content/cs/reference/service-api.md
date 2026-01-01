@@ -1,14 +1,14 @@
 # Service API
 
-## Goal
+## Cíl
 
 Zdokumentovat HTTP endpointy pro návrhy a logování přijetí.
 
-## Prerequisites
+## Předpoklady
 
 - Běžící služba (defaultní base URL: `http://localhost:8787`).
 
-## Inputs
+## Vstupy
 
 ### Base URL
 
@@ -85,7 +85,7 @@ Stejná pole jako `GET /suggest`.
 }
 ```
 
-## Output
+## Výstup
 
 ### GET /suggest a POST /suggest (200)
 
@@ -115,12 +115,12 @@ Hodnota `provider` závisí na konfiguraci (například `nominatim`, `radar-auto
 
 Výstup: text `ok`
 
-## Errors
+## Chyby
 
 - Nevalidní payload vrací `400` s `{ "error": "..." }` (např. chybí `text`/`q`).
 - Selhání providerů se vrací uvnitř pole `errors` s HTTP `200`.
 
-## See also
+## Viz také
 
 - [Použití HTTP služby](/cs/how-to/use-service)
 - [Klienti a SDK](/cs/reference/sdk)

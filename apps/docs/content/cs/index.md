@@ -4,7 +4,7 @@ Spolehlivé našeptávání adres pro checkout a onboarding. Postaveno na Effect
 
 Hlavní cíl je *stabilní tvar výsledku* (`suggestions` + `errors`), i když provider selže, time‑outne nebo vrátí nekonzistentní data.
 
-## Goal
+## Cíl
 
 - Našeptávání adres s predikovatelným chováním.
 - Selhání providerů jako data (v `errors`), ne jako výjimky.

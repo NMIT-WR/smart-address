@@ -1,6 +1,6 @@
 # Použití HTTP služby
 
-## Goal
+## Cíl
 
 Získat návrhy adres a logovat přijetí přes HTTP.
 
@@ -9,11 +9,11 @@ Získat návrhy adres a logovat přijetí přes HTTP.
 - Chcete jednoduchou integraci přes `curl`/`fetch`.
 - Nechcete v klientovi spouštět Effect runtime.
 
-## Prerequisites
+## Předpoklady
 
 - Běžící služba (default `http://localhost:8787`).
 
-## Inputs
+## Vstupy
 
 - Suggest request:
   - Povinné: `text` nebo `q`
@@ -54,7 +54,7 @@ curl -X POST "http://localhost:8787/accept" \
   -d '{"text":"221B Baker Street","strategy":"reliable","resultIndex":0,"resultCount":5,"suggestion":{"id":"nominatim:123","label":"221B Baker Street, London, UK","address":{"line1":"221B Baker Street","city":"London"},"source":{"provider":"nominatim","kind":"public"}}}'
 ```
 
-## Output
+## Výstup
 
 ### Suggest odpověď
 
@@ -87,7 +87,7 @@ Hodnota `provider` závisí na konfiguraci (například `nominatim`, `radar-auto
 
 Použijte `strategy` nebo alias `mode`.
 
-## Errors
+## Chyby
 
 - Nevalidní payload vrací `400` s `{ "error": "..." }`.
 - Selhání providerů nemění HTTP status; objeví se v poli `errors`.
@@ -100,6 +100,6 @@ curl "http://localhost:8787/health"
 
 Očekávaná odpověď: `ok`
 
-## See also
+## Viz také
 
 - [Reference Service API](/cs/reference/service-api)
