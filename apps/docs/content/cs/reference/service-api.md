@@ -60,6 +60,7 @@ Stejná pole jako `GET /suggest`.
 - Povinné:
   - `text` (string) nebo `q` (alias)
   - `suggestion` (objekt `AddressSuggestion` z `/suggest`)
+- Content-Type: `application/json`
 - Volitelné:
   - `limit` (number; stringy se dekódují)
   - `countryCode` (ISO-3166-1 alpha-2)

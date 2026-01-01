@@ -60,6 +60,7 @@ Same fields as `GET /suggest`.
 - Required:
   - `text` (string) or `q` (alias)
   - `suggestion` (an `AddressSuggestion` from `/suggest`)
+- Content-Type: `application/json`
 - Optional:
   - `limit` (number; strings are accepted and decoded)
   - `countryCode` (ISO-3166-1 alpha-2)
