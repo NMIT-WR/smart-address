@@ -1,24 +1,26 @@
-import { Effect, Layer } from "effect"
-import * as FetchHttpClient from "@effect/platform/FetchHttpClient"
-import * as HttpLayerRouter from "@effect/platform/HttpLayerRouter"
-import { BunHttpServer, BunRuntime } from "@effect/platform-bun"
-import { AddressSuggestorLayer } from "./service"
+import { layer as fetchHttpClientLayer } from "@effect/platform/FetchHttpClient";
+import { serve } from "@effect/platform/HttpLayerRouter";
+import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
+import { Effect, Layer } from "effect";
 import {
-  AddressCacheStoreSqlite,
   AddressCachedSuggestorLayer,
-  AddressSuggestionCacheLayer
-} from "./cache"
-import { AddressRoutesLayer } from "./routes"
-import { AddressRpcServerLayer } from "./rpc"
-import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp"
-import { AddressSearchLogSqlite } from "./search-log"
-import { addressServiceConfig } from "./config"
+  AddressCacheStoreSqlite,
+  AddressSuggestionCacheLayer,
+} from "./cache";
+import { addressServiceConfig } from "./config";
+import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp";
+import { AddressRoutesLayer } from "./routes";
+import { AddressRpcServerLayer } from "./rpc";
+import { AddressSearchLogSqlite } from "./search-log";
+import { AddressSuggestorLayer } from "./service";
 
 const serverLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
-    const config = yield* addressServiceConfig
-    const cacheStoreLayer = AddressCacheStoreSqlite(config.sqlite)
-    const cacheLayer = AddressSuggestionCacheLayer(config.cache).pipe(Layer.provide(cacheStoreLayer))
+    const config = yield* addressServiceConfig;
+    const cacheStoreLayer = AddressCacheStoreSqlite(config.sqlite);
+    const cacheLayer = AddressSuggestionCacheLayer(config.cache).pipe(
+      Layer.provide(cacheStoreLayer)
+    );
     const suggestorLayer = AddressCachedSuggestorLayer.pipe(
       Layer.provide(
         AddressSuggestorLayer({
@@ -28,23 +30,27 @@ const serverLayer = Layer.unwrapEffect(
           radarAutocomplete: config.radarAutocomplete,
           radarAutocompleteRateLimit: config.radarAutocompleteRateLimit,
           hereDiscover: config.hereDiscover,
-          hereDiscoverRateLimit: config.hereDiscoverRateLimit
+          hereDiscoverRateLimit: config.hereDiscoverRateLimit,
         })
       ),
       Layer.provide(cacheLayer),
-      Layer.provide(FetchHttpClient.layer),
+      Layer.provide(fetchHttpClientLayer),
       Layer.provide(AddressSearchLogSqlite(config.sqlite))
-    )
+    );
 
-    const appLayer = Layer.mergeAll(AddressRoutesLayer, AddressRpcServerLayer, AddressMcpLayer).pipe(
+    const appLayer = Layer.mergeAll(
+      AddressRoutesLayer,
+      AddressRpcServerLayer,
+      AddressMcpLayer
+    ).pipe(
       Layer.provide(suggestorLayer),
       Layer.provide(AddressMcpHandlersLayer)
-    )
+    );
 
-    return HttpLayerRouter.serve(appLayer).pipe(
+    return serve(appLayer).pipe(
       Layer.provide(BunHttpServer.layer({ port: config.port }))
-    )
+    );
   })
-)
+);
 
-BunRuntime.runMain(Layer.launch(serverLayer))
+BunRuntime.runMain(Layer.launch(serverLayer));

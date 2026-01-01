@@ -1,94 +1,110 @@
-import { Effect } from "effect"
-import * as Schema from "effect/Schema"
-import * as HttpClient from "@effect/platform/HttpClient"
-import * as HttpClientRequest from "@effect/platform/HttpClientRequest"
-import * as HttpClientResponse from "@effect/platform/HttpClientResponse"
+import { execute } from "@effect/platform/HttpClient";
 import {
+  get,
+  type HttpClientRequest,
+  setHeader,
+} from "@effect/platform/HttpClientRequest";
+import { filterStatusOk } from "@effect/platform/HttpClientResponse";
+import {
+  type AddressQuery,
+  type AddressSuggestion,
   makeAddressProvider,
   normalizeAddressQuery,
-  type AddressQuery,
-  type AddressSuggestion
-} from "@smart-address/core"
+} from "@smart-address/core";
+import { Effect } from "effect";
+import {
+  decodeUnknown,
+  NumberFromString,
+  optional,
+  type Schema,
+  Array as SchemaArray,
+  Number as SchemaNumber,
+  String as SchemaString,
+  Struct,
+  Union,
+} from "effect/Schema";
 
-export type NominatimConfig = {
-  readonly baseUrl?: string
-  readonly userAgent: string
-  readonly email?: string
-  readonly referer?: string
-  readonly defaultLimit?: number
+export interface NominatimConfig {
+  readonly baseUrl?: string;
+  readonly userAgent: string;
+  readonly email?: string;
+  readonly referer?: string;
+  readonly defaultLimit?: number;
 }
 
-const NominatimAddressSchema = Schema.Struct({
-  house_number: Schema.optional(Schema.String),
-  road: Schema.optional(Schema.String),
-  neighbourhood: Schema.optional(Schema.String),
-  suburb: Schema.optional(Schema.String),
-  city: Schema.optional(Schema.String),
-  town: Schema.optional(Schema.String),
-  village: Schema.optional(Schema.String),
-  hamlet: Schema.optional(Schema.String),
-  municipality: Schema.optional(Schema.String),
-  county: Schema.optional(Schema.String),
-  state: Schema.optional(Schema.String),
-  state_district: Schema.optional(Schema.String),
-  region: Schema.optional(Schema.String),
-  province: Schema.optional(Schema.String),
-  postcode: Schema.optional(Schema.String),
-  country_code: Schema.optional(Schema.String)
-})
+const NominatimAddressSchema = Struct({
+  house_number: optional(SchemaString),
+  road: optional(SchemaString),
+  neighbourhood: optional(SchemaString),
+  suburb: optional(SchemaString),
+  city: optional(SchemaString),
+  town: optional(SchemaString),
+  village: optional(SchemaString),
+  hamlet: optional(SchemaString),
+  municipality: optional(SchemaString),
+  county: optional(SchemaString),
+  state: optional(SchemaString),
+  state_district: optional(SchemaString),
+  region: optional(SchemaString),
+  province: optional(SchemaString),
+  postcode: optional(SchemaString),
+  country_code: optional(SchemaString),
+});
 
-const NominatimResultSchema = Schema.Struct({
-  place_id: Schema.Union(Schema.Number, Schema.NumberFromString),
-  osm_type: Schema.String,
-  osm_id: Schema.Union(Schema.Number, Schema.NumberFromString),
-  lat: Schema.String,
-  lon: Schema.String,
-  display_name: Schema.String,
-  importance: Schema.optional(Schema.Number),
-  class: Schema.optional(Schema.String),
-  type: Schema.optional(Schema.String),
-  address: Schema.optional(NominatimAddressSchema)
-})
+const NominatimResultSchema = Struct({
+  place_id: Union(SchemaNumber, NumberFromString),
+  osm_type: SchemaString,
+  osm_id: Union(SchemaNumber, NumberFromString),
+  lat: SchemaString,
+  lon: SchemaString,
+  display_name: SchemaString,
+  importance: optional(SchemaNumber),
+  class: optional(SchemaString),
+  type: optional(SchemaString),
+  address: optional(NominatimAddressSchema),
+});
 
-const NominatimResponseSchema = Schema.Array(NominatimResultSchema)
+const NominatimResponseSchema = SchemaArray(NominatimResultSchema);
 
-type NominatimResult = Schema.Schema.Type<typeof NominatimResultSchema>
-type NominatimAddress = Schema.Schema.Type<typeof NominatimAddressSchema>
+type NominatimResult = Schema.Type<typeof NominatimResultSchema>;
+type NominatimAddress = Schema.Type<typeof NominatimAddressSchema>;
 
 const compactString = (value: string | undefined): string | undefined => {
   if (!value) {
-    return undefined
+    return undefined;
   }
-  const trimmed = value.trim()
-  return trimmed.length === 0 ? undefined : trimmed
-}
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
+};
 
-const firstNonEmpty = (...values: Array<string | undefined>): string | undefined => {
+const firstNonEmpty = (
+  ...values: Array<string | undefined>
+): string | undefined => {
   for (const value of values) {
-    const compacted = compactString(value)
+    const compacted = compactString(value);
     if (compacted) {
-      return compacted
+      return compacted;
     }
   }
-  return undefined
-}
+  return undefined;
+};
 
 const joinParts = (first?: string, second?: string): string | undefined => {
-  const left = compactString(first)
-  const right = compactString(second)
+  const left = compactString(first);
+  const right = compactString(second);
   if (left && right) {
-    return `${left} ${right}`
+    return `${left} ${right}`;
   }
-  return left ?? right
-}
+  return left ?? right;
+};
 
 const addressFromNominatim = (address: NominatimAddress | undefined) => {
   if (!address) {
-    return {}
+    return {};
   }
 
-  const line1 = joinParts(address.house_number, address.road) ?? address.road
-  const line2 = firstNonEmpty(address.neighbourhood, address.suburb)
+  const line1 = joinParts(address.house_number, address.road) ?? address.road;
+  const line2 = firstNonEmpty(address.neighbourhood, address.suburb);
   const city = firstNonEmpty(
     address.city,
     address.town,
@@ -96,10 +112,16 @@ const addressFromNominatim = (address: NominatimAddress | undefined) => {
     address.hamlet,
     address.municipality,
     address.county
-  )
-  const region = firstNonEmpty(address.state, address.state_district, address.region, address.province, address.county)
-  const postalCode = compactString(address.postcode)
-  const countryCode = compactString(address.country_code)?.toUpperCase()
+  );
+  const region = firstNonEmpty(
+    address.state,
+    address.state_district,
+    address.region,
+    address.province,
+    address.county
+  );
+  const postalCode = compactString(address.postcode);
+  const countryCode = compactString(address.country_code)?.toUpperCase();
 
   return {
     line1,
@@ -107,28 +129,30 @@ const addressFromNominatim = (address: NominatimAddress | undefined) => {
     city,
     region,
     postalCode,
-    countryCode
-  }
-}
+    countryCode,
+  };
+};
 
-const metadataFromNominatim = (result: NominatimResult): Record<string, string> | undefined => {
+const metadataFromNominatim = (
+  result: NominatimResult
+): Record<string, string> | undefined => {
   const metadata: Record<string, string> = {
     lat: result.lat,
     lon: result.lon,
     osmType: result.osm_type,
     osmId: String(result.osm_id),
-    placeId: String(result.place_id)
-  }
+    placeId: String(result.place_id),
+  };
 
   if (result.class) {
-    metadata.category = result.class
+    metadata.category = result.class;
   }
   if (result.type) {
-    metadata.type = result.type
+    metadata.type = result.type;
   }
 
-  return Object.keys(metadata).length > 0 ? metadata : undefined
-}
+  return Object.keys(metadata).length > 0 ? metadata : undefined;
+};
 
 const toAddressSuggestion = (result: NominatimResult): AddressSuggestion => ({
   id: `nominatim:${result.place_id}`,
@@ -138,59 +162,62 @@ const toAddressSuggestion = (result: NominatimResult): AddressSuggestion => ({
   source: {
     provider: "nominatim",
     kind: "public",
-    reference: `${result.osm_type}:${result.osm_id}`
+    reference: `${result.osm_type}:${result.osm_id}`,
   },
-  metadata: metadataFromNominatim(result)
-})
+  metadata: metadataFromNominatim(result),
+});
 
 export const parseNominatimResponse = (body: unknown) =>
-  Schema.decodeUnknown(NominatimResponseSchema)(body).pipe(
+  decodeUnknown(NominatimResponseSchema)(body).pipe(
     Effect.map((results) => results.map(toAddressSuggestion))
-  )
+  );
 
-const buildRequest = (config: NominatimConfig, query: AddressQuery): HttpClientRequest.HttpClientRequest => {
-  const baseUrl = config.baseUrl ?? "https://nominatim.openstreetmap.org"
-  const normalized = normalizeAddressQuery(query)
-  const limit = normalized.limit ?? config.defaultLimit ?? 5
+const buildRequest = (
+  config: NominatimConfig,
+  query: AddressQuery
+): HttpClientRequest => {
+  const baseUrl = config.baseUrl ?? "https://nominatim.openstreetmap.org";
+  const normalized = normalizeAddressQuery(query);
+  const limit = normalized.limit ?? config.defaultLimit ?? 5;
 
   const params: Record<string, string> = {
     q: normalized.text,
     format: "jsonv2",
     addressdetails: "1",
-    limit: String(limit)
-  }
+    limit: String(limit),
+  };
 
   if (normalized.countryCode) {
-    params.countrycodes = normalized.countryCode.toLowerCase()
+    params.countrycodes = normalized.countryCode.toLowerCase();
   }
 
   if (config.email) {
-    params.email = config.email
+    params.email = config.email;
   }
 
-  let request = HttpClientRequest.get(new URL("/search", baseUrl), {
+  let request = get(new URL("/search", baseUrl), {
     urlParams: params,
-    acceptJson: true
-  })
+    acceptJson: true,
+  });
 
-  request = HttpClientRequest.setHeader(request, "User-Agent", config.userAgent)
+  request = setHeader(request, "User-Agent", config.userAgent);
 
   if (config.referer) {
-    request = HttpClientRequest.setHeader(request, "Referer", config.referer)
+    request = setHeader(request, "Referer", config.referer);
   }
 
   if (normalized.locale) {
-    request = HttpClientRequest.setHeader(request, "Accept-Language", normalized.locale)
+    request = setHeader(request, "Accept-Language", normalized.locale);
   }
 
-  return request
-}
+  return request;
+};
 
 export const makeNominatimProvider = (config: NominatimConfig) =>
   makeAddressProvider("nominatim", (query) =>
-    HttpClient.execute(buildRequest(config, query)).pipe(
-      Effect.flatMap(HttpClientResponse.filterStatusOk),
+    execute(buildRequest(config, query)).pipe(
+      Effect.flatMap(filterStatusOk),
       Effect.flatMap((response) => response.json),
       Effect.flatMap(parseNominatimResponse)
     )
-  )
+  );

@@ -1,4 +1,4 @@
-import { defineConfig } from "@rslib/core"
+import { defineConfig } from "@rslib/core";
 
 export default defineConfig({
   lib: [
@@ -9,9 +9,9 @@ export default defineConfig({
         entry: {
           suggest: "./src/suggest.ts",
           client: "./src/client.ts",
-          webrtc: "./src/webrtc.ts"
-        }
-      }
-    }
-  ]
-})
+          webrtc: "./src/webrtc.ts",
+        },
+      },
+    },
+  ],
+});

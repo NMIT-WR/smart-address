@@ -1,48 +1,58 @@
-import * as Schema from "effect/Schema"
+import {
+  NumberFromString,
+  optional,
+  Array as SchemaArray,
+  Literal as SchemaLiteral,
+  Number as SchemaNumber,
+  Record as SchemaRecord,
+  String as SchemaString,
+  Struct,
+  Union,
+} from "effect/Schema";
 
-export const AddressQuerySchema = Schema.Struct({
-  text: Schema.String,
-  limit: Schema.optional(Schema.Union(Schema.Number, Schema.NumberFromString)),
-  countryCode: Schema.optional(Schema.String),
-  locale: Schema.optional(Schema.String),
-  sessionToken: Schema.optional(Schema.String)
-})
+export const AddressQuerySchema = Struct({
+  text: SchemaString,
+  limit: optional(Union(SchemaNumber, NumberFromString)),
+  countryCode: optional(SchemaString),
+  locale: optional(SchemaString),
+  sessionToken: optional(SchemaString),
+});
 
-export const AddressPartsSchema = Schema.Struct({
-  line1: Schema.optional(Schema.String),
-  line2: Schema.optional(Schema.String),
-  city: Schema.optional(Schema.String),
-  region: Schema.optional(Schema.String),
-  postalCode: Schema.optional(Schema.String),
-  countryCode: Schema.optional(Schema.String)
-})
+export const AddressPartsSchema = Struct({
+  line1: optional(SchemaString),
+  line2: optional(SchemaString),
+  city: optional(SchemaString),
+  region: optional(SchemaString),
+  postalCode: optional(SchemaString),
+  countryCode: optional(SchemaString),
+});
 
-export const AddressSuggestionSourceSchema = Schema.Struct({
-  provider: Schema.String,
-  kind: Schema.optional(Schema.Union(Schema.Literal("public"), Schema.Literal("internal"))),
-  reference: Schema.optional(Schema.String)
-})
+export const AddressSuggestionSourceSchema = Struct({
+  provider: SchemaString,
+  kind: optional(Union(SchemaLiteral("public"), SchemaLiteral("internal"))),
+  reference: optional(SchemaString),
+});
 
-export const AddressSuggestionSchema = Schema.Struct({
-  id: Schema.String,
-  label: Schema.String,
+export const AddressSuggestionSchema = Struct({
+  id: SchemaString,
+  label: SchemaString,
   address: AddressPartsSchema,
-  score: Schema.optional(Schema.Number),
+  score: optional(SchemaNumber),
   source: AddressSuggestionSourceSchema,
-  metadata: Schema.optional(
-    Schema.Record({
-      key: Schema.String,
-      value: Schema.String
+  metadata: optional(
+    SchemaRecord({
+      key: SchemaString,
+      value: SchemaString,
     })
-  )
-})
+  ),
+});
 
-export const AddressSuggestionErrorSchema = Schema.Struct({
-  provider: Schema.String,
-  message: Schema.String
-})
+export const AddressSuggestionErrorSchema = Struct({
+  provider: SchemaString,
+  message: SchemaString,
+});
 
-export const AddressSuggestionResultSchema = Schema.Struct({
-  suggestions: Schema.Array(AddressSuggestionSchema),
-  errors: Schema.Array(AddressSuggestionErrorSchema)
-})
+export const AddressSuggestionResultSchema = Struct({
+  suggestions: SchemaArray(AddressSuggestionSchema),
+  errors: SchemaArray(AddressSuggestionErrorSchema),
+});

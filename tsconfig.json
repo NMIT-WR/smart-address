@@ -5,13 +5,21 @@
       "@smart-address/core": ["packages/core/src/address.ts"],
       "@smart-address/core/schema": ["packages/core/src/schema.ts"],
       "@smart-address/integrations": ["packages/integrations/src/http.ts"],
-      "@smart-address/integrations/here-discover": ["packages/integrations/src/here-discover.ts"],
-      "@smart-address/integrations/nominatim": ["packages/integrations/src/nominatim.ts"],
+      "@smart-address/integrations/here-discover": [
+        "packages/integrations/src/here-discover.ts"
+      ],
+      "@smart-address/integrations/nominatim": [
+        "packages/integrations/src/nominatim.ts"
+      ],
       "@smart-address/integrations/radar-autocomplete": [
         "packages/integrations/src/radar-autocomplete.ts"
       ],
-      "@smart-address/integrations/rate-limit": ["packages/integrations/src/rate-limit.ts"],
-      "@smart-address/integrations/service-client": ["packages/integrations/src/service-client.ts"],
+      "@smart-address/integrations/rate-limit": [
+        "packages/integrations/src/rate-limit.ts"
+      ],
+      "@smart-address/integrations/service-client": [
+        "packages/integrations/src/service-client.ts"
+      ],
       "@smart-address/rpc": ["packages/rpc/src/suggest.ts"],
       "@smart-address/rpc/client": ["packages/rpc/src/client.ts"],
       "@smart-address/rpc/suggest": ["packages/rpc/src/suggest.ts"],

@@ -1,4 +1,4 @@
-import { defineConfig } from "@rslib/core"
+import { defineConfig } from "@rslib/core";
 
 export default defineConfig({
   lib: [
@@ -12,9 +12,9 @@ export default defineConfig({
           nominatim: "./src/nominatim.ts",
           "here-discover": "./src/here-discover.ts",
           "radar-autocomplete": "./src/radar-autocomplete.ts",
-          "service-client": "./src/service-client.ts"
-        }
-      }
-    }
-  ]
-})
+          "service-client": "./src/service-client.ts",
+        },
+      },
+    },
+  ],
+});
