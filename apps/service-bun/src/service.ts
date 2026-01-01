@@ -16,6 +16,10 @@ import {
   type NominatimConfig,
 } from "@smart-address/integrations/nominatim";
 import {
+  makeRadarAutocompleteProvider,
+  type RadarAutocompleteConfig,
+} from "@smart-address/integrations/radar-autocomplete";
+import {
   makeAddressRateLimiter,
   withRateLimiter,
 } from "@smart-address/integrations/rate-limit";
@@ -36,6 +40,8 @@ export interface AddressSuggestorConfig {
   readonly nominatim: NominatimConfig;
   readonly providerTimeout?: DurationInput;
   readonly nominatimRateLimit?: DurationInput | null;
+  readonly radarAutocomplete?: RadarAutocompleteConfig | null;
+  readonly radarAutocompleteRateLimit?: DurationInput | null;
   readonly hereDiscover?: HereDiscoverConfig | null;
   readonly hereDiscoverRateLimit?: DurationInput | null;
 }
@@ -55,23 +61,16 @@ const makePlan = (
   ],
 });
 
-const makeFallbackPlan = (
-  primary: HttpAddressProvider,
-  fallback: HttpAddressProvider,
+const makeSequentialPlan = (
+  providers: readonly HttpAddressProvider[],
   name: string
 ): AddressProviderPlan<HttpClient> => ({
-  stages: [
-    {
-      name,
-      providers: [primary],
-      concurrency: 1,
-    },
-    {
-      name: `${name}-fallback`,
-      providers: [fallback],
-      concurrency: 1,
-    },
-  ],
+  stages: providers.map((provider, index) => ({
+    name:
+      index === 0 ? name : `${name}-fallback${index === 1 ? "" : `-${index}`}`,
+    providers: [provider],
+    concurrency: 1,
+  })),
 });
 
 const withOptionalRateLimit = <R>(
@@ -119,6 +118,16 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
         nominatimRateLimit
       );
 
+      const radarProvider = config.radarAutocomplete
+        ? yield* withOptionalRateLimit(
+            withProviderTimeout(
+              makeRadarAutocompleteProvider(config.radarAutocomplete),
+              timeout
+            ),
+            config.radarAutocompleteRateLimit ?? null
+          )
+        : null;
+
       const hereProvider = config.hereDiscover
         ? yield* withOptionalRateLimit(
             withProviderTimeout(
@@ -129,11 +138,14 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
           )
         : null;
 
-      const fastProvider = hereProvider ?? nominatimProvider;
-      const fastPlan = makePlan([fastProvider], "public-fast");
-      const reliablePlan = hereProvider
-        ? makeFallbackPlan(hereProvider, nominatimProvider, "public-reliable")
-        : makePlan([nominatimProvider], "public-reliable");
+      const providers = [radarProvider, hereProvider, nominatimProvider].filter(
+        (provider): provider is HttpAddressProvider => provider !== null
+      );
+      const fastPlan = makePlan(
+        [providers[0] ?? nominatimProvider],
+        "public-fast"
+      );
+      const reliablePlan = makeSequentialPlan(providers, "public-reliable");
       const fastService = makeService(fastPlan);
       const reliableService = makeService(reliablePlan);
 

@@ -16,6 +16,16 @@ Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 - `NOMINATIM_DEFAULT_LIMIT` (number, default `5`)
 - `NOMINATIM_RATE_LIMIT_MS` (number, default `1000`, `0` = vypnout)
 
+## Radar Autocomplete
+
+- `RADAR_API_KEY` (string, povinné pro zapnutí)
+- `RADAR_AUTOCOMPLETE_BASE_URL`
+- `RADAR_AUTOCOMPLETE_DEFAULT_LIMIT` (number, default `5`)
+- `RADAR_AUTOCOMPLETE_LAYERS` (string, volitelné, CSV)
+- `RADAR_AUTOCOMPLETE_NEAR` (string, volitelné, souřadnice `"lat,lng"`)
+- `RADAR_AUTOCOMPLETE_COUNTRY_CODE` (string, volitelné, CSV)
+- `RADAR_AUTOCOMPLETE_RATE_LIMIT_MS` (number, default `0`, `0` = vypnout)
+
 ## HERE Discover
 
 - `HERE_API_KEY` (string, povinné pro zapnutí)
@@ -43,7 +53,7 @@ Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 
 ## Minimální příklad
 
-Volitelně přidejte `HERE_API_KEY` pro zapnutí HERE Discover.
+Volitelně přidejte `RADAR_API_KEY` pro zapnutí Radar Autocomplete nebo `HERE_API_KEY` pro zapnutí HERE Discover.
 Pokud nastavíte `HERE_DEFAULT_LAT` a `HERE_DEFAULT_LNG`, použijí se jako výchozí `at`, pokud není nastavené `HERE_DISCOVER_AT`.
 
 ```bash
@@ -51,6 +61,7 @@ PORT=8787
 PROVIDER_TIMEOUT_MS=4000
 NOMINATIM_USER_AGENT="smart-address-dev"
 NOMINATIM_EMAIL="you@example.com"
+# RADAR_API_KEY="your-radar-api-key" # volitelné: zapne Radar Autocomplete
 # HERE_API_KEY="your-here-api-key" # volitelné: zapne HERE Discover
 # HERE_DEFAULT_LAT=50.087 # volitelné: výchozí poloha pro discover
 # HERE_DEFAULT_LNG=14.421 # volitelné: výchozí poloha pro discover

@@ -20,6 +20,10 @@
       "types": "./dist/here-discover.d.ts",
       "import": "./dist/here-discover.js"
     },
+    "./radar-autocomplete": {
+      "types": "./dist/radar-autocomplete.d.ts",
+      "import": "./dist/radar-autocomplete.js"
+    },
     "./service-client": {
       "types": "./dist/service-client.d.ts",
       "import": "./dist/service-client.js"
