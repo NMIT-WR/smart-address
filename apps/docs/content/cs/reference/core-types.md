@@ -60,7 +60,7 @@ export type AddressSuggestionResult = {
 }
 ```
 
-## Chyby
+## Errors
 
 ```ts
 export class AddressProviderError extends Data.TaggedError("AddressProviderError")<{

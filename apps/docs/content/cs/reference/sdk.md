@@ -1,10 +1,38 @@
 # Klienti a SDK
 
-## Aktuální klienti
+## Goal
 
-### HTTP service klient (Effect)
+Použít klienty Smart Address pro návrhy a logování přijatých návrhů.
 
-Použijte `@smart-address/integrations/service-client`, pokud už v klientovi používáte Effect + `@effect/platform`.
+## Prerequisites
+
+- Base URL služby (např. `http://localhost:8787`).
+- Pro HTTP klienta v Effectu: Effect runtime + HttpClient z `@effect/platform`.
+- Pro browser SDK: `fetch` a `AbortController` v runtime.
+
+## Inputs
+
+- Konfigurace klienta: `baseUrl`, volitelně `key` (posílá se jako `?key=`).
+- Suggest request: `text` (povinné), `limit`, `countryCode`, `locale`, `sessionToken`, `strategy`.
+- Accept request: `text` (povinné), `suggestion` (povinné), `limit`, `countryCode`, `locale`, `sessionToken`, `strategy`, `resultIndex`, `resultCount`.
+- `accept` je dostupné přes HTTP (SDK nebo Effect service client), ne přes RPC.
+
+## Output
+
+- `suggest` vrací `{ suggestions, errors }`.
+- `accept` vrací `void` a HTTP odpověď je `{ "ok": true }`.
+
+## Errors
+
+- SDK vyhazuje `Error` při non-2xx odpovědi.
+- Effect service client selhává s `AddressServiceClientError`.
+- Runtime validace je minimální (text povinný, strategy validováno, suggestion povinné).
+
+## Examples
+
+### HTTP service client (Effect)
+
+Použijte `@smart-address/integrations/service-client`, pokud už používáte Effect + `@effect/platform` v klientovi.
 
 ```ts
 import { Effect } from "effect"
@@ -14,15 +42,32 @@ import { makeAddressServiceClient } from "@smart-address/integrations/service-cl
 const client = makeAddressServiceClient({ baseUrl: "http://localhost:8787" })
 
 const program = client
-  .suggest({ text: "Praha", limit: 5, countryCode: "CZ", strategy: "reliable" })
+  .suggest({ text: "Prague", limit: 5, countryCode: "CZ", strategy: "reliable" })
   .pipe(Effect.provide(FetchHttpClient.layer))
 
 await Effect.runPromise(program)
+
+await Effect.runPromise(
+  client
+    .accept({
+      text: "Prague",
+      strategy: "reliable",
+      resultIndex: 0,
+      resultCount: 5,
+      suggestion: {
+        id: "nominatim:123",
+        label: "Prague, CZ",
+        address: { city: "Prague", countryCode: "CZ" },
+        source: { provider: "nominatim" }
+      }
+    })
+    .pipe(Effect.provide(FetchHttpClient.layer))
+)
 ```
 
-### Effect RPC klient
+### Effect RPC client
 
-Použijte `@smart-address/rpc/client`, pokud preferujete RPC místo raw HTTP.
+Použijte `@smart-address/rpc/client`, pokud preferujete RPC před HTTP. (RPC nabízí jen `suggest-address`.)
 
 ```ts
 import { Effect } from "effect"
@@ -31,30 +76,38 @@ import { SuggestAddressClient, SuggestAddressClientHttpLayer } from "@smart-addr
 await Effect.runPromise(
   Effect.scoped(
     SuggestAddressClient.pipe(
-      Effect.flatMap((client) => client["suggest-address"]({ text: "Praha" })),
+      Effect.flatMap((client) => client["suggest-address"]({ text: "Prague" })),
       Effect.provide(SuggestAddressClientHttpLayer("http://localhost:8787/rpc"))
     )
   )
 )
 ```
 
-### SDK do prohlížeče (ESM modul)
+### Browser SDK (ESM modul)
 
-Použijte `@smart-address/sdk` jako malý klient do prohlížeče (bez bundleru). SDK posílá `key` jako query parametr `?key=`.
+Použijte `@smart-address/sdk` pro malého browser klienta (bez bundleru). SDK přidá `key` jako `?key=`.
 
 ```ts
 import { createClient } from "@smart-address/sdk"
 
 const client = createClient({ baseUrl: "https://api.example.com", key: "YOUR_KEY" })
 const result = await client.suggest({
-  text: "Praha",
+  text: "Prague",
   limit: 5,
   countryCode: "CZ",
   strategy: "reliable"
 })
+
+await client.accept({
+  text: "Prague",
+  strategy: "reliable",
+  resultIndex: 0,
+  resultCount: result.suggestions.length,
+  suggestion: result.suggestions[0]
+})
 ```
 
-Module script (servírovaný ze Smart Address služby na `/demo/sdk.js`):
+Module script (servíruje Smart Address služba na `/demo/sdk.js`):
 
 ```html
 <script type="module">
@@ -67,13 +120,13 @@ Module script (servírovaný ze Smart Address služby na `/demo/sdk.js`):
 </script>
 ```
 
-SDK má jen minimální runtime validaci (text je povinný, `strategy` je ověřená) a neobsahuje retries/backoff, aby zůstal malý. Odolnost řešte ve vaší integraci.
+SDK má záměrně minimální runtime validaci (text povinný, strategy validováno) a neobsahuje retry/backoff, aby zůstalo malé. Odolnost řešte ve své integraci.
 
-Příklad pro legacy checkout: [Bootstrap + vanilla JS](/cs/how-to/legacy-js-integration).
+Ukázka pro legacy checkout: [Bootstrap + vanilla JS](/cs/how-to/legacy-js-integration).
 
 ### React playground
 
-Použijte SDK uvnitř React komponenty. Upravte `baseUrl` + `key` tak, aby mířily na vaši službu.
+Použijte SDK v React komponentě. Upravte `baseUrl` + `key` podle své služby.
 
 ```tsx playground
 import React, { useEffect, useMemo, useState } from "react"
@@ -127,6 +180,20 @@ export default function SmartAddressReactDemo() {
     }
   }, [client, value])
 
+  const handleAccept = async (suggestion, index) => {
+    try {
+      await client.accept({
+        text: value.trim() || suggestion.label,
+        strategy: "reliable",
+        suggestion,
+        resultIndex: index,
+        resultCount: suggestions.length
+      })
+    } catch (error) {
+      console.warn("Smart Address accept failed", error)
+    }
+  }
+
   return (
     <div style={{ fontFamily: "system-ui", maxWidth: 440 }}>
       <label htmlFor="base-url" style={{ display: "block", fontWeight: 600 }}>
@@ -139,7 +206,7 @@ export default function SmartAddressReactDemo() {
         style={{ width: "100%", marginBottom: "0.5rem", padding: "0.5rem" }}
       />
       <label htmlFor="api-key" style={{ display: "block", fontWeight: 600 }}>
-        API klíč
+        API key
       </label>
       <input
         id="api-key"
@@ -149,21 +216,24 @@ export default function SmartAddressReactDemo() {
         style={{ width: "100%", marginBottom: "0.75rem", padding: "0.5rem" }}
       />
       <label htmlFor="address-input" style={{ display: "block", fontWeight: 600 }}>
-        Adresa
+        Address
       </label>
       <input
         id="address-input"
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        placeholder="Začněte psát adresu"
+        placeholder="Start typing an address"
         style={{ width: "100%", marginBottom: "0.5rem", padding: "0.5rem" }}
       />
       <div>
-        {suggestions.map((suggestion) => (
+        {suggestions.map((suggestion, index) => (
           <button
             key={suggestion.id}
             type="button"
-            onClick={() => setValue(suggestion.label)}
+            onClick={() => {
+              setValue(suggestion.label)
+              handleAccept(suggestion, index)
+            }}
             style={{
               display: "block",
               width: "100%",
@@ -184,11 +254,7 @@ export default function SmartAddressReactDemo() {
 }
 ```
 
-## Plánované SDK
+## See also
 
-Plánované SDK:
-
-- React, Svelte, Vue
-- Web Component
-
-Pro ostatní jazyky použijte HTTP API nebo Effect klienty výše.
+- [Service API reference](/cs/reference/service-api)
+- [Použití HTTP služby](/cs/how-to/use-service)

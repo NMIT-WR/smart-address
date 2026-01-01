@@ -10,7 +10,13 @@ import {
 } from "@effect/platform/HttpServerResponse";
 import { toRecord } from "@effect/platform/UrlParams";
 import { Effect } from "effect";
+import type { AddressAcceptLog } from "./accept-log";
 import type { AddressCachedSuggestor } from "./cache";
+import {
+  decodeAcceptPayload,
+  type AcceptRequestError,
+  toAcceptRequest,
+} from "./accept-request";
 import {
   decodeSuggestPayload,
   payloadFromSearchParams,
@@ -41,8 +47,17 @@ const isSuggestRequestError = (error: unknown): error is SuggestRequestError =>
   "_tag" in error &&
   (error as { _tag?: string })._tag === "SuggestRequestError";
 
+const isAcceptRequestError = (error: unknown): error is AcceptRequestError =>
+  typeof error === "object" &&
+  error !== null &&
+  "_tag" in error &&
+  (error as { _tag?: string })._tag === "AcceptRequestError";
+
 const parseSuggestPayload = (payload: unknown) =>
   decodeSuggestPayload(payload).pipe(Effect.flatMap(toSuggestRequest));
+
+const parseAcceptPayload = (payload: unknown) =>
+  decodeAcceptPayload(payload).pipe(Effect.flatMap(toAcceptRequest));
 
 const handleSuggestPayload = (
   suggestor: AddressCachedSuggestor,
@@ -54,6 +69,19 @@ const handleSuggestPayload = (
     Effect.catchAll((error) =>
       Effect.succeed(
         isSuggestRequestError(error)
+          ? errorResponse(error.message)
+          : errorResponse("Invalid request")
+      )
+    )
+  );
+
+const handleAcceptPayload = (log: AddressAcceptLog, payload: unknown) =>
+  parseAcceptPayload(payload).pipe(
+    Effect.flatMap((request) => log.record(request)),
+    Effect.as(jsonResponse({ ok: true })),
+    Effect.catchAll((error) =>
+      Effect.succeed(
+        isAcceptRequestError(error)
           ? errorResponse(error.message)
           : errorResponse("Invalid request")
       )
@@ -88,5 +116,12 @@ export const handleSuggestPost =
       Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
     );
   };
+
+export const handleAcceptPost =
+  (log: AddressAcceptLog) => (request: HttpServerRequest) =>
+    request.json.pipe(
+      Effect.flatMap((payload) => handleAcceptPayload(log, payload)),
+      Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
+    );
 
 export const optionsResponse = withCors(text("", { status: 204 }));

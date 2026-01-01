@@ -10,7 +10,7 @@ Default: `http://localhost:8787/mcp`
 
 `suggest-address`
 
-## Vstupy
+## Inputs
 
 - Povinné: `text` (string) nebo `q` (alias)
 - Volitelné:
@@ -21,7 +21,7 @@ Default: `http://localhost:8787/mcp`
   - `strategy` ("fast" | "reliable")
   - `mode` (alias pro `strategy`)
 
-## Výstup
+## Output
 
 Návratová hodnota je `AddressSuggestionResult`:
 

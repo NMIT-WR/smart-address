@@ -13,6 +13,21 @@ const makeFetch =
     );
   };
 
+const makeFetchWithInit =
+  (
+    calls: Array<{ url: string; init?: RequestInit }>,
+    payload = { ok: true }
+  ) =>
+  (input: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({ url: String(input), init });
+    return Promise.resolve(
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    );
+  };
+
 describe("smart-address sdk", () => {
   it("uses provided fetch and builds query params", async () => {
     const calls: string[] = [];
@@ -114,5 +129,36 @@ describe("smart-address sdk", () => {
     expect(result.suggestions[0]?.id).toBe("ok");
     expect(result.errors.length).toBe(1);
     expect(result.errors[0]?.provider).toBe("nominatim");
+  });
+
+  it("posts accept payload to /accept", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    const client = createClient({
+      baseUrl: "https://example.test/suggest",
+      key: "docs-demo",
+      fetch: makeFetchWithInit(calls),
+    });
+
+    await client.accept({
+      text: "Prague",
+      strategy: "reliable",
+      resultIndex: 1,
+      resultCount: 5,
+      suggestion: {
+        id: "demo:1",
+        label: "Prague",
+        address: {},
+        source: { provider: "demo" },
+      },
+    });
+
+    expect(calls.length).toBe(1);
+    expect(calls[0]?.url).toBe("https://example.test/accept?key=docs-demo");
+    expect(calls[0]?.init?.method).toBe("POST");
+    const body = JSON.parse(String(calls[0]?.init?.body ?? "{}"));
+    expect(body.text).toBe("Prague");
+    expect(body.suggestion.id).toBe("demo:1");
+    expect(body.resultIndex).toBe(1);
+    expect(body.resultCount).toBe(5);
   });
 });

@@ -35,6 +35,14 @@ Request suggestions:
 curl "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
 ```
 
+Log an accepted suggestion:
+
+```bash
+curl -X POST "http://localhost:8787/accept" \
+  -H "content-type: application/json" \
+  -d '{"text":"Prague","strategy":"reliable","resultIndex":0,"resultCount":5,"suggestion":{"id":"nominatim:123","label":"Prague, CZ","address":{"city":"Prague","countryCode":"CZ"},"source":{"provider":"nominatim","kind":"public"}}}'
+```
+
 Health check:
 
 ```bash

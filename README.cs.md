@@ -35,6 +35,14 @@ Dotaz na našeptávání:
 curl "http://localhost:8787/suggest?q=Praha&limit=5&countryCode=CZ"
 ```
 
+Logování přijatého návrhu:
+
+```bash
+curl -X POST "http://localhost:8787/accept" \
+  -H "content-type: application/json" \
+  -d '{"text":"Praha","strategy":"reliable","resultIndex":0,"resultCount":5,"suggestion":{"id":"nominatim:123","label":"Praha, CZ","address":{"city":"Praha","countryCode":"CZ"},"source":{"provider":"nominatim","kind":"public"}}}'
+```
+
 Health check:
 
 ```bash

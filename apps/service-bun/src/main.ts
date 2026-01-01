@@ -11,6 +11,7 @@ import { addressServiceConfig } from "./config";
 import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp";
 import { AddressRoutesLayer } from "./routes";
 import { AddressRpcServerLayer } from "./rpc";
+import { AddressAcceptLogSqlite } from "./accept-log";
 import { AddressSearchLogSqlite } from "./search-log";
 import { AddressSuggestorLayer } from "./service";
 
@@ -21,6 +22,7 @@ const serverLayer = Layer.unwrapEffect(
     const cacheLayer = AddressSuggestionCacheLayer(config.cache).pipe(
       Layer.provide(cacheStoreLayer)
     );
+    const acceptLogLayer = AddressAcceptLogSqlite(config.sqlite);
     const suggestorLayer = AddressCachedSuggestorLayer.pipe(
       Layer.provide(
         AddressSuggestorLayer({
@@ -44,6 +46,7 @@ const serverLayer = Layer.unwrapEffect(
       AddressMcpLayer
     ).pipe(
       Layer.provide(suggestorLayer),
+      Layer.provide(acceptLogLayer),
       Layer.provide(AddressMcpHandlersLayer)
     );
 

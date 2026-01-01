@@ -13,6 +13,11 @@ const demoClient = createClient({
   key: import.meta.env.VITE_SUGGEST_KEY,
 });
 
+const demoSuggestConfig = {
+  limit: 5,
+  strategy: "reliable" as const,
+};
+
 const formatAddress = (suggestion: AddressSuggestion) => {
   const address = suggestion.address ?? {};
   const parts = [
@@ -26,7 +31,7 @@ const formatAddress = (suggestion: AddressSuggestion) => {
   return parts.join(", ");
 };
 
-const useSuggestions = (query: string) => {
+const useSuggestions = (query: string, sessionToken: string | undefined) => {
   const [results, setResults] = useState<readonly AddressSuggestion[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "ready">(
     "idle"
@@ -50,8 +55,8 @@ const useSuggestions = (query: string) => {
         const payload = await demoClient.suggest(
           {
             text: trimmed,
-            limit: 5,
-            strategy: "reliable",
+            ...demoSuggestConfig,
+            sessionToken,
           },
           { signal: controller.signal }
         );
@@ -71,7 +76,7 @@ const useSuggestions = (query: string) => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [query, sessionToken]);
 
   return { results, status, hasError };
 };
@@ -99,7 +104,13 @@ const LocaleToggle = () => {
 
 function Landing() {
   const [query, setQuery] = useState("Praha 1");
-  const { results, status, hasError } = useSuggestions(query);
+  const sessionToken = useMemo(() => {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID();
+    }
+    return `landing-${Math.random().toString(36).slice(2)}`;
+  }, []);
+  const { results, status, hasError } = useSuggestions(query, sessionToken);
   const serviceStatusLabel = (() => {
     if (hasError) {
       return <fbt desc="Service status">Service offline</fbt>;
@@ -112,6 +123,23 @@ function Landing() {
     }
     return <fbt desc="Service status">Service idle</fbt>;
   })();
+
+  const handleAccept = (suggestion: AddressSuggestion, index: number) => {
+    const text = query.trim();
+    setQuery(suggestion.label);
+    demoClient
+      .accept({
+        text: text || suggestion.label,
+        ...demoSuggestConfig,
+        sessionToken,
+        suggestion,
+        resultIndex: index,
+        resultCount: results.length,
+      })
+      .catch((error) => {
+        console.warn("Smart Address accept failed", error);
+      });
+  };
 
   const resultsContent = (() => {
     if (hasError) {
@@ -134,10 +162,19 @@ function Landing() {
     }
     return (
       <ul className="mt-4 flex flex-col gap-3">
-        {results.map((suggestion) => (
+        {results.map((suggestion, index) => (
           <li
-            className="flex flex-col gap-1 border-[color:var(--border)] border-b pb-3 last:border-b-0"
+            className="flex cursor-pointer flex-col gap-1 border-[color:var(--border)] border-b pb-3 last:border-b-0"
             key={suggestion.id}
+            onClick={() => handleAccept(suggestion, index)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handleAccept(suggestion, index);
+              }
+            }}
+            role="button"
+            tabIndex={0}
           >
             <span className="font-semibold text-[color:var(--text)] text-base">
               {suggestion.label}

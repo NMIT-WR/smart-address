@@ -1,10 +1,10 @@
 # Přidání dalšího providera
 
-## Cíl
+## Goal
 
 Implementovat nový `AddressProvider` a napojit ho do core suggestion služby (a případně i do Bun služby).
 
-## Požadavky
+## Prerequisites
 
 - Umíte namapovat výstup providera na `AddressSuggestion`.
 - Počítáte s tím, že chyby providerů se sbírají jako data.
@@ -69,7 +69,7 @@ Pokud běží `@smart-address/service-bun`, přidejte providera do `apps/service
 - Chyby se sbírají po providerech a nepadají celé volání.
 - Zvažte `withProviderTimeout` (core) a `withRateLimiter` (integrations) při volání externích providerů.
 
-## Viz také
+## See also
 
 - [Core typy](/cs/reference/core-types)
 - [Strategie](/cs/explanation/strategies)
