@@ -4,7 +4,7 @@ import {
   addressQueryKey,
 } from "@smart-address/core";
 import { AddressSuggestionResultSchema } from "@smart-address/core/schema";
-import { Cache, Context, Effect, Layer, Ref } from "effect";
+import { Cache, Context, Effect, Either, Layer, Ref } from "effect";
 import { currentTimeMillis } from "effect/Clock";
 import {
   type DurationInput,
@@ -20,6 +20,7 @@ import {
   Number as SchemaNumber,
   Struct,
 } from "effect/Schema";
+import { AddressMetrics, type CacheMetricEvent } from "./metrics";
 import type { SuggestRequest } from "./request";
 import { AddressSearchLog } from "./search-log";
 import { AddressSuggestor } from "./service";
@@ -246,11 +247,14 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
     AddressSuggestionCache,
     Effect.gen(function* () {
       const store = yield* AddressCacheStore;
+      const metrics = yield* AddressMetrics;
       const revalidating = yield* Ref.make(new Set<string>());
       const overrides = Object.fromEntries(
         Object.entries(config).filter(([, value]) => value !== undefined)
       ) as Partial<AddressCacheConfig>;
       const resolved = { ...defaultCacheConfig, ...overrides };
+      const recordCache = (event: CacheMetricEvent) =>
+        metrics.recordCache(event).pipe(Effect.catchAll(() => Effect.void));
 
       const storeEntry = (
         key: string,
@@ -309,11 +313,13 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
           const cached = yield* store.get(entryKey.key);
           const now = yield* currentTimeMillis;
           if (cached && cached.expiresAt > now) {
+            yield* recordCache("l2-hit");
             if (cached.staleAt <= now) {
               yield* revalidate(entryKey.key, entryKey.request, entryKey.fetch);
             }
             return cached.result;
           }
+          yield* recordCache("l2-miss");
           const result = yield* entryKey.fetch;
           yield* storeEntry(entryKey.key, entryKey.request, result);
           return result;
@@ -327,7 +333,18 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
 
       return {
         getOrFetch: (request, fetch) =>
-          l1.get(new AddressCacheKey(makeCacheKey(request), request, fetch)),
+          l1
+            .getEither(
+              new AddressCacheKey(makeCacheKey(request), request, fetch)
+            )
+            .pipe(
+              Effect.tap((result) =>
+                recordCache(Either.isLeft(result) ? "l1-hit" : "l1-miss")
+              ),
+              Effect.map((result) =>
+                Either.isLeft(result) ? result.left : result.right
+              )
+            ),
       };
     })
   );

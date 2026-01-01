@@ -49,7 +49,7 @@ curl "http://localhost:8787/health"
 
 ## API surfaces
 
-- HTTP: `/suggest`, `/accept`, `/health`
+- HTTP: `/suggest`, `/accept`, `/metrics`, `/health`
 - MCP: `/mcp` exposes tool `suggest-address`
 - RPC: `/rpc` exposes procedure `suggest-address`
 

@@ -13,6 +13,7 @@ import { Effect } from "effect";
 import type { AddressAcceptLog } from "./accept-log";
 import { decodeAcceptPayload, toAcceptRequest } from "./accept-request";
 import type { AddressCachedSuggestor } from "./cache";
+import type { AddressMetrics } from "./metrics";
 import {
   decodeSuggestPayload,
   payloadFromSearchParams,
@@ -100,5 +101,9 @@ export const handleAcceptPost =
       Effect.flatMap((payload) => handleAcceptPayload(log, payload)),
       Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
     );
+
+export const handleMetricsGet =
+  (metrics: AddressMetrics) => (_request: HttpServerRequest) =>
+    metrics.snapshot.pipe(Effect.map((snapshot) => jsonResponse(snapshot)));
 
 export const optionsResponse = withCors(text("", { status: 204 }));

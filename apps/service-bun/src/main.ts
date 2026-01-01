@@ -10,6 +10,7 @@ import {
 } from "./cache";
 import { addressServiceConfig } from "./config";
 import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp";
+import { AddressMetricsLayer } from "./metrics";
 import { AddressRoutesLayer } from "./routes";
 import { AddressRpcServerLayer } from "./rpc";
 import { AddressSearchLogSqlite } from "./search-log";
@@ -18,9 +19,11 @@ import { AddressSuggestorLayer } from "./service";
 const serverLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
     const config = yield* addressServiceConfig;
+    const metricsLayer = AddressMetricsLayer;
     const cacheStoreLayer = AddressCacheStoreSqlite(config.sqlite);
     const cacheLayer = AddressSuggestionCacheLayer(config.cache).pipe(
-      Layer.provide(cacheStoreLayer)
+      Layer.provide(cacheStoreLayer),
+      Layer.provide(metricsLayer)
     );
     const acceptLogLayer = AddressAcceptLogSqlite(config.sqlite);
     const suggestorLayer = AddressCachedSuggestorLayer.pipe(
@@ -33,7 +36,7 @@ const serverLayer = Layer.unwrapEffect(
           radarAutocompleteRateLimit: config.radarAutocompleteRateLimit,
           hereDiscover: config.hereDiscover,
           hereDiscoverRateLimit: config.hereDiscoverRateLimit,
-        })
+        }).pipe(Layer.provide(metricsLayer))
       ),
       Layer.provide(cacheLayer),
       Layer.provide(fetchHttpClientLayer),
@@ -47,7 +50,8 @@ const serverLayer = Layer.unwrapEffect(
     ).pipe(
       Layer.provide(suggestorLayer),
       Layer.provide(acceptLogLayer),
-      Layer.provide(AddressMcpHandlersLayer)
+      Layer.provide(AddressMcpHandlersLayer),
+      Layer.provide(metricsLayer)
     );
 
     return serve(appLayer).pipe(

@@ -20,6 +20,7 @@ Default: `http://localhost:8787`
 - `GET /suggest` (query parametry)
 - `POST /suggest` (JSON nebo form)
 - `POST /accept` (JSON)
+- `GET /metrics` (JSON)
 
 Další protokoly:
 
@@ -85,6 +86,14 @@ Stejná pole jako `GET /suggest`.
 }
 ```
 
+### GET /metrics
+
+Vrací JSON snapshot metrik cache a providerů pro interní monitoring.
+
+```bash
+curl "http://localhost:8787/metrics"
+```
+
 ## Výstup
 
 ### GET /suggest a POST /suggest (200)
@@ -109,6 +118,35 @@ Hodnota `provider` závisí na konfiguraci (například `nominatim`, `radar-auto
 
 ```json
 { "ok": true }
+```
+
+### GET /metrics (200)
+
+```json
+{
+  "startedAt": 1710000000000,
+  "updatedAt": 1710000300000,
+  "cache": {
+    "requests": 120,
+    "hits": 85,
+    "l1Hits": 60,
+    "l1Misses": 60,
+    "l2Hits": 25,
+    "l2Misses": 35,
+    "hitRate": 0.7083,
+    "l1HitRate": 0.5,
+    "l2HitRate": 0.4167
+  },
+  "providers": [
+    {
+      "provider": "nominatim",
+      "calls": 80,
+      "errors": 4,
+      "errorRate": 0.05,
+      "latencyMs": { "avg": 210, "min": 120, "max": 480 }
+    }
+  ]
+}
 ```
 
 ### GET /health
