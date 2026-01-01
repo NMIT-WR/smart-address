@@ -11,16 +11,11 @@ import {
 import { toRecord } from "@effect/platform/UrlParams";
 import { Effect } from "effect";
 import type { AddressAcceptLog } from "./accept-log";
-import {
-  type AcceptRequestError,
-  decodeAcceptPayload,
-  toAcceptRequest,
-} from "./accept-request";
+import { decodeAcceptPayload, toAcceptRequest } from "./accept-request";
 import type { AddressCachedSuggestor } from "./cache";
 import {
   decodeSuggestPayload,
   payloadFromSearchParams,
-  type SuggestRequestError,
   toSuggestRequest,
 } from "./request";
 
@@ -41,18 +36,6 @@ const jsonResponse = (body: unknown, status?: number) => {
 const errorResponse = (message: string, status = 400) =>
   jsonResponse({ error: message }, status);
 
-const isSuggestRequestError = (error: unknown): error is SuggestRequestError =>
-  typeof error === "object" &&
-  error !== null &&
-  "_tag" in error &&
-  (error as { _tag?: string })._tag === "SuggestRequestError";
-
-const isAcceptRequestError = (error: unknown): error is AcceptRequestError =>
-  typeof error === "object" &&
-  error !== null &&
-  "_tag" in error &&
-  (error as { _tag?: string })._tag === "AcceptRequestError";
-
 const parseSuggestPayload = (payload: unknown) =>
   decodeSuggestPayload(payload).pipe(Effect.flatMap(toSuggestRequest));
 
@@ -66,26 +49,20 @@ const handleSuggestPayload = (
   parseSuggestPayload(payload).pipe(
     Effect.flatMap((request) => suggestor.suggest(request)),
     Effect.map((result) => jsonResponse(result)),
-    Effect.catchAll((error) =>
-      Effect.succeed(
-        isSuggestRequestError(error)
-          ? errorResponse(error.message)
-          : errorResponse("Invalid request")
-      )
-    )
+    Effect.catchTag("SuggestRequestError", (error) =>
+      Effect.succeed(errorResponse(error.message))
+    ),
+    Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
   );
 
 const handleAcceptPayload = (log: AddressAcceptLog, payload: unknown) =>
   parseAcceptPayload(payload).pipe(
     Effect.flatMap((request) => log.record(request)),
     Effect.as(jsonResponse({ ok: true })),
-    Effect.catchAll((error) =>
-      Effect.succeed(
-        isAcceptRequestError(error)
-          ? errorResponse(error.message)
-          : errorResponse("Invalid request")
-      )
-    )
+    Effect.catchTag("AcceptRequestError", (error) =>
+      Effect.succeed(errorResponse(error.message))
+    ),
+    Effect.catchAll(() => Effect.succeed(errorResponse("Invalid request")))
   );
 
 export const handleSuggestGet =

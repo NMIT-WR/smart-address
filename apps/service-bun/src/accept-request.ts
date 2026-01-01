@@ -11,8 +11,9 @@ import {
 import { Data, Effect } from "effect";
 import {
   decodeUnknown,
+  extend,
   NumberFromString,
-  optional,
+  partial,
   type Schema,
   Number as SchemaNumber,
   String as SchemaString,
@@ -20,19 +21,24 @@ import {
   Union,
 } from "effect/Schema";
 
+const AcceptAddressOptionalSchema = partial(
+  Struct({
+    text: SchemaString,
+    q: SchemaString,
+    limit: Union(SchemaNumber, NumberFromString),
+    countryCode: SchemaString,
+    locale: SchemaString,
+    sessionToken: SchemaString,
+    strategy: AddressStrategySchema,
+    mode: AddressStrategySchema,
+    resultIndex: Union(SchemaNumber, NumberFromString),
+    resultCount: Union(SchemaNumber, NumberFromString),
+  })
+);
+
 export const AcceptAddressPayloadSchema = Struct({
-  text: optional(SchemaString),
-  q: optional(SchemaString),
-  limit: optional(Union(SchemaNumber, NumberFromString)),
-  countryCode: optional(SchemaString),
-  locale: optional(SchemaString),
-  sessionToken: optional(SchemaString),
-  strategy: optional(AddressStrategySchema),
-  mode: optional(AddressStrategySchema),
   suggestion: AddressSuggestionSchema,
-  resultIndex: optional(Union(SchemaNumber, NumberFromString)),
-  resultCount: optional(Union(SchemaNumber, NumberFromString)),
-});
+}).pipe(extend(AcceptAddressOptionalSchema));
 
 export type AcceptAddressPayload = Schema.Type<
   typeof AcceptAddressPayloadSchema
