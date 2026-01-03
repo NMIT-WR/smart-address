@@ -1,8 +1,4 @@
 import { fromWeb } from "@effect/platform/HttpServerRequest";
-import {
-  type HttpServerResponse,
-  toWeb,
-} from "@effect/platform/HttpServerResponse";
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect, Ref } from "effect";
 import {
@@ -12,6 +8,12 @@ import {
   handleSuggestPost,
 } from "../src/http";
 import type { AddressMetrics } from "../src/metrics";
+import {
+  makeRequestUrl,
+  makeRunAcceptRequest,
+  makeSuggestPostRequest,
+  parseJsonResponse,
+} from "./http-helpers";
 
 const sampleResult = {
   suggestions: [
@@ -64,46 +66,7 @@ const metrics: AddressMetrics = {
   snapshot: Effect.succeed(metricsSnapshot),
 };
 
-const testOrigin = "http://localhost";
-
-const parseJsonResponse = (
-  response: HttpServerResponse
-): Effect.Effect<{ web: Response; body: unknown }> =>
-  Effect.gen(function* () {
-    const web = toWeb(response);
-    const body = yield* Effect.promise(() => web.json());
-    return { web, body };
-  });
-
-const makeRequestUrl = (path: string) => new URL(path, testOrigin);
-
-const makeSuggestPostRequest = (body: unknown) =>
-  fromWeb(
-    new Request(makeRequestUrl("/suggest"), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    })
-  );
-
-const makeAcceptPostRequest = (body: unknown) =>
-  fromWeb(
-    new Request(makeRequestUrl("/accept"), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    })
-  );
-
-const runAcceptRequest = (
-  payload: unknown,
-  record: (payload: unknown) => Effect.Effect<void>
-) =>
-  Effect.gen(function* () {
-    const request = makeAcceptPostRequest(payload);
-    const response = yield* handleAcceptPost({ record })(request);
-    return yield* parseJsonResponse(response);
-  });
+const runAcceptRequest = makeRunAcceptRequest(handleAcceptPost);
 
 describe("http handlers", () => {
   it.effect("handles GET /suggest", () =>
