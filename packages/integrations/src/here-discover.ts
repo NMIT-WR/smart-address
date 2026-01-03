@@ -22,6 +22,13 @@ import {
   String as SchemaString,
   Struct,
 } from "effect/Schema";
+import {
+  compactString,
+  firstNonEmpty,
+  formatCoordinateParam,
+  joinParts,
+  metadataOrUndefined,
+} from "./format";
 
 export interface HereDiscoverConfig {
   readonly apiKey: string;
@@ -85,30 +92,20 @@ const addressFromHere = (address: HereAddress | undefined) => {
     return {};
   }
 
-  const line1 =
-    [address.houseNumber, address.street]
-      .map((value) => value?.trim())
-      .filter(Boolean)
-      .join(" ") || undefined;
-  const line2 = [address.district, address.subdistrict]
-    .map((value) => value?.trim())
-    .find(Boolean);
-  const city = [address.city, address.county]
-    .map((value) => value?.trim())
-    .find(Boolean);
-  const region = [address.state, address.stateCode]
-    .map((value) => value?.trim())
-    .find(Boolean);
-  const postalCode = address.postalCode?.trim() || undefined;
-  const countryCode = (address.countryCode?.trim() || undefined)?.toUpperCase();
+  const line1 = joinParts(address.houseNumber, address.street);
+  const line2 = firstNonEmpty(address.district, address.subdistrict);
+  const city = firstNonEmpty(address.city, address.county);
+  const region = firstNonEmpty(address.state, address.stateCode);
+  const postalCode = compactString(address.postalCode);
+  const countryCode = compactString(address.countryCode);
 
   return {
-    line1,
-    line2,
-    city,
-    region,
-    postalCode,
-    countryCode,
+    ...(line1 ? { line1 } : {}),
+    ...(line2 ? { line2 } : {}),
+    ...(city ? { city } : {}),
+    ...(region ? { region } : {}),
+    ...(postalCode ? { postalCode } : {}),
+    ...(countryCode ? { countryCode: countryCode.toUpperCase() } : {}),
   };
 };
 
@@ -139,17 +136,7 @@ const metadataFromHere = (
     metadata.categoryName = category.name;
   }
 
-  return Object.keys(metadata).length > 0 ? metadata : undefined;
-};
-
-const formatAt = (value: HereDiscoverConfig["at"]): string | undefined => {
-  if (!value) {
-    return undefined;
-  }
-  if (typeof value === "string") {
-    return value.trim() || undefined;
-  }
-  return `${value.lat},${value.lng}`;
+  return metadataOrUndefined(metadata);
 };
 
 const toAddressSuggestion = (item: HereItem): AddressSuggestion => ({
@@ -183,7 +170,7 @@ const buildRequest = (
       ? `countryCode:${normalized.countryCode}`
       : undefined;
   const inArea = inAreaFromQuery ?? config.inArea;
-  const at = formatAt(config.at);
+  const at = formatCoordinateParam(config.at);
 
   const params: Record<string, string> = {
     q: normalized.text,

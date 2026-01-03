@@ -23,6 +23,12 @@ import {
   Struct,
   Union,
 } from "effect/Schema";
+import {
+  compactString,
+  firstNonEmpty,
+  joinParts,
+  metadataOrUndefined,
+} from "./format";
 
 export interface NominatimConfig {
   readonly baseUrl?: string;
@@ -68,35 +74,6 @@ const NominatimResponseSchema = SchemaArray(NominatimResultSchema);
 
 type NominatimResult = Schema.Type<typeof NominatimResultSchema>;
 type NominatimAddress = Schema.Type<typeof NominatimAddressSchema>;
-
-const compactString = (value: string | undefined): string | undefined => {
-  if (!value) {
-    return undefined;
-  }
-  const trimmed = value.trim();
-  return trimmed.length === 0 ? undefined : trimmed;
-};
-
-const firstNonEmpty = (
-  ...values: Array<string | undefined>
-): string | undefined => {
-  for (const value of values) {
-    const compacted = compactString(value);
-    if (compacted) {
-      return compacted;
-    }
-  }
-  return undefined;
-};
-
-const joinParts = (first?: string, second?: string): string | undefined => {
-  const left = compactString(first);
-  const right = compactString(second);
-  if (left && right) {
-    return `${left} ${right}`;
-  }
-  return left ?? right;
-};
 
 const addressFromNominatim = (address: NominatimAddress | undefined) => {
   if (!address) {
@@ -151,7 +128,7 @@ const metadataFromNominatim = (
     metadata.type = result.type;
   }
 
-  return Object.keys(metadata).length > 0 ? metadata : undefined;
+  return metadataOrUndefined(metadata);
 };
 
 const toAddressSuggestion = (result: NominatimResult): AddressSuggestion => ({

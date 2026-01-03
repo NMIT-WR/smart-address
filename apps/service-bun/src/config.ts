@@ -6,7 +6,7 @@ import { type Duration, millis, seconds } from "effect/Duration";
 import type { AddressCacheConfig } from "./cache";
 import type { AddressSqliteConfig } from "./sqlite";
 
-export interface AddressServiceConfig {
+interface AddressServiceConfig {
   readonly port: number;
   readonly providerTimeout: Duration;
   readonly nominatimRateLimit: Duration | null;

@@ -1,8 +1,4 @@
-import {
-  type AddressQuery,
-  type AddressSuggestion,
-  normalizeAddressQuery,
-} from "@smart-address/core";
+import type { AddressQuery, AddressSuggestion } from "@smart-address/core";
 import { AddressSuggestionSchema } from "@smart-address/core/schema";
 import {
   type AddressStrategy,
@@ -20,6 +16,7 @@ import {
   Struct,
   Union,
 } from "effect/Schema";
+import { parseQueryPayload } from "./request-utils";
 
 const AcceptAddressOptionalSchema = partial(
   Struct({
@@ -36,13 +33,11 @@ const AcceptAddressOptionalSchema = partial(
   })
 );
 
-export const AcceptAddressPayloadSchema = Struct({
+const AcceptAddressPayloadSchema = Struct({
   suggestion: AddressSuggestionSchema,
 }).pipe(extend(AcceptAddressOptionalSchema));
 
-export type AcceptAddressPayload = Schema.Type<
-  typeof AcceptAddressPayloadSchema
->;
+type AcceptAddressPayload = Schema.Type<typeof AcceptAddressPayloadSchema>;
 
 export interface AcceptRequest {
   readonly query: AddressQuery;
@@ -52,16 +47,16 @@ export interface AcceptRequest {
   readonly resultCount?: number;
 }
 
-export class AcceptRequestError extends Data.TaggedError("AcceptRequestError")<{
+class AcceptRequestError extends Data.TaggedError("AcceptRequestError")<{
   readonly message: string;
 }> {}
 
 const normalizeCount = (value: number | undefined): number | undefined => {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
+  if (!Number.isFinite(value)) {
     return undefined;
   }
-  const normalized = Math.floor(value);
-  return normalized >= 0 ? normalized : undefined;
+  const normalized = Math.trunc(value);
+  return normalized < 0 ? undefined : normalized;
 };
 
 export const decodeAcceptPayload = (payload: unknown) =>
@@ -70,27 +65,14 @@ export const decodeAcceptPayload = (payload: unknown) =>
 export const toAcceptRequest = (
   payload: AcceptAddressPayload
 ): Effect.Effect<AcceptRequest, AcceptRequestError> => {
-  const text = payload.text ?? payload.q;
-  if (!text || text.trim().length === 0) {
-    return Effect.fail(
-      new AcceptRequestError({
-        message: "Missing required 'text' or 'q' field.",
-      })
-    );
+  const parsed = parseQueryPayload(payload);
+  if ("error" in parsed) {
+    return Effect.fail(new AcceptRequestError({ message: parsed.error }));
   }
 
-  const query = normalizeAddressQuery({
-    text,
-    limit: payload.limit,
-    countryCode: payload.countryCode,
-    locale: payload.locale,
-    sessionToken: payload.sessionToken,
-  });
-  const strategy = payload.strategy ?? payload.mode ?? "reliable";
-
   return Effect.succeed({
-    query,
-    strategy,
+    query: parsed.query,
+    strategy: parsed.strategy,
     suggestion: payload.suggestion,
     resultIndex: normalizeCount(payload.resultIndex),
     resultCount: normalizeCount(payload.resultCount),

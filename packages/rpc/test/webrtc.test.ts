@@ -1,3 +1,4 @@
+import type * as Socket from "@effect/platform/Socket";
 import {
   layerProtocolSocket,
   make as makeRpcClient,
@@ -18,10 +19,7 @@ import {
   makeDataChannelSocketServer,
 } from "../src/webrtc";
 
-class TestDataChannel implements DataChannelLike {
-  readonly readyState = "open";
-  binaryType?: string = "arraybuffer";
-  readonly sent: Array<string | ArrayBuffer | ArrayBufferView> = [];
+class DataChannelBase {
   readonly listeners = new Map<
     DataChannelEventType,
     Set<DataChannelListener<DataChannelEventType>>
@@ -50,6 +48,22 @@ class TestDataChannel implements DataChannelLike {
       }
     }
   }
+
+  emit<K extends DataChannelEventType>(type: K, event: DataChannelEventMap[K]) {
+    const existing = this.listeners.get(type);
+    if (!existing) {
+      return;
+    }
+    for (const listener of existing) {
+      listener(event);
+    }
+  }
+}
+
+class TestDataChannel extends DataChannelBase implements DataChannelLike {
+  readonly readyState = "open";
+  binaryType?: string = "arraybuffer";
+  readonly sent: Array<string | ArrayBuffer | ArrayBufferView> = [];
 
   send(data: string | ArrayBuffer | ArrayBufferView) {
     this.sent.push(data);
@@ -62,50 +76,12 @@ class TestDataChannel implements DataChannelLike {
   emitMessage(data: string | ArrayBuffer | ArrayBufferView) {
     this.emit("message", { data });
   }
-
-  emit<K extends DataChannelEventType>(type: K, event: DataChannelEventMap[K]) {
-    const existing = this.listeners.get(type);
-    if (!existing) {
-      return;
-    }
-    for (const listener of existing) {
-      listener(event);
-    }
-  }
 }
 
-class PairedDataChannel implements DataChannelLike {
+class PairedDataChannel extends DataChannelBase implements DataChannelLike {
   readonly readyState = "open";
   binaryType?: string = "arraybuffer";
   peer?: PairedDataChannel;
-  readonly listeners = new Map<
-    DataChannelEventType,
-    Set<DataChannelListener<DataChannelEventType>>
-  >();
-
-  addEventListener<K extends DataChannelEventType>(
-    type: K,
-    listener: DataChannelListener<K>
-  ) {
-    const existing =
-      this.listeners.get(type) ??
-      new Set<DataChannelListener<DataChannelEventType>>();
-    existing.add(listener as DataChannelListener<DataChannelEventType>);
-    this.listeners.set(type, existing);
-  }
-
-  removeEventListener<K extends DataChannelEventType>(
-    type: K,
-    listener: DataChannelListener<K>
-  ) {
-    const existing = this.listeners.get(type);
-    if (existing) {
-      existing.delete(listener as DataChannelListener<DataChannelEventType>);
-      if (existing.size === 0) {
-        this.listeners.delete(type);
-      }
-    }
-  }
 
   send(data: string | ArrayBuffer | ArrayBufferView) {
     this.peer?.emit("message", { data });
@@ -114,16 +90,6 @@ class PairedDataChannel implements DataChannelLike {
   close() {
     this.emit("close", {});
     this.peer?.emit("close", {});
-  }
-
-  emit<K extends DataChannelEventType>(type: K, event: DataChannelEventMap[K]) {
-    const existing = this.listeners.get(type);
-    if (!existing) {
-      return;
-    }
-    for (const listener of existing) {
-      listener(event);
-    }
   }
 }
 
@@ -135,6 +101,19 @@ const makePairedChannels = () => {
   return { client, server };
 };
 
+const openSocketWriter = (socket: Socket.Socket) =>
+  Effect.gen(function* () {
+    const opened = yield* Deferred.make<void>();
+    const fiber = yield* Effect.fork(
+      socket.runRaw(() => undefined, {
+        onOpen: Deferred.succeed(opened, undefined),
+      })
+    );
+    const write = yield* socket.writer;
+    yield* Deferred.await(opened);
+    return { write, fiber };
+  });
+
 describe("webrtc socket adapter", () => {
   it.effect("writes data to the data channel", () =>
     Effect.gen(function* () {
@@ -143,15 +122,7 @@ describe("webrtc socket adapter", () => {
         makeDataChannelSocket(channel).pipe(
           Effect.flatMap((socket) =>
             Effect.gen(function* () {
-              const opened = yield* Deferred.make<void>();
-              const write = yield* socket.writer;
-              const fiber = yield* Effect.fork(
-                socket.runRaw(() => undefined, {
-                  onOpen: Deferred.succeed(opened, undefined),
-                })
-              );
-
-              yield* Deferred.await(opened);
+              const { write, fiber } = yield* openSocketWriter(socket);
               yield* write(new Uint8Array([1, 2, 3]));
               channel.close();
               yield* Fiber.join(fiber);
@@ -205,18 +176,11 @@ describe("webrtc socket adapter", () => {
           const fiber = yield* Effect.fork(
             server.run((socket) =>
               Effect.gen(function* () {
-                const opened = yield* Deferred.make<void>();
-                const runner = yield* Effect.fork(
-                  socket.runRaw(() => undefined, {
-                    onOpen: Deferred.succeed(opened, undefined),
-                  })
-                );
-                const write = yield* socket.writer;
-                yield* Deferred.await(opened);
+                const { write, fiber } = yield* openSocketWriter(socket);
                 yield* write(new Uint8Array([7, 8, 9]));
                 yield* Deferred.succeed(written, undefined);
                 channel.close();
-                yield* Fiber.join(runner);
+                yield* Fiber.join(fiber);
               })
             )
           );

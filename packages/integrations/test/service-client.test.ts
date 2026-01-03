@@ -1,15 +1,13 @@
-import { HttpClient, make } from "@effect/platform/HttpClient";
-import type { HttpClientRequest } from "@effect/platform/HttpClientRequest";
-import { fromWeb } from "@effect/platform/HttpClientResponse";
+import { HttpClient } from "@effect/platform/HttpClient";
 import { describe, expect, it } from "@effect-native/bun-test";
-import { Effect, Ref } from "effect";
+import { Effect } from "effect";
 import { makeAddressServiceClient } from "../src/service-client";
+import { makeJsonTestClient } from "./http-client";
 
 describe("address service client", () => {
   it.effect("posts to the suggest endpoint and decodes the response", () =>
     Effect.gen(function* () {
       const program = Effect.gen(function* () {
-        const requestRef = yield* Ref.make<HttpClientRequest | null>(null);
         const responsePayload = {
           suggestions: [
             {
@@ -21,20 +19,8 @@ describe("address service client", () => {
           ],
           errors: [],
         };
-
-        const client = make((request) =>
-          Effect.gen(function* () {
-            yield* Ref.set(requestRef, request);
-            const response = fromWeb(
-              request,
-              new Response(JSON.stringify(responsePayload), {
-                status: 200,
-                headers: { "content-type": "application/json" },
-              })
-            );
-            return response;
-          })
-        );
+        const { client, getRequest } =
+          yield* makeJsonTestClient(responsePayload);
 
         const serviceClient = makeAddressServiceClient({
           baseUrl: "https://example.test",
@@ -43,7 +29,7 @@ describe("address service client", () => {
           .suggest({ text: "Main St", strategy: "fast" })
           .pipe(Effect.provideService(HttpClient, client));
 
-        return { result, request: yield* Ref.get(requestRef) };
+        return { result, request: yield* getRequest() };
       });
 
       const { result, request } = yield* program;
@@ -58,20 +44,7 @@ describe("address service client", () => {
   it.effect("posts to the accept endpoint", () =>
     Effect.gen(function* () {
       const program = Effect.gen(function* () {
-        const requestRef = yield* Ref.make<HttpClientRequest | null>(null);
-        const client = make((request) =>
-          Effect.gen(function* () {
-            yield* Ref.set(requestRef, request);
-            const response = fromWeb(
-              request,
-              new Response(JSON.stringify({ ok: true }), {
-                status: 200,
-                headers: { "content-type": "application/json" },
-              })
-            );
-            return response;
-          })
-        );
+        const { client, getRequest } = yield* makeJsonTestClient({ ok: true });
 
         const serviceClient = makeAddressServiceClient({
           baseUrl: "https://example.test",
@@ -91,7 +64,7 @@ describe("address service client", () => {
           })
           .pipe(Effect.provideService(HttpClient, client));
 
-        return { request: yield* Ref.get(requestRef) };
+        return { request: yield* getRequest() };
       });
 
       const { request } = yield* program;

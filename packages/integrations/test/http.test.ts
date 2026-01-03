@@ -1,19 +1,15 @@
-import { HttpClient, make } from "@effect/platform/HttpClient";
-import {
-  get,
-  type HttpClientRequest,
-} from "@effect/platform/HttpClientRequest";
-import { fromWeb } from "@effect/platform/HttpClientResponse";
+import { HttpClient } from "@effect/platform/HttpClient";
+import { get } from "@effect/platform/HttpClientRequest";
 import { toRecord } from "@effect/platform/UrlParams";
 import { describe, expect, it } from "@effect-native/bun-test";
-import { Effect, Ref } from "effect";
+import { Effect } from "effect";
 import { makeHttpAddressProvider } from "../src/http";
+import { makeJsonTestClient } from "./http-client";
 
 describe("http address provider", () => {
   it.effect("builds request and parses response", () =>
     Effect.gen(function* () {
       const program = Effect.gen(function* () {
-        const requestRef = yield* Ref.make<HttpClientRequest | null>(null);
         const responsePayload = [
           {
             id: "demo:1",
@@ -22,21 +18,8 @@ describe("http address provider", () => {
             source: { provider: "demo" },
           },
         ];
-
-        const client = make((request) =>
-          Effect.gen(function* () {
-            yield* Ref.set(requestRef, request);
-            const response = fromWeb(
-              request,
-              new Response(JSON.stringify(responsePayload), {
-                status: 200,
-                headers: { "content-type": "application/json" },
-              })
-            );
-            return response;
-          })
-        );
-
+        const { client, getRequest } =
+          yield* makeJsonTestClient(responsePayload);
         const provider = makeHttpAddressProvider({
           name: "demo",
           buildRequest: (query) =>
@@ -63,7 +46,7 @@ describe("http address provider", () => {
         const suggestions = yield* provider
           .suggest({ text: "Main St" })
           .pipe(Effect.provideService(HttpClient, client));
-        const request = yield* Ref.get(requestRef);
+        const request = yield* getRequest();
 
         return { suggestions, request };
       });

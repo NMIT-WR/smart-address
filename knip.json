@@ -1,0 +1,32 @@
+{
+  "$schema": "https://unpkg.com/knip@5.79.0/schema.json",
+  "ignoreDependencies": ["@biomejs/biome"],
+  "workspaces": {
+    "apps/docs": {
+      "entry": ["rspress.config.ts"],
+      "ignoreDependencies": ["@smart-address/sdk"]
+    },
+    "apps/landing": {
+      "entry": ["src/router.tsx"]
+    },
+    "packages/core": {
+      "entry": ["src/address.ts", "src/schema.ts"]
+    },
+    "packages/integrations": {
+      "entry": [
+        "src/http.ts",
+        "src/rate-limit.ts",
+        "src/nominatim.ts",
+        "src/here-discover.ts",
+        "src/radar-autocomplete.ts",
+        "src/service-client.ts"
+      ]
+    },
+    "packages/rpc": {
+      "entry": ["src/suggest.ts", "src/client.ts", "src/webrtc.ts"]
+    },
+    "packages/sdk": {
+      "entry": ["src/client.ts"]
+    }
+  }
+}

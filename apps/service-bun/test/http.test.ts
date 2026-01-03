@@ -1,5 +1,4 @@
 import { fromWeb } from "@effect/platform/HttpServerRequest";
-import { toWeb } from "@effect/platform/HttpServerResponse";
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect, Ref } from "effect";
 import {
@@ -9,6 +8,12 @@ import {
   handleSuggestPost,
 } from "../src/http";
 import type { AddressMetrics } from "../src/metrics";
+import {
+  makeRequestUrl,
+  makeRunAcceptRequest,
+  makeSuggestPostRequest,
+  parseJsonResponse,
+} from "./http-helpers";
 
 const sampleResult = {
   suggestions: [
@@ -61,16 +66,18 @@ const metrics: AddressMetrics = {
   snapshot: Effect.succeed(metricsSnapshot),
 };
 
+const runAcceptRequest = makeRunAcceptRequest(handleAcceptPost);
+
 describe("http handlers", () => {
   it.effect("handles GET /suggest", () =>
     Effect.gen(function* () {
       const request = fromWeb(
-        new Request("http://localhost/suggest?text=Main&strategy=fast")
+        new Request(makeRequestUrl("/suggest?text=Main&strategy=fast"))
       );
 
-      const response = yield* handleSuggestGet(suggestor)(request);
-      const web = toWeb(response);
-      const body = yield* Effect.promise(() => web.json());
+      const { web, body } = yield* parseJsonResponse(
+        yield* handleSuggestGet(suggestor)(request)
+      );
 
       expect(web.status).toBe(200);
       expect(body.suggestions[0]?.id).toBe("sample:1");
@@ -79,17 +86,10 @@ describe("http handlers", () => {
 
   it.effect("handles POST /suggest", () =>
     Effect.gen(function* () {
-      const request = fromWeb(
-        new Request("http://localhost/suggest", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text: "Main" }),
-        })
+      const request = makeSuggestPostRequest({ text: "Main" });
+      const { web, body } = yield* parseJsonResponse(
+        yield* handleSuggestPost(suggestor)(request)
       );
-
-      const response = yield* handleSuggestPost(suggestor)(request);
-      const web = toWeb(response);
-      const body = yield* Effect.promise(() => web.json());
 
       expect(web.status).toBe(200);
       expect(body.suggestions[0]?.id).toBe("sample:1");
@@ -98,17 +98,10 @@ describe("http handlers", () => {
 
   it.effect("returns an error for missing text", () =>
     Effect.gen(function* () {
-      const request = fromWeb(
-        new Request("http://localhost/suggest", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({}),
-        })
+      const request = makeSuggestPostRequest({});
+      const { web, body } = yield* parseJsonResponse(
+        yield* handleSuggestPost(suggestor)(request)
       );
-
-      const response = yield* handleSuggestPost(suggestor)(request);
-      const web = toWeb(response);
-      const body = yield* Effect.promise(() => web.json());
 
       expect(web.status).toBe(400);
       expect(body.error).toBeTypeOf("string");
@@ -117,19 +110,10 @@ describe("http handlers", () => {
 
   it.effect("handles POST /accept", () =>
     Effect.gen(function* () {
-      const request = fromWeb(
-        new Request("http://localhost/accept", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(acceptPayload),
-        })
+      const { web, body } = yield* runAcceptRequest(
+        acceptPayload,
+        () => Effect.void
       );
-
-      const response = yield* handleAcceptPost({
-        record: () => Effect.void,
-      })(request);
-      const web = toWeb(response);
-      const body = yield* Effect.promise(() => web.json());
 
       expect(web.status).toBe(200);
       expect(body.ok).toBe(true);
@@ -139,19 +123,9 @@ describe("http handlers", () => {
   it.effect("invokes accept log for POST /accept", () =>
     Effect.gen(function* () {
       const recorded = yield* Ref.make<unknown>(null);
-      const request = fromWeb(
-        new Request("http://localhost/accept", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(acceptPayload),
-        })
+      const { web } = yield* runAcceptRequest(acceptPayload, (payload) =>
+        Ref.set(recorded, payload)
       );
-
-      const response = yield* handleAcceptPost({
-        record: (payload) => Ref.set(recorded, payload),
-      })(request);
-      const web = toWeb(response);
-      yield* Effect.promise(() => web.json());
       const logged = yield* Ref.get(recorded);
 
       expect(web.status).toBe(200);
@@ -164,19 +138,10 @@ describe("http handlers", () => {
 
   it.effect("returns an error for invalid accept payload", () =>
     Effect.gen(function* () {
-      const request = fromWeb(
-        new Request("http://localhost/accept", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ suggestion: acceptPayload.suggestion }),
-        })
+      const { web, body } = yield* runAcceptRequest(
+        { suggestion: acceptPayload.suggestion },
+        () => Effect.void
       );
-
-      const response = yield* handleAcceptPost({
-        record: () => Effect.void,
-      })(request);
-      const web = toWeb(response);
-      const body = yield* Effect.promise(() => web.json());
 
       expect(web.status).toBe(400);
       expect(body.error).toBeTypeOf("string");
@@ -185,10 +150,10 @@ describe("http handlers", () => {
 
   it.effect("handles GET /metrics", () =>
     Effect.gen(function* () {
-      const request = fromWeb(new Request("http://localhost/metrics"));
-      const response = yield* handleMetricsGet(metrics)(request);
-      const web = toWeb(response);
-      const body = yield* Effect.promise(() => web.json());
+      const request = fromWeb(new Request(makeRequestUrl("/metrics")));
+      const { web, body } = yield* parseJsonResponse(
+        yield* handleMetricsGet(metrics)(request)
+      );
 
       expect(web.status).toBe(200);
       expect(body.cache.requests).toBe(2);

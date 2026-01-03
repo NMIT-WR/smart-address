@@ -11,6 +11,24 @@ import {
   withRateLimiter,
 } from "../src/rate-limit";
 
+const expectSpacing = (times: readonly number[]) => {
+  expect(times).toHaveLength(2);
+  expect(times[1] - times[0]).toBeGreaterThanOrEqual(1000);
+};
+
+const runSpaced = <A, E, R>(
+  first: Effect.Effect<A, E, R>,
+  second: Effect.Effect<A, E, R>
+) =>
+  Effect.gen(function* () {
+    const firstFiber = yield* Effect.fork(first);
+    const secondFiber = yield* Effect.fork(second);
+
+    yield* adjust(seconds(1));
+    yield* Fiber.join(firstFiber);
+    yield* Fiber.join(secondFiber);
+  });
+
 describe("rate limiter", () => {
   it.effect("schedules effects with spacing", () =>
     Effect.gen(function* () {
@@ -23,12 +41,7 @@ describe("rate limiter", () => {
           yield* Ref.update(times, (current) => [...current, now]);
         });
 
-        const first = yield* Effect.fork(limiter.schedule(record));
-        const second = yield* Effect.fork(limiter.schedule(record));
-
-        yield* adjust(seconds(1));
-        yield* Fiber.join(first);
-        yield* Fiber.join(second);
+        yield* runSpaced(limiter.schedule(record), limiter.schedule(record));
 
         return yield* Ref.get(times);
       }).pipe(
@@ -38,8 +51,7 @@ describe("rate limiter", () => {
 
       const times = yield* program;
 
-      expect(times).toHaveLength(2);
-      expect(times[1] - times[0]).toBeGreaterThanOrEqual(1000);
+      expectSpacing(times);
     })
   );
 
@@ -61,20 +73,14 @@ describe("rate limiter", () => {
         const limited = withRateLimiter(provider, limiter);
         const request = { text: "Main" };
 
-        const first = yield* Effect.fork(limited.suggest(request));
-        const second = yield* Effect.fork(limited.suggest(request));
-
-        yield* adjust(seconds(1));
-        yield* Fiber.join(first);
-        yield* Fiber.join(second);
+        yield* runSpaced(limited.suggest(request), limited.suggest(request));
 
         return yield* Ref.get(times);
       }).pipe(Effect.provide(TestContext));
 
       const times = yield* program;
 
-      expect(times).toHaveLength(2);
-      expect(times[1] - times[0]).toBeGreaterThanOrEqual(1000);
+      expectSpacing(times);
     })
   );
 });

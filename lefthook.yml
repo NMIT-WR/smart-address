@@ -5,5 +5,7 @@ pre-commit:
 
 pre-push:
   commands:
+    quality:
+      run: pnpm check:quality
     tests:
       run: pnpm test

@@ -5,9 +5,8 @@ import {
   setHeader,
 } from "@effect/platform/HttpClientRequest";
 import { toRecord } from "@effect/platform/UrlParams";
+import type { AddressQuery, AddressSuggestion } from "@smart-address/core";
 import {
-  type AddressQuery,
-  type AddressSuggestion,
   makeAddressProvider,
   normalizeAddressQuery,
 } from "@smart-address/core";
@@ -22,6 +21,13 @@ import {
   String as SchemaString,
   Struct,
 } from "effect/Schema";
+import {
+  compactString,
+  firstNonEmpty,
+  formatCoordinateParam,
+  joinParts,
+  metadataOrUndefined,
+} from "./format";
 
 export interface RadarAutocompleteConfig {
   readonly apiKey: string;
@@ -65,35 +71,6 @@ const RadarAutocompleteResponseSchema = Struct({
 });
 
 type RadarAddress = Schema.Type<typeof RadarAddressSchema>;
-
-const compactString = (value: string | undefined): string | undefined => {
-  if (!value) {
-    return undefined;
-  }
-  const trimmed = value.trim();
-  return trimmed.length === 0 ? undefined : trimmed;
-};
-
-const firstNonEmpty = (
-  ...values: Array<string | undefined>
-): string | undefined => {
-  for (const value of values) {
-    const compacted = compactString(value);
-    if (compacted) {
-      return compacted;
-    }
-  }
-  return undefined;
-};
-
-const joinParts = (first?: string, second?: string): string | undefined => {
-  const left = compactString(first);
-  const right = compactString(second);
-  if (left && right) {
-    return `${left} ${right}`;
-  }
-  return left ?? right;
-};
 
 const labelFromRadar = (address: RadarAddress): string => {
   const label = firstNonEmpty(
@@ -185,7 +162,7 @@ const metadataFromRadar = (
     metadata.placeLabel = address.placeLabel;
   }
 
-  return Object.keys(metadata).length > 0 ? metadata : undefined;
+  return metadataOrUndefined(metadata);
 };
 
 const toAddressSuggestion = (address: RadarAddress): AddressSuggestion => ({
@@ -209,18 +186,6 @@ export const parseRadarAutocompleteResponse = (body: unknown) =>
     Effect.map((response) => response.addresses.map(toAddressSuggestion))
   );
 
-const formatNear = (
-  value: RadarAutocompleteConfig["near"]
-): string | undefined => {
-  if (!value) {
-    return undefined;
-  }
-  if (typeof value === "string") {
-    return value.trim() || undefined;
-  }
-  return `${value.lat},${value.lng}`;
-};
-
 const buildRequest = (
   config: RadarAutocompleteConfig,
   query: AddressQuery
@@ -228,7 +193,7 @@ const buildRequest = (
   const baseUrl = config.baseUrl ?? "https://api.radar.io";
   const normalized = normalizeAddressQuery(query);
   const limit = normalized.limit ?? config.defaultLimit ?? 5;
-  const near = formatNear(config.near);
+  const near = formatCoordinateParam(config.near);
   const countryCode = normalized.countryCode ?? config.countryCode;
 
   const params: Record<string, string> = {
