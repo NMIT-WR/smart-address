@@ -1,6 +1,8 @@
 type CoordinateParam = string | { lat: number; lng: number };
 
-export const compactString = (value: string | undefined): string | undefined => {
+export const compactString = (
+  value: string | undefined
+): string | undefined => {
   if (!value) {
     return undefined;
   }

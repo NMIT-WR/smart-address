@@ -1,9 +1,9 @@
 import { make } from "@effect/platform/HttpClient";
-import { fromWeb } from "@effect/platform/HttpClientResponse";
 import type { HttpClientRequest } from "@effect/platform/HttpClientRequest";
+import { fromWeb } from "@effect/platform/HttpClientResponse";
 import { Effect, Ref } from "effect";
 
-type JsonResponse = Record<string, unknown> | Array<unknown>;
+type JsonResponse = Record<string, unknown> | unknown[];
 
 export const makeJsonTestClient = <T extends JsonResponse>(payload: T) =>
   Effect.gen(function* () {

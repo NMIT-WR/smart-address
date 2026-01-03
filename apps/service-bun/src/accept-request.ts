@@ -1,4 +1,4 @@
-import { type AddressQuery, type AddressSuggestion } from "@smart-address/core";
+import type { AddressQuery, AddressSuggestion } from "@smart-address/core";
 import { AddressSuggestionSchema } from "@smart-address/core/schema";
 import {
   type AddressStrategy,

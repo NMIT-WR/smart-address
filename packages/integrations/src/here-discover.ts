@@ -1,4 +1,4 @@
-import * as HttpClient from "@effect/platform/HttpClient";
+import { execute } from "@effect/platform/HttpClient";
 import {
   get,
   type HttpClientRequest,
@@ -222,7 +222,7 @@ export const makeHereDiscoverProvider = (config: HereDiscoverConfig) =>
         query,
       });
 
-      const response = yield* HttpClient.execute(request);
+      const response = yield* execute(request);
       const elapsedMs = (yield* currentTimeMillis) - start;
 
       yield* Effect.logInfo("here-discover response", {

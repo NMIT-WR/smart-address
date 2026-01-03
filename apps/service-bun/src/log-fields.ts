@@ -1,10 +1,13 @@
-import { addressQueryKey, normalizeAddressQuery } from "@smart-address/core";
-import type { AddressQuery } from "@smart-address/core";
+import {
+  type AddressQuery,
+  addressQueryKey,
+  normalizeAddressQuery,
+} from "@smart-address/core";
 
-type QueryLogRequest = {
+interface QueryLogRequest {
   readonly query: AddressQuery;
   readonly strategy: string;
-};
+}
 
 export const buildQueryLogFields = (request: QueryLogRequest) => {
   const normalized = normalizeAddressQuery(request.query);

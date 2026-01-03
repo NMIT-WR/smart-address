@@ -171,13 +171,6 @@ const toSnapshot = (state: MetricsState): AddressMetricsSnapshot => {
   };
 };
 
-const emptySnapshot: AddressMetricsSnapshot = toSnapshot({
-  cache: emptyCache,
-  providers: {},
-  startedAt: 0,
-  updatedAt: 0,
-});
-
 export const AddressMetricsLayer = Layer.effect(
   AddressMetrics,
   Effect.gen(function* () {

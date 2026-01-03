@@ -19,9 +19,8 @@ describe("address service client", () => {
           ],
           errors: [],
         };
-        const { client, getRequest } = yield* makeJsonTestClient(
-          responsePayload
-        );
+        const { client, getRequest } =
+          yield* makeJsonTestClient(responsePayload);
 
         const serviceClient = makeAddressServiceClient({
           baseUrl: "https://example.test",

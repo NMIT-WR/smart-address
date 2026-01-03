@@ -1,9 +1,12 @@
-import { layerProtocolSocket, make as makeRpcClient } from "@effect/rpc/RpcClient";
+import type * as Socket from "@effect/platform/Socket";
+import {
+  layerProtocolSocket,
+  make as makeRpcClient,
+} from "@effect/rpc/RpcClient";
 import { layerJson } from "@effect/rpc/RpcSerialization";
 import { layer, layerProtocolSocketServer } from "@effect/rpc/RpcServer";
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Deferred, Effect, Fiber, Layer, Ref } from "effect";
-import type * as Socket from "@effect/platform/Socket";
 import { SuggestAddressRpcGroup } from "../src/suggest";
 import {
   type DataChannelEventMap,

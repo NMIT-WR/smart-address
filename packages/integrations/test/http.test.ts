@@ -18,9 +18,8 @@ describe("http address provider", () => {
             source: { provider: "demo" },
           },
         ];
-        const { client, getRequest } = yield* makeJsonTestClient(
-          responsePayload
-        );
+        const { client, getRequest } =
+          yield* makeJsonTestClient(responsePayload);
         const provider = makeHttpAddressProvider({
           name: "demo",
           buildRequest: (query) =>

@@ -1,7 +1,7 @@
 import { type AddressQuery, normalizeAddressQuery } from "@smart-address/core";
 import type { AddressStrategy } from "@smart-address/rpc/suggest";
 
-type QueryPayload = {
+interface QueryPayload {
   readonly text?: string;
   readonly q?: string;
   readonly limit?: number;
@@ -10,12 +10,12 @@ type QueryPayload = {
   readonly sessionToken?: string;
   readonly strategy?: AddressStrategy;
   readonly mode?: AddressStrategy;
-};
+}
 
-type ParsedQueryPayload = {
+interface ParsedQueryPayload {
   readonly query: AddressQuery;
   readonly strategy: AddressStrategy;
-};
+}
 
 export const parseQueryPayload = (
   payload: QueryPayload

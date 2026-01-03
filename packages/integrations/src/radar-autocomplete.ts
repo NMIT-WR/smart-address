@@ -6,7 +6,10 @@ import {
 } from "@effect/platform/HttpClientRequest";
 import { toRecord } from "@effect/platform/UrlParams";
 import type { AddressQuery, AddressSuggestion } from "@smart-address/core";
-import { makeAddressProvider, normalizeAddressQuery } from "@smart-address/core";
+import {
+  makeAddressProvider,
+  normalizeAddressQuery,
+} from "@smart-address/core";
 import { Effect } from "effect";
 import { currentTimeMillis } from "effect/Clock";
 import {
