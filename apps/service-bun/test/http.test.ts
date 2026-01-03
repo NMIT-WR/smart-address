@@ -66,7 +66,9 @@ const metrics: AddressMetrics = {
 
 const testOrigin = "http://localhost";
 
-const parseJsonResponse = (response: HttpServerResponse) =>
+const parseJsonResponse = (
+  response: HttpServerResponse
+): Effect.Effect<{ web: Response; body: unknown }> =>
   Effect.gen(function* () {
     const web = toWeb(response);
     const body = yield* Effect.promise(() => web.json());
@@ -185,7 +187,7 @@ describe("http handlers", () => {
 
   it.effect("handles GET /metrics", () =>
     Effect.gen(function* () {
-      const request = fromWeb(new Request("http://localhost/metrics"));
+      const request = fromWeb(new Request(makeRequestUrl("/metrics")));
       const { web, body } = yield* parseJsonResponse(
         yield* handleMetricsGet(metrics)(request)
       );

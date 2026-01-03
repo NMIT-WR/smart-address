@@ -1,5 +1,5 @@
 {
-  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "$schema": "https://unpkg.com/knip@5.79.0/schema.json",
   "ignoreDependencies": ["@biomejs/biome"],
   "workspaces": {
     "apps/docs": {
