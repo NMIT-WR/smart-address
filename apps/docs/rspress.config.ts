@@ -4,6 +4,12 @@ import { pluginPlayground } from '@rspress/plugin-playground';
 import { pluginPreview } from '@rspress/plugin-preview';
 import { pluginShiki } from '@rspress/plugin-shiki';
 
+const rawDocsServiceBaseUrl = process.env.DOCS_SERVICE_BASE_URL?.trim();
+const docsServiceBaseUrl =
+  rawDocsServiceBaseUrl && rawDocsServiceBaseUrl.length > 0
+    ? rawDocsServiceBaseUrl
+    : 'http://localhost:8787';
+
 const enNav = [
   { text: 'Tutorials', link: '/tutorials/' },
   { text: 'How-to', link: '/how-to/' },
@@ -132,6 +138,20 @@ export default defineConfig({
       include: ['react', 'react-dom', '@smart-address/sdk'],
     }),
   ],
+  builderConfig: {
+    server: {
+      proxy: {
+        '/demo': {
+          target: docsServiceBaseUrl,
+          changeOrigin: true,
+        },
+        '/suggest': {
+          target: docsServiceBaseUrl,
+          changeOrigin: true,
+        },
+      },
+    },
+  },
   themeConfig: {
     nav: enNav,
     sidebar: enSidebar,
