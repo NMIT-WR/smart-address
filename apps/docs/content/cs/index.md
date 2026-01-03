@@ -13,7 +13,7 @@ Hlavní cíl je *stabilní tvar výsledku* (`suggestions` + `errors`), i když p
 ## Komponenty
 
 - `@smart-address/core`: doménové typy, plánování providerů, deduplikace, sběr chyb.
-- `@smart-address/integrations`: adaptéry providerů (např. Nominatim) + HTTP/rate‑limit helpery.
+- `@smart-address/integrations`: adaptéry providerů (např. Nominatim, Radar Autocomplete, HERE Discover) + HTTP/rate‑limit helpery.
 - `@smart-address/rpc`: RPC kontrakt + klientské utility.
 - `@smart-address/service-bun`: Bun služba s HTTP + MCP + RPC endpointy, cache a SQLite persistencí.
 
@@ -49,13 +49,13 @@ curl "http://localhost:8787/health"
 
 ## API rozhraní
 
-- HTTP: `/suggest`, `/health`
+- HTTP: `/suggest`, `/accept`, `/metrics`, `/health`
 - MCP: `/mcp` publikuje tool `suggest-address`
 - RPC: `/rpc` publikuje proceduru `suggest-address`
 
 ## Stav
 
-- Provideři: Nominatim, HERE Discover (další přijdou)
+- Provideři: Radar Autocomplete, HERE Discover, Nominatim
 - Strategie: `fast`, `reliable` (reliable-fast plánujeme)
 - Klienti: HTTP (`fetch`/`curl`), `@smart-address/integrations/service-client`, Effect RPC (`@smart-address/rpc/client`)
 

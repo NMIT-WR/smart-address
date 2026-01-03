@@ -13,7 +13,7 @@ The goal is a *stable result shape* (`suggestions` + `errors`) even when provide
 ## Components
 
 - `@smart-address/core`: domain types, provider planning, dedupe, error collection.
-- `@smart-address/integrations`: provider adapters (e.g. Nominatim) + HTTP/rate-limit helpers.
+- `@smart-address/integrations`: provider adapters (e.g. Nominatim, Radar Autocomplete, HERE Discover) + HTTP/rate-limit helpers.
 - `@smart-address/rpc`: RPC contract + client helpers.
 - `@smart-address/service-bun`: Bun service exposing HTTP + MCP + RPC endpoints, caching, and SQLite persistence.
 
@@ -49,13 +49,13 @@ curl "http://localhost:8787/health"
 
 ## API surfaces
 
-- HTTP: `/suggest`, `/health`
+- HTTP: `/suggest`, `/accept`, `/metrics`, `/health`
 - MCP: `/mcp` exposes tool `suggest-address`
 - RPC: `/rpc` exposes procedure `suggest-address`
 
 ## Status
 
-- Providers: Nominatim, HERE Discover (more coming)
+- Providers: Radar Autocomplete, HERE Discover, Nominatim
 - Strategies: `fast`, `reliable` (reliable-fast planned)
 - Clients: HTTP (`fetch`/`curl`), `@smart-address/integrations/service-client`, Effect RPC (`@smart-address/rpc/client`)
 

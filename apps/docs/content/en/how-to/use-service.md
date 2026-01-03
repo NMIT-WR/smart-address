@@ -2,7 +2,7 @@
 
 ## Goal
 
-Fetch suggestions from the Bun service over HTTP (GET or POST).
+Fetch suggestions and log accepted suggestions over HTTP.
 
 ## When to use
 
@@ -15,8 +15,12 @@ Fetch suggestions from the Bun service over HTTP (GET or POST).
 
 ## Inputs
 
-- Required: `text` or `q`
-- Optional: `limit`, `countryCode`, `locale`, `sessionToken`, `strategy` (or `mode`)
+- Suggest request:
+  - Required: `text` or `q`
+  - Optional: `limit`, `countryCode`, `locale`, `sessionToken`, `strategy` (or `mode`)
+- Accept request:
+  - Required: `text` or `q`, `suggestion`
+  - Optional: `limit`, `countryCode`, `locale`, `sessionToken`, `strategy` (or `mode`), `resultIndex`, `resultCount`
 
 ## Steps
 
@@ -42,7 +46,17 @@ curl -X POST "http://localhost:8787/suggest" \
   -d "q=221B%20Baker%20Street&limit=5&countryCode=GB&strategy=reliable"
 ```
 
+### 4) POST /accept (log a selection)
+
+```bash
+curl -X POST "http://localhost:8787/accept" \
+  -H "content-type: application/json" \
+  -d '{"text":"221B Baker Street","strategy":"reliable","resultIndex":0,"resultCount":5,"suggestion":{"id":"nominatim:123","label":"221B Baker Street, London, UK","address":{"line1":"221B Baker Street","city":"London"},"source":{"provider":"nominatim","kind":"public"}}}'
+```
+
 ## Output
+
+### Suggest response
 
 ```json
 {
@@ -58,7 +72,13 @@ curl -X POST "http://localhost:8787/suggest" \
 }
 ```
 
-The `provider` value depends on configured providers (for example, `nominatim` or `here-discover` when `HERE_API_KEY` is set).
+The `provider` value depends on configured providers (for example, `nominatim`, `radar-autocomplete` when `RADAR_API_KEY` is set, or `here-discover` when `HERE_API_KEY` is set).
+
+### Accept response
+
+```json
+{ "ok": true }
+```
 
 ## Strategy
 

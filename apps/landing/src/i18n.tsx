@@ -1,27 +1,27 @@
-import { createLocaleContext } from 'fbtee'
-import type { ReactNode } from 'react'
+import { createLocaleContext } from "fbtee";
+import type { ReactNode } from "react";
 
 export const availableLanguages = new Map([
-  ['en_US', 'English'],
-  ['cs_CZ', 'Čeština'],
-])
+  ["en_US", "English"],
+  ["cs_CZ", "Čeština"],
+]);
 
 const clientLocales =
-  typeof navigator === 'undefined'
+  typeof navigator === "undefined"
     ? []
-    : [navigator.language, ...navigator.languages]
+    : [navigator.language, ...navigator.languages];
 
 const LocaleContext = createLocaleContext({
   availableLanguages,
   clientLocales,
   loadLocale: async (locale: string) => {
-    if (locale === 'cs_CZ') {
-      return (await import('./translations/cs_CZ.json')).default.cs_CZ
+    if (locale === "cs_CZ") {
+      return (await import("./translations/cs_CZ.json")).default.cs_CZ;
     }
-    return {}
+    return {};
   },
-})
+});
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  return <LocaleContext>{children}</LocaleContext>
+  return <LocaleContext>{children}</LocaleContext>;
 }

@@ -4,7 +4,7 @@
 
 Implementovat nový `AddressProvider` a napojit ho do core suggestion služby (a případně i do Bun služby).
 
-## Požadavky
+## Předpoklady
 
 - Umíte namapovat výstup providera na `AddressSuggestion`.
 - Počítáte s tím, že chyby providerů se sbírají jako data.

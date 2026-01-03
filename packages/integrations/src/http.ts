@@ -1,29 +1,29 @@
-import { Effect } from "effect"
-import * as HttpClient from "@effect/platform/HttpClient"
-import * as HttpClientRequest from "@effect/platform/HttpClientRequest"
-import type * as HttpClientResponse from "@effect/platform/HttpClientResponse"
+import { execute, type HttpClient } from "@effect/platform/HttpClient";
+import type { HttpClientRequest as HttpClientRequestType } from "@effect/platform/HttpClientRequest";
+import type { HttpClientResponse } from "@effect/platform/HttpClientResponse";
 import type {
   AddressProvider,
   AddressQuery,
-  AddressSuggestion
-} from "@smart-address/core"
-import { makeAddressProvider } from "@smart-address/core"
+  AddressSuggestion,
+} from "@smart-address/core";
+import { makeAddressProvider } from "@smart-address/core";
+import { Effect } from "effect";
 
-export type HttpAddressProviderConfig = {
-  readonly name: string
-  readonly buildRequest: (query: AddressQuery) => HttpClientRequest.HttpClientRequest
+export interface HttpAddressProviderConfig {
+  readonly name: string;
+  readonly buildRequest: (query: AddressQuery) => HttpClientRequestType;
   readonly parseResponse: (
-    response: HttpClientResponse.HttpClientResponse
-  ) => Effect.Effect<ReadonlyArray<AddressSuggestion>, unknown, never>
+    response: HttpClientResponse
+  ) => Effect.Effect<readonly AddressSuggestion[], unknown, never>;
 }
 
 export const makeHttpAddressProvider = (
   config: HttpAddressProviderConfig
-): AddressProvider<HttpClient.HttpClient> =>
-  makeAddressProvider<HttpClient.HttpClient>(config.name, (query) =>
-    HttpClient.execute(config.buildRequest(query)).pipe(
+): AddressProvider<HttpClient> =>
+  makeAddressProvider<HttpClient>(config.name, (query) =>
+    execute(config.buildRequest(query)).pipe(
       Effect.flatMap((response) => config.parseResponse(response))
     )
-  )
+  );
 
-export { HttpClientRequest }
+export type HttpClientRequest = HttpClientRequestType;

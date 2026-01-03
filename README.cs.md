@@ -7,7 +7,7 @@ Spolehlivé našeptávání adres pro checkout a onboarding. Postaveno na Effect
 ## Co je v repozitáři
 
 - `packages/core` (`@smart-address/core`): doménové typy, plánování providerů, deduplikace a sběr chyb.
-- `packages/integrations` (`@smart-address/integrations`): integrace providerů (např. Nominatim, HERE Discover) + HTTP/RL pomocníci.
+- `packages/integrations` (`@smart-address/integrations`): integrace providerů (např. Nominatim, Radar Autocomplete, HERE Discover) + HTTP/RL pomocníci.
 - `packages/rpc` (`@smart-address/rpc`): Effect RPC kontrakt + klientské utility.
 - `packages/sdk` (`@smart-address/sdk`): malý klient do prohlížeče (ESM modul).
 - `apps/service-bun` (`@smart-address/service-bun`): Bun služba s HTTP + MCP + RPC endpointy, cache a SQLite persistencí.
@@ -17,13 +17,14 @@ Spolehlivé našeptávání adres pro checkout a onboarding. Postaveno na Effect
 
 Požadavky: `pnpm` + `bun`.
 
-Volitelně: nastavte `HERE_API_KEY` pro zapnutí HERE Discover.
+Volitelně: nastavte `RADAR_API_KEY` pro zapnutí Radar Autocomplete nebo `HERE_API_KEY` pro zapnutí HERE Discover.
 
 ```bash
 pnpm install
 
 NOMINATIM_USER_AGENT="smart-address-dev" \
 NOMINATIM_EMAIL="you@example.com" \
+RADAR_API_KEY="your-radar-api-key" \
 HERE_API_KEY="your-here-api-key" \
 pnpm --filter @smart-address/service-bun dev
 ```
@@ -34,10 +35,24 @@ Dotaz na našeptávání:
 curl "http://localhost:8787/suggest?q=Praha&limit=5&countryCode=CZ"
 ```
 
+Logování přijatého návrhu:
+
+```bash
+curl -X POST "http://localhost:8787/accept" \
+  -H "content-type: application/json" \
+  -d '{"text":"Praha","strategy":"reliable","resultIndex":0,"resultCount":5,"suggestion":{"id":"nominatim:123","label":"Praha, CZ","address":{"city":"Praha","countryCode":"CZ"},"source":{"provider":"nominatim","kind":"public"}}}'
+```
+
 Health check:
 
 ```bash
 curl "http://localhost:8787/health"
+```
+
+Metriky (cache + zdraví providerů):
+
+```bash
+curl "http://localhost:8787/metrics"
 ```
 
 ## SDK pro prohlížeč (module script)
@@ -76,12 +91,13 @@ Spuštění přes Docker Compose:
 ```bash
 NOMINATIM_USER_AGENT="your-app-name" \
 NOMINATIM_EMAIL="you@example.com" \
+RADAR_API_KEY="your-radar-api-key" \
 HERE_API_KEY="your-here-api-key" \
 docker compose up -d
 ```
 
 Tip: `docker compose` načítá `.env` v kořeni repa, takže můžete nastavit
-`NOMINATIM_USER_AGENT`, `NOMINATIM_EMAIL` a `HERE_API_KEY` tam místo inline.
+`NOMINATIM_USER_AGENT`, `NOMINATIM_EMAIL`, `RADAR_API_KEY` a `HERE_API_KEY` tam místo inline.
 
 Persistování SQLite DB:
 
@@ -96,6 +112,9 @@ Doporučené env proměnné (zásady Nominatim):
 
 Volitelné env proměnné:
 
+- Radar Autocomplete: `RADAR_API_KEY`, `RADAR_AUTOCOMPLETE_BASE_URL`, `RADAR_AUTOCOMPLETE_DEFAULT_LIMIT`,
+  `RADAR_AUTOCOMPLETE_LAYERS`, `RADAR_AUTOCOMPLETE_NEAR`, `RADAR_AUTOCOMPLETE_COUNTRY_CODE`,
+  `RADAR_AUTOCOMPLETE_RATE_LIMIT_MS`
 - HERE Discover: `HERE_API_KEY`, `HERE_DISCOVER_BASE_URL`, `HERE_DISCOVER_DEFAULT_LIMIT`,
   `HERE_DISCOVER_LANGUAGE`, `HERE_DISCOVER_IN_AREA`, `HERE_DISCOVER_AT`,
   `HERE_DEFAULT_LAT`, `HERE_DEFAULT_LNG`, `HERE_DISCOVER_RATE_LIMIT_MS`
@@ -104,6 +123,7 @@ Volitelné env proměnné:
 - `PORT` (výchozí `8787`), `PROVIDER_TIMEOUT_MS`
 - Cache: `CACHE_L1_CAPACITY`, `CACHE_L1_TTL_MS`, `CACHE_L2_BASE_TTL_MS`, `CACHE_L2_MIN_TTL_MS`, `CACHE_L2_MAX_TTL_MS`, `CACHE_L2_SWR_MS`
 - Přepsání cesty DB: `SMART_ADDRESS_DB_PATH`
+
 ## Dokumentace
 
 - Zdroj webu: `apps/docs`
