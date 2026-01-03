@@ -6,7 +6,7 @@ import { type Duration, millis, seconds } from "effect/Duration";
 import type { AddressCacheConfig } from "./cache";
 import type { AddressSqliteConfig } from "./sqlite";
 
-export interface AddressServiceConfig {
+type AddressServiceConfig = {
   readonly port: number;
   readonly providerTimeout: Duration;
   readonly nominatimRateLimit: Duration | null;
@@ -17,7 +17,7 @@ export interface AddressServiceConfig {
   readonly hereDiscoverRateLimit: Duration | null;
   readonly cache: AddressCacheConfig;
   readonly sqlite: AddressSqliteConfig;
-}
+};
 
 const rawConfig = Config.all({
   port: Config.port("PORT").pipe(Config.withDefault(8787)),

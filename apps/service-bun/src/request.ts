@@ -1,4 +1,4 @@
-import { type AddressQuery, normalizeAddressQuery } from "@smart-address/core";
+import type { AddressQuery } from "@smart-address/core";
 import {
   type AddressStrategy,
   type SuggestAddressPayload,
@@ -6,15 +6,14 @@ import {
 } from "@smart-address/rpc/suggest";
 import { Data, Effect } from "effect";
 import { decodeUnknown } from "effect/Schema";
+import { parseQueryPayload } from "./request-utils";
 
 export interface SuggestRequest {
   readonly query: AddressQuery;
   readonly strategy: AddressStrategy;
 }
 
-export class SuggestRequestError extends Data.TaggedError(
-  "SuggestRequestError"
-)<{
+class SuggestRequestError extends Data.TaggedError("SuggestRequestError")<{
   readonly message: string;
 }> {}
 
@@ -60,26 +59,10 @@ export const payloadFromSearchParams = (
 export const toSuggestRequest = (
   payload: SuggestAddressPayload
 ): Effect.Effect<SuggestRequest, SuggestRequestError> => {
-  const text = payload.text ?? payload.q;
-  if (!text || text.trim().length === 0) {
-    return Effect.fail(
-      new SuggestRequestError({
-        message: "Missing required 'text' or 'q' field.",
-      })
-    );
+  const parsed = parseQueryPayload(payload);
+  if ("error" in parsed) {
+    return Effect.fail(new SuggestRequestError({ message: parsed.error }));
   }
 
-  const query = normalizeAddressQuery({
-    text,
-    limit: payload.limit,
-    countryCode: payload.countryCode,
-    locale: payload.locale,
-    sessionToken: payload.sessionToken,
-  });
-  const strategy = payload.strategy ?? payload.mode ?? "reliable";
-
-  return Effect.succeed({
-    query,
-    strategy,
-  });
+  return Effect.succeed(parsed);
 };

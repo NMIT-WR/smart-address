@@ -229,9 +229,3 @@ export const AddressMetricsLayer = Layer.effect(
     };
   })
 );
-
-export const AddressMetricsNone = Layer.succeed(AddressMetrics, {
-  recordCache: () => Effect.void,
-  recordProvider: () => Effect.void,
-  snapshot: Effect.succeed(emptySnapshot),
-});

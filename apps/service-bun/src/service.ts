@@ -37,8 +37,7 @@ export interface AddressSuggestor {
 
 export const AddressSuggestor =
   Context.GenericTag<AddressSuggestor>("AddressSuggestor");
-
-export interface AddressSuggestorConfig {
+type AddressSuggestorConfig = {
   readonly nominatim: NominatimConfig;
   readonly providerTimeout?: DurationInput;
   readonly nominatimRateLimit?: DurationInput | null;
@@ -46,7 +45,7 @@ export interface AddressSuggestorConfig {
   readonly radarAutocompleteRateLimit?: DurationInput | null;
   readonly hereDiscover?: HereDiscoverConfig | null;
   readonly hereDiscoverRateLimit?: DurationInput | null;
-}
+};
 
 type HttpAddressProvider = AddressProvider<HttpClient>;
 

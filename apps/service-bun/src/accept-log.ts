@@ -1,6 +1,6 @@
-import { addressQueryKey, normalizeAddressQuery } from "@smart-address/core";
 import { Context, Effect, Layer } from "effect";
 import type { AcceptRequest } from "./accept-request";
+import { buildQueryLogFields } from "./log-fields";
 import { type AddressSqliteConfig, openAddressSqlite } from "./sqlite";
 
 export interface AddressAcceptLog {
@@ -9,10 +9,6 @@ export interface AddressAcceptLog {
 
 export const AddressAcceptLog =
   Context.GenericTag<AddressAcceptLog>("AddressAcceptLog");
-
-export const AddressAcceptLogNone = Layer.succeed(AddressAcceptLog, {
-  record: () => Effect.void,
-});
 
 export const AddressAcceptLogSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(
@@ -44,18 +40,10 @@ export const AddressAcceptLogSqlite = (config: AddressSqliteConfig = {}) =>
       return {
         record: (request) =>
           Effect.sync(() => {
-            const normalized = normalizeAddressQuery(request.query);
-            const cacheKey = `${request.strategy}:${addressQueryKey(normalized)}`;
+            const { baseValues, cacheKey } = buildQueryLogFields(request);
             const suggestion = request.suggestion;
             insert.run(
-              Date.now(),
-              request.query.text,
-              normalized.text,
-              request.strategy,
-              normalized.limit ?? null,
-              normalized.countryCode ?? null,
-              normalized.locale ?? null,
-              normalized.sessionToken ?? null,
+              ...baseValues,
               cacheKey,
               suggestion.id,
               suggestion.label,
