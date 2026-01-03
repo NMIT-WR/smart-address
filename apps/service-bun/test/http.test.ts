@@ -186,9 +186,9 @@ describe("http handlers", () => {
   it.effect("handles GET /metrics", () =>
     Effect.gen(function* () {
       const request = fromWeb(new Request("http://localhost/metrics"));
-      const response = yield* handleMetricsGet(metrics)(request);
-      const web = toWeb(response);
-      const body = yield* Effect.promise(() => web.json());
+      const { web, body } = yield* parseJsonResponse(
+        yield* handleMetricsGet(metrics)(request)
+      );
 
       expect(web.status).toBe(200);
       expect(body.cache.requests).toBe(2);

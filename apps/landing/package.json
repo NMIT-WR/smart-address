@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@nkzw/babel-preset-fbtee": "^1.7.1",
-    "eslint": "^9.23.0",
+    "eslint": "^9.25.1",
     "@tanstack/eslint-config": "^0.3.4",
     "@tanstack/react-router-devtools": "^1.144.0",
     "@types/node": "^25.0.3",
