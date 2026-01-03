@@ -6,7 +6,9 @@
       "entry": ["rspress.config.ts"],
       "ignoreDependencies": ["@smart-address/sdk"]
     },
-    "apps/landing": {},
+    "apps/landing": {
+      "entry": ["src/router.tsx"]
+    },
     "packages/core": {
       "entry": ["src/address.ts", "src/schema.ts"]
     },
