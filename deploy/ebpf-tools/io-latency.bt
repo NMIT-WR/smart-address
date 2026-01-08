@@ -10,28 +10,28 @@ BEGIN
 
 tracepoint:syscalls:sys_enter_read /pid == $pid/
 {
-  @start[tid, "read"] = nsecs;
+  @start_read[tid] = nsecs;
 }
 
-tracepoint:syscalls:sys_exit_read /@start[tid, "read"]/
+tracepoint:syscalls:sys_exit_read /@start_read[tid]/
 {
-  $delta_ms = (nsecs - @start[tid, "read"]) / 1000000;
+  $delta_ms = (nsecs - @start_read[tid]) / 1000000;
   if ($delta_ms >= $threshold_ms) {
     printf("read  %d ms pid=%d comm=%s ret=%d\n", $delta_ms, pid, comm, args->ret);
   }
-  delete(@start[tid, "read"]);
+  delete(@start_read[tid]);
 }
 
 tracepoint:syscalls:sys_enter_write /pid == $pid/
 {
-  @start[tid, "write"] = nsecs;
+  @start_write[tid] = nsecs;
 }
 
-tracepoint:syscalls:sys_exit_write /@start[tid, "write"]/
+tracepoint:syscalls:sys_exit_write /@start_write[tid]/
 {
-  $delta_ms = (nsecs - @start[tid, "write"]) / 1000000;
+  $delta_ms = (nsecs - @start_write[tid]) / 1000000;
   if ($delta_ms >= $threshold_ms) {
     printf("write %d ms pid=%d comm=%s ret=%d\n", $delta_ms, pid, comm, args->ret);
   }
-  delete(@start[tid, "write"]);
+  delete(@start_write[tid]);
 }

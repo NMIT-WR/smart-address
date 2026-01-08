@@ -1,14 +1,17 @@
 # SQLite I/O latence (bpftrace)
 
 ## Cíl
+
 Zjistit latency čtení/zápisu SQLite a fsync špičky na Linuxu a propojit je s časem requestů.
 
 ## Předpoklady
+
 - Linux host/VM s podporou eBPF.
 - Nainstalovaný `bpftrace` a root oprávnění.
 - smart-address běží v Dockeru.
 
 ## Vstupy
+
 - PID kontejneru smart-address.
 - Volitelný práh latence v milisekundách.
 
@@ -36,13 +39,16 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 ```
 
 ## Výstup
+
 - Řádky v konzoli s latencí `read`, `write`, `fsync`, `fdatasync` v milisekundách.
 - Korelujte čas s request spany v Grafaně.
 
 ## Chyby
+
 - `bpftrace: command not found`: nainstalujte `bpftrace` ve VM.
 - `permission denied`: použijte `sudo` a ověřte podporu eBPF.
 
 ## Viz také
+
 - `/docs/ebpf-sqlite-io.md`
 - `/cs/how-to/ebpf`
