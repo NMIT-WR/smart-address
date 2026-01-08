@@ -28,7 +28,7 @@ loki.source.docker "smart_address" {
   targets       = discovery.docker.containers.targets
   relabel_rules = discovery.relabel.smart_address_logs.rules
   labels = {
-    job = "smart-address"
+    job = "smart-address",
   }
   forward_to = [loki.process.smart_address.receiver]
 }
@@ -38,26 +38,26 @@ loki.process "smart_address" {
 
   stage.json {
     expressions = {
-      logLevel = "logLevel"
-      message  = "message"
+      logLevel = "logLevel",
+      message  = "message",
     }
   }
 
   stage.json {
     source = "message"
     expressions = {
-      service    = "service"
-      kind       = "kind"
-      statusCode = "statusCode"
+      service    = "service",
+      kind       = "kind",
+      statusCode = "statusCode",
     }
   }
 
   stage.labels {
     values = {
-      service     = "service"
-      kind        = "kind"
-      status_code = "statusCode"
-      level       = "logLevel"
+      service     = "service",
+      kind        = "kind",
+      status_code = "statusCode",
+      level       = "logLevel",
     }
   }
 }
@@ -71,13 +71,13 @@ loki.write "lgtm" {
 prometheus.scrape "smart_address" {
   targets = [
     {
-      "__address__"     = "smart-address:8787"
-      "__metrics_path__" = "/metrics"
-      "job"             = "smart-address"
+      "__address__"      = "smart-address:8787",
+      "__metrics_path__" = "/metrics",
+      "job"              = "smart-address",
     },
   ]
   http_headers = {
-    Accept = ["application/openmetrics-text", "text/plain; q=0.9"]
+    Accept = ["application/openmetrics-text", "text/plain; q=0.9"],
   }
   scrape_interval = "15s"
   forward_to      = [prometheus.remote_write.lgtm.receiver]
