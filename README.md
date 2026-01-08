@@ -59,10 +59,10 @@ curl "http://localhost:8787/metrics"
 
 Smart Address emits one wide event per request and traces via Effect + OpenTelemetry.
 
-Run a local OTEL backend:
+Run a local OTEL backend (Grafana + Tempo + Loki + Prometheus + Pyroscope):
 
 ```bash
-docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+docker compose -f deploy/compose/obs.yaml up -d
 ```
 
 Recommended env vars:
@@ -105,14 +105,14 @@ Tagging tip (recommended for production):
 docker build -t smart-address-service:$(git rev-parse --short HEAD) .
 ```
 
-Run with Docker Compose:
+Run with Docker Compose (service only):
 
 ```bash
 NOMINATIM_USER_AGENT="your-app-name" \
 NOMINATIM_EMAIL="you@example.com" \
 RADAR_API_KEY="your-radar-api-key" \
 HERE_API_KEY="your-here-api-key" \
-docker compose up -d
+docker compose -f deploy/compose/app.yaml up -d
 ```
 
 Tip: `docker compose` reads `.env` in the repo root, so you can set
@@ -123,6 +123,16 @@ Persist the SQLite DB:
 - Compose mounts the `smart-address-data` volume to `/app/data`.
 - The default DB path is `data/smart-address.db` (relative to `/app`).
 - Override with `SMART_ADDRESS_DB_PATH` (for example `/app/data/custom.db`).
+
+Run full local observability (service + LGTM):
+
+```bash
+NOMINATIM_USER_AGENT="your-app-name" \
+NOMINATIM_EMAIL="you@example.com" \
+RADAR_API_KEY="your-radar-api-key" \
+HERE_API_KEY="your-here-api-key" \
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
+```
 
 Recommended env vars (Nominatim usage policy):
 

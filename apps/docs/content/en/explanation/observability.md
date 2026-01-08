@@ -6,10 +6,11 @@ Explain how Smart Address captures one wide event per request and emits traces v
 
 ## Prerequisites
 
+- Docker + Docker Compose.
 - (Optional) Local OpenTelemetry backend for viewing traces:
 
 ```bash
-docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+docker compose -f deploy/compose/obs.yaml up -d
 ```
 
 - Run the service with OTEL enabled (see Inputs).
@@ -28,13 +29,19 @@ Environment variables that control observability:
 Copy-paste example (local tracing):
 
 ```bash
-docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+docker compose -f deploy/compose/obs.yaml up -d
 
 SMART_ADDRESS_OTEL_ENABLED=true \
 OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318/v1/traces" \
 OTEL_SERVICE_NAME="smart-address-service" \
 SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE=1 \
 pnpm --filter @smart-address/service-bun dev
+```
+
+Run the service and LGTM together (Docker):
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
 ```
 
 ## Output

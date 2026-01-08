@@ -6,10 +6,11 @@ Vysvětlit, jak Smart Address posílá jeden wide event na request a jak generuj
 
 ## Předpoklady
 
+- Docker + Docker Compose.
 - (Volitelné) Lokální OpenTelemetry backend pro prohlížení trace:
 
 ```bash
-docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+docker compose -f deploy/compose/obs.yaml up -d
 ```
 
 - Spusťte službu s OTEL zapnutým (viz Vstupy).
@@ -28,13 +29,19 @@ Proměnné prostředí pro observabilitu:
 Copy-paste příklad (lokální tracing):
 
 ```bash
-docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+docker compose -f deploy/compose/obs.yaml up -d
 
 SMART_ADDRESS_OTEL_ENABLED=true \
 OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318/v1/traces" \
 OTEL_SERVICE_NAME="smart-address-service" \
 SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE=1 \
 pnpm --filter @smart-address/service-bun dev
+```
+
+Spuštění služby a LGTM dohromady (Docker):
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
 ```
 
 ## Výstup

@@ -1,0 +1,16 @@
+services:
+  lgtm:
+    image: grafana/otel-lgtm
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+      - "4040:4040"
+      - "9090:9090"
+      - "9009:9009"
+    volumes:
+      - lgtm-data:/data
+    restart: unless-stopped
+
+volumes:
+  lgtm-data:
