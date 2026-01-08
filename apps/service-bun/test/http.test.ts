@@ -18,6 +18,7 @@ import {
   makeRunAcceptRequest,
   makeSuggestPostRequest,
   parseJsonResponse,
+  parseTextResponse,
 } from "./http-helpers";
 
 interface RecordedSpan {
@@ -117,6 +118,7 @@ const requestEventConfigLayer = RequestEventConfigLayer({
   serviceVersion: "test",
   sampleRate: 1,
   slowThresholdMs: 0,
+  logRawQuery: true,
 });
 
 const expectSuggestResponse = (
@@ -244,6 +246,26 @@ describe("http handlers", () => {
       expect(web.status).toBe(200);
       expect(body.cache.requests).toBe(2);
       expect(body.cache.hitRate).toBe(0.5);
+    })
+  );
+
+  it.effect("returns Prometheus metrics when requested", () =>
+    Effect.gen(function* () {
+      const request = fromWeb(
+        new Request(makeRequestUrl("/metrics"), {
+          headers: { accept: "text/plain" },
+        })
+      );
+      const { web, body } = yield* parseTextResponse(
+        yield* handleMetricsGet(metrics)(request).pipe(
+          Effect.provide(requestEventConfigLayer)
+        )
+      );
+
+      expect(web.status).toBe(200);
+      expect(web.headers.get("content-type")).toContain("text/plain");
+      expect(body).toContain("smart_address_cache_requests_total");
+      expect(body).toContain("smart_address_metrics_updated_at_seconds");
     })
   );
 });

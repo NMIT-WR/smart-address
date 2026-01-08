@@ -24,6 +24,7 @@ interface AddressServiceConfig {
     readonly otelServiceVersion?: string;
     readonly wideEventSampleRate: number;
     readonly wideEventSlowMs: number;
+    readonly logRawQuery: boolean;
   };
 }
 
@@ -95,6 +96,7 @@ const rawConfig = Config.all({
   wideEventSlowMs: Config.integer("SMART_ADDRESS_WIDE_EVENT_SLOW_MS").pipe(
     Config.withDefault(2000)
   ),
+  logRawQuery: Config.option(Config.boolean("SMART_ADDRESS_LOG_RAW_QUERY")),
 });
 
 const optionalValue = <A>(value: Option.Option<A>): A | undefined =>
@@ -147,13 +149,19 @@ const normalizeOtelEndpoint = (value: string): string => {
   return `${trimmed.replace(otelEndpointTrimTrailingSlashes, "")}/v1/traces`;
 };
 
-const defaultSampleRate = (): number => {
-  const env =
-    (typeof Bun !== "undefined" ? Bun.env.NODE_ENV : undefined) ??
-    globalThis.process?.env?.NODE_ENV ??
-    "";
-  return env.toLowerCase() === "production" ? 0.05 : 1;
-};
+const currentNodeEnv = (): string =>
+  (typeof Bun !== "undefined" ? Bun.env.NODE_ENV : undefined) ??
+  globalThis.process?.env?.NODE_ENV ??
+  "";
+
+const isProductionEnv = (): boolean =>
+  currentNodeEnv().toLowerCase() === "production";
+
+const defaultSampleRate = (): number =>
+  isProductionEnv() ? 0.05 : 1;
+
+const defaultLogRawQuery = (): boolean =>
+  !isProductionEnv();
 
 const clampSampleRate = (value: number): number =>
   Number.isFinite(value)
@@ -288,6 +296,8 @@ export const addressServiceConfig = rawConfig.pipe(
     const wideEventSampleRate = clampSampleRate(
       optionalValue(raw.wideEventSampleRate) ?? defaultSampleRate()
     );
+    const logRawQuery =
+      optionalValue(raw.logRawQuery) ?? defaultLogRawQuery();
 
     const nominatimUserAgent = trimmedOrDefault(
       raw.nominatimUserAgent,
@@ -355,6 +365,7 @@ export const addressServiceConfig = rawConfig.pipe(
         ...(otelServiceVersion ? { otelServiceVersion } : {}),
         wideEventSampleRate,
         wideEventSlowMs: Math.max(0, raw.wideEventSlowMs),
+        logRawQuery,
       },
     };
   })

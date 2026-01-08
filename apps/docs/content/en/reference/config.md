@@ -51,6 +51,16 @@ Service environment variables. All values are read from the process environment.
 
 - `SMART_ADDRESS_DB_PATH` (string, default `data/smart-address.db` relative to the service working directory)
 
+## Observability
+
+- `SMART_ADDRESS_OTEL_ENABLED` (boolean, default `true`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (string, default `http://localhost:4318/v1/traces`)
+- `OTEL_SERVICE_NAME` (string, default `smart-address-service`)
+- `OTEL_SERVICE_VERSION` (string, optional)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (number, default `1` in dev, `0.05` in production)
+- `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (number, default `2000`)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (boolean, default `true` in dev, `false` in production)
+
 ## Minimal example
 
 Optional: add `RADAR_API_KEY` to enable Radar Autocomplete or `HERE_API_KEY` to enable HERE Discover.

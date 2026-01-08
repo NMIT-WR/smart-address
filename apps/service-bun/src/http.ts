@@ -13,7 +13,7 @@ import { Cause, Effect, Exit } from "effect";
 import type { AddressAcceptLog } from "./accept-log";
 import { decodeAcceptPayload, toAcceptRequest } from "./accept-request";
 import type { AddressCachedSuggestor } from "./cache";
-import type { AddressMetrics } from "./metrics";
+import { type AddressMetrics, renderPrometheusMetrics } from "./metrics";
 import {
   decodeSuggestPayload,
   payloadFromSearchParams,
@@ -58,6 +58,18 @@ const jsonResponse = (body: unknown, status?: number) => {
 
 const errorResponse = (message: string, status = 400) =>
   jsonResponse({ error: message }, status);
+
+const acceptsPrometheus = (request: HttpServerRequest): boolean => {
+  const accept = request.headers["accept"];
+  if (typeof accept !== "string") {
+    return false;
+  }
+  const value = accept.toLowerCase();
+  return (
+    value.includes("text/plain") ||
+    value.includes("application/openmetrics-text")
+  );
+};
 
 interface HttpRequestEventInit {
   readonly kind: RequestEventKind;
@@ -208,8 +220,20 @@ export const handleAcceptPost = (log: AddressAcceptLog) =>
   );
 
 export const handleMetricsGet = (metrics: AddressMetrics) =>
-  withHttpRequestEvent({ kind: "metrics" }, (_request) =>
-    metrics.snapshot.pipe(Effect.map((snapshot) => jsonResponse(snapshot)))
+  withHttpRequestEvent({ kind: "metrics" }, (request) =>
+    metrics.snapshot.pipe(
+      Effect.map((snapshot) => {
+        if (!acceptsPrometheus(request)) {
+          return jsonResponse(snapshot);
+        }
+        const body = renderPrometheusMetrics(snapshot);
+        return withCors(
+          setHeaders(text(body), {
+            "content-type": "text/plain; version=0.0.4",
+          })
+        );
+      })
+    )
   );
 
 export const handleOptions = withHttpRequestEvent({ kind: "options" }, () =>

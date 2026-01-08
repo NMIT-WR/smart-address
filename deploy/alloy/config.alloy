@@ -1,0 +1,80 @@
+logging {
+  level  = "info"
+  format = "json"
+}
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "smart_address_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = ".*/.*smart-address.*"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "smart_address" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  relabel_rules = discovery.relabel.smart_address_logs.rules
+  labels = {
+    job = "smart-address"
+  }
+  forward_to = [loki.process.smart_address.receiver]
+}
+
+loki.process "smart_address" {
+  forward_to = [loki.write.lgtm.receiver]
+
+  stage.json {
+    expressions = {
+      logLevel   = "logLevel"
+      service    = "message[0].service"
+      kind       = "message[0].kind"
+      statusCode = "message[0].statusCode"
+    }
+  }
+
+  stage.labels {
+    values = {
+      service     = "service"
+      kind        = "kind"
+      status_code = "statusCode"
+      level       = "logLevel"
+    }
+  }
+}
+
+loki.write "lgtm" {
+  endpoint {
+    url = "http://lgtm:3100/loki/api/v1/push"
+  }
+}
+
+prometheus.scrape "smart_address" {
+  targets = [
+    {
+      "__address__"     = "smart-address:8787"
+      "__metrics_path__" = "/metrics"
+      "job"             = "smart-address"
+    },
+  ]
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.lgtm.receiver]
+}
+
+prometheus.remote_write "lgtm" {
+  endpoint {
+    url = "http://lgtm:9009/api/v1/push"
+  }
+}

@@ -25,6 +25,7 @@ Environment variables that control observability:
 - `OTEL_SERVICE_VERSION` (optional)
 - `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` in dev, `0.05` in production)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (default: `true` in dev, `false` in production)
 
 Copy-paste example (local tracing):
 
@@ -44,6 +45,12 @@ Run the service and LGTM together (Docker):
 docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
 ```
 
+Ship logs + metrics to LGTM via Alloy:
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
+```
+
 ## Output
 
 - One wide event per request (HTTP, RPC, MCP) with request context, cache outcomes, provider timings, and result counts.
@@ -51,6 +58,7 @@ docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
 - Tail sampling keeps errors, slow requests, and manually marked requests, sampling the rest.
 - HTTP responses include `x-request-id` (echoed if provided, otherwise generated).
 - HTTP responses include `server-timing` with total request duration and provider timings.
+- When Alloy is enabled, JSON logs flow to Loki and Prometheus metrics are remote-written into LGTM.
 
 ## Errors
 

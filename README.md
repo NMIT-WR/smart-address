@@ -73,6 +73,13 @@ Recommended env vars:
 - `OTEL_SERVICE_VERSION` (optional)
 - `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` in dev, `0.05` in production)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (default: `true` in dev, `false` in production)
+
+Ship JSON logs + Prometheus metrics to LGTM via Alloy:
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
+```
 
 ## Browser SDK (module script)
 

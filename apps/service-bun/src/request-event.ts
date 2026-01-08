@@ -7,6 +7,7 @@ import { addressQueryKey, normalizeAddressQuery } from "@smart-address/core";
 import type { AddressStrategy } from "@smart-address/rpc/suggest";
 import { Context, Effect, Layer, Option, Ref } from "effect";
 import { currentTimeMillis } from "effect/Clock";
+import { createHash } from "node:crypto";
 import type { AcceptRequest } from "./accept-request";
 import type { SuggestRequest } from "./request";
 
@@ -36,6 +37,7 @@ export interface RequestEventConfig {
   readonly serviceVersion?: string | undefined;
   readonly sampleRate: number;
   readonly slowThresholdMs: number;
+  readonly logRawQuery: boolean;
   readonly alwaysSample?: boolean | undefined;
   readonly random?: (() => number) | undefined;
 }
@@ -77,6 +79,7 @@ interface WideEvent {
   readonly strategy?: AddressStrategy | undefined;
   readonly query?: AddressQuery | undefined;
   readonly normalizedQuery?: AddressQuery | undefined;
+  readonly queryHash?: string | undefined;
   readonly cacheKey?: string | undefined;
   readonly cache?: CacheEventUpdate | undefined;
   readonly plan?:
@@ -121,9 +124,12 @@ interface RequestEventState {
   readonly method?: string | undefined;
   readonly path?: string | undefined;
   readonly startedAt: number;
+  readonly traceId?: string | undefined;
+  readonly spanId?: string | undefined;
   readonly strategy?: AddressStrategy | undefined;
   readonly query?: AddressQuery | undefined;
   readonly normalizedQuery?: AddressQuery | undefined;
+  readonly queryHash?: string | undefined;
   readonly cacheKey?: string | undefined;
   readonly cache?: CacheEventUpdate | undefined;
   readonly plan?: WideEvent["plan"] | undefined;
@@ -186,6 +192,9 @@ const mergeCache = (
   ...(current ?? {}),
   ...update,
 });
+
+const hashQuery = (query: AddressQuery): string =>
+  createHash("sha256").update(addressQueryKey(query)).digest("hex");
 
 const decideSampling = (
   event: Omit<WideEvent, "sampling">,
@@ -284,6 +293,13 @@ export const makeRequestEvent = (init: RequestEventInit) =>
   Effect.gen(function* () {
     const config = yield* RequestEventConfig;
     const startedAt = yield* currentTimeMillis;
+    const initialSpan = yield* Effect.option(Effect.currentSpan);
+    const initialTraceId = Option.getOrUndefined(
+      Option.map(initialSpan, (value) => value.traceId)
+    );
+    const initialSpanId = Option.getOrUndefined(
+      Option.map(initialSpan, (value) => value.spanId)
+    );
     const state = yield* Ref.make<RequestEventState>({
       requestId: init.requestId,
       kind: init.kind,
@@ -291,15 +307,19 @@ export const makeRequestEvent = (init: RequestEventInit) =>
       method: init.method,
       path: init.path,
       startedAt,
+      traceId: initialTraceId,
+      spanId: initialSpanId,
       providers: [],
     });
 
     const baseRequestUpdate = (request: SuggestRequest | AcceptRequest) => {
       const normalized = normalizeAddressQuery(request.query);
+      const queryHash = hashQuery(normalized);
       return {
         strategy: request.strategy,
-        query: request.query,
+        ...(config.logRawQuery ? { query: request.query } : {}),
         normalizedQuery: normalized,
+        queryHash,
         cacheKey: `${request.strategy}:${addressQueryKey(normalized)}`,
       };
     };
@@ -367,16 +387,18 @@ export const makeRequestEvent = (init: RequestEventInit) =>
       Effect.gen(function* () {
         const now = yield* currentTimeMillis;
         const span = yield* Effect.option(Effect.currentSpan);
-        const traceId = Option.getOrUndefined(
+        const traceFromSpan = Option.getOrUndefined(
           Option.map(span, (value) => value.traceId)
         );
-        const spanId = Option.getOrUndefined(
+        const spanFromSpan = Option.getOrUndefined(
           Option.map(span, (value) => value.spanId)
         );
         const snapshot = yield* Ref.modify(state, (current) => {
           if (current.flushed) {
             return [Option.none<FinalizedRequestEvent>(), current] as const;
           }
+          const traceId = traceFromSpan ?? current.traceId;
+          const spanId = spanFromSpan ?? current.spanId;
           const durationMs = Math.max(0, now - current.startedAt);
           const eventBase = {
             timestamp: toIsoString(now),
@@ -394,6 +416,7 @@ export const makeRequestEvent = (init: RequestEventInit) =>
             strategy: current.strategy,
             query: current.query,
             normalizedQuery: current.normalizedQuery,
+            queryHash: current.queryHash,
             cacheKey: current.cacheKey,
             cache: current.cache,
             plan: current.plan,

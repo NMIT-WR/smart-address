@@ -73,6 +73,13 @@ Doporučené env proměnné:
 - `OTEL_SERVICE_VERSION` (volitelné)
 - `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (výchozí: `1` v dev, `0.05` v production)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (výchozí: `2000`)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (výchozí: `true` v dev, `false` v production)
+
+Posílání JSON logů a Prometheus metrik do LGTM přes Alloy:
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
+```
 
 ## SDK pro prohlížeč (module script)
 

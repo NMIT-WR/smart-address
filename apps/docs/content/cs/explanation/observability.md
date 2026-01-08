@@ -25,6 +25,7 @@ Proměnné prostředí pro observabilitu:
 - `OTEL_SERVICE_VERSION` (volitelné)
 - `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` v dev, `0.05` v production)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (default: `true` v dev, `false` v production)
 
 Copy-paste příklad (lokální tracing):
 
@@ -44,6 +45,12 @@ Spuštění služby a LGTM dohromady (Docker):
 docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
 ```
 
+Posílání logů a metrik do LGTM přes Alloy:
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
+```
+
 ## Výstup
 
 - Jeden wide event na request (HTTP, RPC, MCP) s kontextem, cache výsledky, provider časy a počty výsledků.
@@ -51,6 +58,7 @@ docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
 - Tail sampling vždy ponechá chyby, pomalé requesty a ručně označené requesty; zbytek sampleuje.
 - HTTP odpovědi obsahují `x-request-id` (pokud je poslán, vrací se zpět; jinak se generuje).
 - HTTP odpovědi obsahují `server-timing` s celkovou dobou requestu a časy providerů.
+- Při zapnutém Alloy jdou JSON logy do Loki a Prometheus metriky se remote-write do LGTM.
 
 ## Chyby
 

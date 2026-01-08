@@ -17,6 +17,7 @@ const baseInit = {
 const baseConfig = {
   serviceName: "test-service",
   serviceVersion: "test",
+  logRawQuery: true,
 };
 
 describe("request event", () => {
@@ -97,6 +98,51 @@ describe("request event", () => {
           sampleRate: 0,
           slowThresholdMs: 10_000,
           random: () => 0.5,
+        })
+      ),
+      Effect.provide(TestContext)
+    )
+  );
+
+  it.effect("redacts raw query when disabled", () =>
+    Effect.gen(function* () {
+      const requestEvent = yield* makeRequestEvent(baseInit);
+      yield* requestEvent.recordSuggest({
+        query: { text: "Prague", limit: 5, countryCode: "CZ" },
+        strategy: "reliable",
+      });
+      const finalized = yield* requestEvent.finalize(200);
+
+      expect(finalized?.event.query).toBeUndefined();
+      expect(finalized?.event.normalizedQuery?.text).toBe("Prague");
+      expect(finalized?.event.queryHash).toBeTypeOf("string");
+    }).pipe(
+      Effect.provide(
+        RequestEventConfigLayer({
+          ...baseConfig,
+          logRawQuery: false,
+          sampleRate: 1,
+          slowThresholdMs: 10_000,
+        })
+      ),
+      Effect.provide(TestContext)
+    )
+  );
+
+  it.effect("captures trace and span ids", () =>
+    Effect.gen(function* () {
+      const requestEvent = yield* makeRequestEvent(baseInit);
+      const finalized = yield* requestEvent.finalize(200);
+
+      expect(finalized?.event.traceId).toBeTypeOf("string");
+      expect(finalized?.event.spanId).toBeTypeOf("string");
+    }).pipe(
+      Effect.withSpan("request-test"),
+      Effect.provide(
+        RequestEventConfigLayer({
+          ...baseConfig,
+          sampleRate: 1,
+          slowThresholdMs: 10_000,
         })
       ),
       Effect.provide(TestContext)

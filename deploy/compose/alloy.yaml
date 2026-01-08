@@ -1,0 +1,22 @@
+services:
+  alloy:
+    image: grafana/alloy
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    user: "0"
+    ports:
+      - "12345:12345"
+    volumes:
+      - ../alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - alloy-data:/var/lib/alloy/data
+    depends_on:
+      - lgtm
+      - smart-address
+    restart: unless-stopped
+
+volumes:
+  alloy-data:
