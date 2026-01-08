@@ -85,6 +85,6 @@ prometheus.scrape "smart_address" {
 
 prometheus.remote_write "lgtm" {
   endpoint {
-    url = "http://lgtm:9009/api/v1/push"
+    url = "http://lgtm:9090/api/v1/write"
   }
 }
