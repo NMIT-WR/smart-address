@@ -42,6 +42,19 @@ wait_for_health() {
   return 1
 }
 
+wait_for_suggest() {
+  local attempts=30
+  local i=1
+  while [[ "${i}" -le "${attempts}" ]]; do
+    if curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/null; then
+      return 0
+    fi
+    sleep 1
+    i=$((i + 1))
+  done
+  return 1
+}
+
 run pnpm install
 run pnpm check
 run pnpm typecheck
@@ -64,6 +77,10 @@ if ! wait_for_health; then
 fi
 
 run curl -fsS "http://localhost:8787/health"
+if ! wait_for_suggest; then
+  echo "Service failed to respond to /suggest on http://localhost:8787/suggest"
+  exit 1
+fi
 run curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
 run curl -fsS -X POST "http://localhost:8787/accept" \
   -H "content-type: application/json" \
@@ -102,6 +119,10 @@ if ! wait_for_health; then
 fi
 
 run curl -fsS "http://localhost:8787/health"
+if ! wait_for_suggest; then
+  echo "Docker service failed to respond to /suggest on http://localhost:8787/suggest"
+  exit 1
+fi
 run curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
 
 docker compose "${COMPOSE_FILES[@]}" down
