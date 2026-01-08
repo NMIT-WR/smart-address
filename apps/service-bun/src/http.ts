@@ -1,3 +1,4 @@
+import { withSpanContext } from "@effect/opentelemetry/Tracer";
 import {
   type HttpServerRequest,
   searchParamsFromURL,
@@ -8,9 +9,8 @@ import {
   text,
   unsafeJson,
 } from "@effect/platform/HttpServerResponse";
-import { withSpanContext } from "@effect/opentelemetry/Tracer";
-import type { SpanContext } from "@opentelemetry/api";
 import { toRecord } from "@effect/platform/UrlParams";
+import type { SpanContext } from "@opentelemetry/api";
 import { Effect, Ref } from "effect";
 import type { AddressAcceptLog } from "./accept-log";
 import { decodeAcceptPayload, toAcceptRequest } from "./accept-request";
@@ -96,6 +96,8 @@ const readHeaderValue = (
 
 const traceparentPattern =
   /^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/;
+const traceIdZeroPattern = /^0{32}$/;
+const spanIdZeroPattern = /^0{16}$/;
 
 const parseTraceparent = (value: string): SpanContext | undefined => {
   const trimmed = value.trim().toLowerCase();
@@ -109,7 +111,7 @@ const parseTraceparent = (value: string): SpanContext | undefined => {
   if (version.length !== 2) {
     return undefined;
   }
-  if (/^0{32}$/.test(traceId) || /^0{16}$/.test(spanId)) {
+  if (traceIdZeroPattern.test(traceId) || spanIdZeroPattern.test(spanId)) {
     return undefined;
   }
   const traceFlags = Number.parseInt(flags, 16);
@@ -144,12 +146,13 @@ export const withHttpRequestEvent =
         headerRequestId && headerRequestId.trim().length > 0
           ? headerRequestId
           : makeRequestId();
-      const traceparent = readHeaderValue(request.headers["traceparent"]);
+      const traceparent = readHeaderValue(request.headers.traceparent);
       const spanContext = traceparent
         ? parseTraceparent(traceparent)
         : undefined;
-      const finalizedRef =
-        yield* Ref.make<FinalizedRequestEvent | undefined>(undefined);
+      const finalizedRef = yield* Ref.make<FinalizedRequestEvent | undefined>(
+        undefined
+      );
 
       const effect = Effect.gen(function* () {
         if (init.markImportant) {

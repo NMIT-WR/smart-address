@@ -211,7 +211,9 @@ export const renderPrometheusMetrics = (
 
   lines.push("# HELP smart_address_cache_l1_hits_total L1 cache hits.");
   lines.push("# TYPE smart_address_cache_l1_hits_total counter");
-  lines.push(metricLine("smart_address_cache_l1_hits_total", snapshot.cache.l1Hits));
+  lines.push(
+    metricLine("smart_address_cache_l1_hits_total", snapshot.cache.l1Hits)
+  );
 
   lines.push("# HELP smart_address_cache_l1_misses_total L1 cache misses.");
   lines.push("# TYPE smart_address_cache_l1_misses_total counter");
@@ -221,7 +223,9 @@ export const renderPrometheusMetrics = (
 
   lines.push("# HELP smart_address_cache_l2_hits_total L2 cache hits.");
   lines.push("# TYPE smart_address_cache_l2_hits_total counter");
-  lines.push(metricLine("smart_address_cache_l2_hits_total", snapshot.cache.l2Hits));
+  lines.push(
+    metricLine("smart_address_cache_l2_hits_total", snapshot.cache.l2Hits)
+  );
 
   lines.push("# HELP smart_address_cache_l2_misses_total L2 cache misses.");
   lines.push("# TYPE smart_address_cache_l2_misses_total counter");
@@ -231,7 +235,9 @@ export const renderPrometheusMetrics = (
 
   lines.push("# HELP smart_address_cache_hit_rate Cache hit rate.");
   lines.push("# TYPE smart_address_cache_hit_rate gauge");
-  lines.push(metricLine("smart_address_cache_hit_rate", snapshot.cache.hitRate));
+  lines.push(
+    metricLine("smart_address_cache_hit_rate", snapshot.cache.hitRate)
+  );
 
   lines.push("# HELP smart_address_cache_l1_hit_rate L1 cache hit rate.");
   lines.push("# TYPE smart_address_cache_l1_hit_rate gauge");
@@ -270,20 +276,30 @@ export const renderPrometheusMetrics = (
       })
     );
     lines.push(
-      metricLine("smart_address_provider_latency_ms", provider.latencyMs.min ?? 0, {
-        provider: provider.provider,
-        stat: "min",
-      })
+      metricLine(
+        "smart_address_provider_latency_ms",
+        provider.latencyMs.min ?? 0,
+        {
+          provider: provider.provider,
+          stat: "min",
+        }
+      )
     );
     lines.push(
-      metricLine("smart_address_provider_latency_ms", provider.latencyMs.max ?? 0, {
-        provider: provider.provider,
-        stat: "max",
-      })
+      metricLine(
+        "smart_address_provider_latency_ms",
+        provider.latencyMs.max ?? 0,
+        {
+          provider: provider.provider,
+          stat: "max",
+        }
+      )
     );
   }
 
-  lines.push("# HELP smart_address_metrics_started_at_seconds Metrics start time.");
+  lines.push(
+    "# HELP smart_address_metrics_started_at_seconds Metrics start time."
+  );
   lines.push("# TYPE smart_address_metrics_started_at_seconds gauge");
   lines.push(
     metricLine(
@@ -292,7 +308,9 @@ export const renderPrometheusMetrics = (
     )
   );
 
-  lines.push("# HELP smart_address_metrics_updated_at_seconds Metrics update time.");
+  lines.push(
+    "# HELP smart_address_metrics_updated_at_seconds Metrics update time."
+  );
   lines.push("# TYPE smart_address_metrics_updated_at_seconds gauge");
   lines.push(
     metricLine(

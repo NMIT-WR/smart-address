@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type {
   AddressProviderPlan,
   AddressQuery,
@@ -7,7 +8,6 @@ import { addressQueryKey, normalizeAddressQuery } from "@smart-address/core";
 import type { AddressStrategy } from "@smart-address/rpc/suggest";
 import { Context, Effect, Layer, Option, Ref } from "effect";
 import { currentTimeMillis } from "effect/Clock";
-import { createHash } from "node:crypto";
 import type { AcceptRequest } from "./accept-request";
 import type { SuggestRequest } from "./request";
 

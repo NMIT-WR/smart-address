@@ -74,7 +74,7 @@ export const runRequestEvent = <A, E, R>(
     );
 
     const statusCode = Exit.isSuccess(exit)
-      ? options.statusCode?.(exit.value) ?? 200
+      ? (options.statusCode?.(exit.value) ?? 200)
       : 500;
     if (Exit.isFailure(exit)) {
       const errorMessage = Cause.pretty(exit.cause);

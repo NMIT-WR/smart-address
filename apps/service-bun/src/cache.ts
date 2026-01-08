@@ -327,18 +327,16 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
             result,
           };
           const keyHash = cacheKeyHash(key);
-          yield* store
-            .set(key, entry)
-            .pipe(
-              Effect.withSpan("cache.set", {
-                kind: "internal",
-                attributes: {
-                  "cache.layer": "l2",
-                  "cache.key_hash": keyHash,
-                  "cache.ttl_ms": policy.ttlMs,
-                },
-              })
-            );
+          yield* store.set(key, entry).pipe(
+            Effect.withSpan("cache.set", {
+              kind: "internal",
+              attributes: {
+                "cache.layer": "l2",
+                "cache.key_hash": keyHash,
+                "cache.ttl_ms": policy.ttlMs,
+              },
+            })
+          );
           yield* recordCacheUpdateWith(
             {
               ttlMs: policy.ttlMs,
@@ -438,25 +436,23 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
         Effect.gen(function* () {
           const now = yield* currentTimeMillis;
           const keyHash = cacheKeyHash(entryKey.key);
-          const cached = yield* store
-            .get(entryKey.key)
-            .pipe(
-              Effect.withSpan("cache.get", {
-                kind: "internal",
-                attributes: {
-                  "cache.layer": "l2",
-                  "cache.key_hash": keyHash,
-                },
-              }),
-              Effect.tap((entry) =>
-                Effect.annotateCurrentSpan({
-                  "cache.hit": Boolean(entry),
-                  "cache.ttl_ms": entry
-                    ? Math.max(0, entry.expiresAt - now)
-                    : undefined,
-                })
-              )
-            );
+          const cached = yield* store.get(entryKey.key).pipe(
+            Effect.withSpan("cache.get", {
+              kind: "internal",
+              attributes: {
+                "cache.layer": "l2",
+                "cache.key_hash": keyHash,
+              },
+            }),
+            Effect.tap((entry) =>
+              Effect.annotateCurrentSpan({
+                "cache.hit": Boolean(entry),
+                "cache.ttl_ms": entry
+                  ? Math.max(0, entry.expiresAt - now)
+                  : undefined,
+              })
+            )
+          );
           if (!cached || cached.expiresAt <= now) {
             return yield* fetchAndStore(entryKey);
           }
@@ -481,35 +477,33 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
               requestEvent
             );
             const keyHash = cacheKeyHash(entryKey.key);
-            const result = yield* l1
-              .getEither(entryKey)
-              .pipe(
-                Effect.tap((value) =>
-                  Effect.all(
-                    [
-                      Effect.annotateCurrentSpan({
-                        "cache.hit": Either.isLeft(value),
-                      }),
-                      recordCacheMetric(
-                        Either.isLeft(value) ? "l1-hit" : "l1-miss"
-                      ),
-                      recordCacheUpdateWith(
-                        { l1: Either.isLeft(value) ? "hit" : "miss" },
-                        requestEvent
-                      ),
-                    ],
-                    { concurrency: "unbounded" }
-                  ).pipe(Effect.asVoid)
-                ),
-                Effect.withSpan("cache.get", {
-                  kind: "internal",
-                  attributes: {
-                    "cache.layer": "l1",
-                    "cache.key_hash": keyHash,
-                    "cache.ttl_ms": l1TtlMs,
-                  },
-                })
-              );
+            const result = yield* l1.getEither(entryKey).pipe(
+              Effect.tap((value) =>
+                Effect.all(
+                  [
+                    Effect.annotateCurrentSpan({
+                      "cache.hit": Either.isLeft(value),
+                    }),
+                    recordCacheMetric(
+                      Either.isLeft(value) ? "l1-hit" : "l1-miss"
+                    ),
+                    recordCacheUpdateWith(
+                      { l1: Either.isLeft(value) ? "hit" : "miss" },
+                      requestEvent
+                    ),
+                  ],
+                  { concurrency: "unbounded" }
+                ).pipe(Effect.asVoid)
+              ),
+              Effect.withSpan("cache.get", {
+                kind: "internal",
+                attributes: {
+                  "cache.layer": "l1",
+                  "cache.key_hash": keyHash,
+                  "cache.ttl_ms": l1TtlMs,
+                },
+              })
+            );
             return Either.isLeft(result) ? result.left : result.right;
           }),
       };

@@ -157,11 +157,9 @@ const currentNodeEnv = (): string =>
 const isProductionEnv = (): boolean =>
   currentNodeEnv().toLowerCase() === "production";
 
-const defaultSampleRate = (): number =>
-  isProductionEnv() ? 0.05 : 1;
+const defaultSampleRate = (): number => (isProductionEnv() ? 0.05 : 1);
 
-const defaultLogRawQuery = (): boolean =>
-  !isProductionEnv();
+const defaultLogRawQuery = (): boolean => !isProductionEnv();
 
 const clampSampleRate = (value: number): number =>
   Number.isFinite(value)
@@ -296,8 +294,7 @@ export const addressServiceConfig = rawConfig.pipe(
     const wideEventSampleRate = clampSampleRate(
       optionalValue(raw.wideEventSampleRate) ?? defaultSampleRate()
     );
-    const logRawQuery =
-      optionalValue(raw.logRawQuery) ?? defaultLogRawQuery();
+    const logRawQuery = optionalValue(raw.logRawQuery) ?? defaultLogRawQuery();
 
     const nominatimUserAgent = trimmedOrDefault(
       raw.nominatimUserAgent,

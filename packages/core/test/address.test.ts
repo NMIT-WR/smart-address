@@ -129,16 +129,16 @@ describe("address core", () => {
       );
       const service = makeAddressSuggestionService([provider]);
 
-      yield* service
-        .suggest({ text: "Main" })
-        .pipe(Effect.withTracer(tracer));
+      yield* service.suggest({ text: "Main" }).pipe(Effect.withTracer(tracer));
 
       const providerSpan = spans.find(
         (span) => span.name === "address.provider"
       );
 
       expect(providerSpan?.attributes.get("provider.error")).toBe(true);
-      expect(providerSpan?.attributes.get("provider.error_message")).toBe("nope");
+      expect(providerSpan?.attributes.get("provider.error_message")).toBe(
+        "nope"
+      );
     })
   );
 });
