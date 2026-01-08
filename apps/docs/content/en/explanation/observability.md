@@ -43,6 +43,7 @@ pnpm --filter @smart-address/service-bun dev
 - A trace span per request, with nested spans for provider plans/stages/providers.
 - Tail sampling keeps errors, slow requests, and manually marked requests, sampling the rest.
 - HTTP responses include `x-request-id` (echoed if provided, otherwise generated).
+- HTTP responses include `server-timing` with total request duration and provider timings.
 
 ## Errors
 

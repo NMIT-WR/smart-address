@@ -24,6 +24,7 @@ import {
   makeRequestId,
   RequestEvent,
   type RequestEventKind,
+  serverTimingHeader,
 } from "./request-event";
 import {
   recordAcceptFromContext,
@@ -41,6 +42,14 @@ const withCors = (response: HttpServerResponse) =>
 
 const withRequestId = (response: HttpServerResponse, requestId: string) =>
   setHeaders(response, { "x-request-id": requestId });
+
+const withServerTiming = (
+  response: HttpServerResponse,
+  headerValue: string | undefined
+) =>
+  headerValue
+    ? setHeaders(response, { "server-timing": headerValue })
+    : response;
 
 const jsonResponse = (body: unknown, status?: number) => {
   const options = status === undefined ? undefined : { status };
@@ -99,8 +108,11 @@ export const withHttpRequestEvent =
 
       if (Exit.isSuccess(responseExit)) {
         const response = responseExit.value;
-        yield* requestEvent.flush(response.status);
-        return withRequestId(response, requestId);
+        const finalized = yield* requestEvent.flush(response.status);
+        return withRequestId(
+          withServerTiming(response, serverTimingHeader(finalized)),
+          requestId
+        );
       }
 
       const errorMessage = Cause.pretty(responseExit.cause);
@@ -109,8 +121,11 @@ export const withHttpRequestEvent =
         .pipe(Effect.catchAll(() => Effect.void));
 
       const response = errorResponse("Internal error", 500);
-      yield* requestEvent.flush(response.status);
-      return withRequestId(response, requestId);
+      const finalized = yield* requestEvent.flush(response.status);
+      return withRequestId(
+        withServerTiming(response, serverTimingHeader(finalized)),
+        requestId
+      );
     }).pipe(
       Effect.withSpan(spanName, {
         kind: "server",

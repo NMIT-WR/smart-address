@@ -43,6 +43,7 @@ pnpm --filter @smart-address/service-bun dev
 - Trace span pro každý request s vnořenými spany pro plány/stage/provider.
 - Tail sampling vždy ponechá chyby, pomalé requesty a ručně označené requesty; zbytek sampleuje.
 - HTTP odpovědi obsahují `x-request-id` (pokud je poslán, vrací se zpět; jinak se generuje).
+- HTTP odpovědi obsahují `server-timing` s celkovou dobou requestu a časy providerů.
 
 ## Chyby
 

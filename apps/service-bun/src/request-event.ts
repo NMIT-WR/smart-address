@@ -156,7 +156,9 @@ export interface RequestEvent {
   readonly finalize: (
     statusCode: number
   ) => Effect.Effect<FinalizedRequestEvent | undefined>;
-  readonly flush: (statusCode: number) => Effect.Effect<void>;
+  readonly flush: (
+    statusCode: number
+  ) => Effect.Effect<FinalizedRequestEvent | undefined>;
 }
 
 export const RequestEvent = Context.GenericTag<RequestEvent>("RequestEvent");
@@ -216,6 +218,57 @@ const compactAttributes = (values: Record<string, unknown>) =>
       ([, value]) => value !== undefined && value !== null
     )
   );
+
+const sanitizeServerTimingToken = (value: string): string =>
+  value.replace(/[^a-zA-Z0-9_.-]/g, "_");
+
+const formatServerTimingDuration = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+  return `${Math.max(0, Math.round(value))}`;
+};
+
+const formatServerTiming = (event: WideEvent): string | undefined => {
+  const entries: string[] = [];
+  entries.push(`total;dur=${formatServerTimingDuration(event.durationMs)}`);
+
+  const cacheParts: string[] = [];
+  if (event.cache?.l1) {
+    cacheParts.push(`l1=${event.cache.l1}`);
+  }
+  if (event.cache?.l2) {
+    cacheParts.push(`l2=${event.cache.l2}`);
+  }
+  if (event.cache?.stale) {
+    cacheParts.push("stale");
+  }
+  if (event.cache?.revalidated) {
+    cacheParts.push("revalidated");
+  }
+  if (cacheParts.length > 0) {
+    entries.push(`cache;desc="${cacheParts.join(" ")}"`);
+  }
+
+  const providerDurations = new Map<string, number>();
+  for (const provider of event.providers ?? []) {
+    const token = sanitizeServerTimingToken(`provider.${provider.provider}`);
+    providerDurations.set(
+      token,
+      (providerDurations.get(token) ?? 0) + provider.durationMs
+    );
+  }
+  for (const [token, durationMs] of providerDurations.entries()) {
+    entries.push(`${token};dur=${formatServerTimingDuration(durationMs)}`);
+  }
+
+  return entries.length > 0 ? entries.join(", ") : undefined;
+};
+
+export const serverTimingHeader = (
+  finalized: FinalizedRequestEvent | undefined
+): string | undefined =>
+  finalized ? formatServerTiming(finalized.event) : undefined;
 
 export const makeRequestId = (): string => {
   const cryptoApi = globalThis.crypto;
@@ -375,10 +428,10 @@ export const makeRequestEvent = (init: RequestEventInit) =>
       finalize(statusCode).pipe(
         Effect.flatMap((finalized) => {
           if (!finalized) {
-            return Effect.void;
+            return Effect.succeed(undefined);
           }
           if (!finalized.decision.keep) {
-            return Effect.void;
+            return Effect.succeed(finalized);
           }
           const event = finalized.event;
           const attributes = compactAttributes({
@@ -399,7 +452,8 @@ export const makeRequestEvent = (init: RequestEventInit) =>
           });
 
           return Effect.annotateCurrentSpan(attributes).pipe(
-            Effect.zipRight(Effect.logInfo(event))
+            Effect.zipRight(Effect.logInfo(event)),
+            Effect.as(finalized)
           );
         })
       );

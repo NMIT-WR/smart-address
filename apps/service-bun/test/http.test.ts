@@ -130,6 +130,7 @@ const expectSuggestResponse = (
 
     expect(web.status).toBe(200);
     expect(body.suggestions[0]?.id).toBe("sample:1");
+    expect(web.headers.get("server-timing")).toContain("total;dur=");
   });
 
 describe("http handlers", () => {
@@ -199,6 +200,7 @@ describe("http handlers", () => {
 
       expect(web.status).toBe(200);
       expect(body.ok).toBe(true);
+      expect(web.headers.get("server-timing")).toContain("total;dur=");
     })
   );
 

@@ -213,15 +213,18 @@ class AddressCacheKey implements Equal {
   readonly key: string;
   readonly request: SuggestRequest;
   readonly fetch: Effect.Effect<AddressSuggestionResult, never, never>;
+  readonly requestEvent: RequestEvent | undefined;
 
   constructor(
     key: string,
     request: SuggestRequest,
-    fetch: Effect.Effect<AddressSuggestionResult, never, never>
+    fetch: Effect.Effect<AddressSuggestionResult, never, never>,
+    requestEvent: RequestEvent | undefined
   ) {
     this.key = key;
     this.request = request;
     this.fetch = fetch;
+    this.requestEvent = requestEvent;
   }
 
   [hashSymbol](): number {
@@ -268,10 +271,29 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
           Effect.catchAll(() => Effect.void)
         );
 
+      const recordCacheUpdateWith = (
+        update: CacheEventUpdate,
+        requestEvent: RequestEvent | undefined
+      ) =>
+        requestEvent
+          ? requestEvent
+              .recordCache(update)
+              .pipe(Effect.catchAll(() => Effect.void))
+          : recordCacheUpdate(update);
+
+      const provideRequestEvent = <A>(
+        effect: Effect.Effect<A, never, never>,
+        requestEvent: RequestEvent | undefined
+      ) =>
+        requestEvent
+          ? effect.pipe(Effect.provideService(RequestEvent, requestEvent))
+          : effect;
+
       const storeEntry = (
         key: string,
         request: SuggestRequest,
-        result: AddressSuggestionResult
+        result: AddressSuggestionResult,
+        requestEvent: RequestEvent | undefined
       ) =>
         Effect.gen(function* () {
           const policy = computePolicy(request, result, resolved);
@@ -286,11 +308,25 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
             result,
           };
           yield* store.set(key, entry);
-          yield* recordCacheUpdate({
-            ttlMs: policy.ttlMs,
-            swrMs: policy.swrMs,
-          });
+          yield* recordCacheUpdateWith(
+            {
+              ttlMs: policy.ttlMs,
+              swrMs: policy.swrMs,
+            },
+            requestEvent
+          );
         }).pipe(Effect.catchAll(() => Effect.void));
+
+      const storeEntryWithoutEvent = (
+        key: string,
+        request: SuggestRequest,
+        result: AddressSuggestionResult
+      ) => storeEntry(key, request, result, undefined);
+
+      const recordCacheUpdateInfo = (
+        update: CacheEventUpdate,
+        entryKey: AddressCacheKey
+      ) => recordCacheUpdateWith(update, entryKey.requestEvent);
 
       const revalidate = (
         key: string,
@@ -311,7 +347,9 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
           }
           yield* Effect.forkDaemon(
             fetch.pipe(
-              Effect.tap((result) => storeEntry(key, request, result)),
+              Effect.tap((result) =>
+                storeEntryWithoutEvent(key, request, result)
+              ),
               Effect.catchAll(() => Effect.void),
               Effect.ensuring(
                 Ref.update(revalidating, (current) => {
@@ -332,13 +370,16 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
         Effect.gen(function* () {
           const isStale = cached.staleAt <= now;
           yield* recordCacheMetric("l2-hit");
-          yield* recordCacheUpdate({
-            l2: "hit",
-            stale: isStale ? true : undefined,
-            revalidated: isStale ? true : undefined,
-            ttlMs: cached.expiresAt - cached.storedAt,
-            swrMs: cached.staleAt - cached.storedAt,
-          });
+          yield* recordCacheUpdateInfo(
+            {
+              l2: "hit",
+              stale: isStale ? true : undefined,
+              revalidated: isStale ? true : undefined,
+              ttlMs: cached.expiresAt - cached.storedAt,
+              swrMs: cached.staleAt - cached.storedAt,
+            },
+            entryKey
+          );
           if (isStale) {
             yield* revalidate(entryKey.key, entryKey.request, entryKey.fetch);
           }
@@ -348,9 +389,17 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
       const fetchAndStore = (entryKey: AddressCacheKey) =>
         Effect.gen(function* () {
           yield* recordCacheMetric("l2-miss");
-          yield* recordCacheUpdate({ l2: "miss" });
-          const result = yield* entryKey.fetch;
-          yield* storeEntry(entryKey.key, entryKey.request, result);
+          yield* recordCacheUpdateInfo({ l2: "miss" }, entryKey);
+          const result = yield* provideRequestEvent(
+            entryKey.fetch,
+            entryKey.requestEvent
+          );
+          yield* storeEntry(
+            entryKey.key,
+            entryKey.request,
+            result,
+            entryKey.requestEvent
+          );
           return result;
         });
 
@@ -372,28 +421,35 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
 
       return {
         getOrFetch: (request, fetch) =>
-          l1
-            .getEither(
-              new AddressCacheKey(makeCacheKey(request), request, fetch)
-            )
-            .pipe(
-              Effect.tap((result) =>
-                Effect.all(
-                  [
-                    recordCacheMetric(
-                      Either.isLeft(result) ? "l1-hit" : "l1-miss"
-                    ),
-                    recordCacheUpdate({
-                      l1: Either.isLeft(result) ? "hit" : "miss",
-                    }),
-                  ],
-                  { concurrency: "unbounded" }
-                ).pipe(Effect.asVoid)
-              ),
-              Effect.map((result) =>
-                Either.isLeft(result) ? result.left : result.right
-              )
-            ),
+          Effect.gen(function* () {
+            const maybeEvent = yield* Effect.serviceOption(RequestEvent);
+            const requestEvent = Option.getOrUndefined(maybeEvent);
+            const entryKey = new AddressCacheKey(
+              makeCacheKey(request),
+              request,
+              fetch,
+              requestEvent
+            );
+            const result = yield* l1
+              .getEither(entryKey)
+              .pipe(
+                Effect.tap((value) =>
+                  Effect.all(
+                    [
+                      recordCacheMetric(
+                        Either.isLeft(value) ? "l1-hit" : "l1-miss"
+                      ),
+                      recordCacheUpdateWith(
+                        { l1: Either.isLeft(value) ? "hit" : "miss" },
+                        requestEvent
+                      ),
+                    ],
+                    { concurrency: "unbounded" }
+                  ).pipe(Effect.asVoid)
+                )
+              );
+            return Either.isLeft(result) ? result.left : result.right;
+          }),
       };
     })
   );
