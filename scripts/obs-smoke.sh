@@ -21,7 +21,7 @@ wait_for_health() {
   local attempts=30
   local i=1
   while [[ "${i}" -le "${attempts}" ]]; do
-    if curl -fsS "http://localhost:8787/health" >/dev/null; then
+    if curl -fsS "http://localhost:8787/health" >/dev/null 2>&1; then
       return 0
     fi
     sleep 1
@@ -52,7 +52,8 @@ fi
 echo "==> Checking for wide event log line"
 found=0
 for _ in {1..10}; do
-  if "${COMPOSE[@]}" logs --tail 200 --no-color smart-address | grep -q '"kind":"suggest"'; then
+  logs="$("${COMPOSE[@]}" logs --tail 200 --no-color smart-address)"
+  if grep -q '"kind":"suggest"' <<<"${logs}"; then
     found=1
     break
   fi
