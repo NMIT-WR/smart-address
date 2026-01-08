@@ -83,6 +83,8 @@ Posílání JSON logů a Prometheus metrik do LGTM přes Alloy:
 docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
 ```
 
+Linux eBPF (Beyla) runbook: viz `docs/ebpf.md` (pouze Linux).
+
 ## SDK pro prohlížeč (module script)
 
 ```html

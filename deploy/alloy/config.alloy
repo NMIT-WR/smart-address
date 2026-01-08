@@ -68,6 +68,25 @@ loki.write "lgtm" {
   }
 }
 
+beyla.ebpf "smart_address" {
+  discovery {
+    instrument {
+      open_ports = 8787
+    }
+  }
+  name = "smart-address"
+  // Add "traces" to enable Beyla spans.
+  exports = ["metrics"]
+
+  metrics {
+    features = ["application", "network"]
+  }
+
+  output {
+    traces = [otelcol.processor.batch.beyla.input]
+  }
+}
+
 prometheus.scrape "smart_address" {
   targets = [
     {
@@ -83,8 +102,27 @@ prometheus.scrape "smart_address" {
   forward_to      = [prometheus.remote_write.lgtm.receiver]
 }
 
+prometheus.scrape "beyla" {
+  targets        = beyla.ebpf.smart_address.targets
+  honor_labels   = true
+  scrape_interval = "15s"
+  forward_to     = [prometheus.remote_write.lgtm.receiver]
+}
+
 prometheus.remote_write "lgtm" {
   endpoint {
     url = "http://lgtm:9090/api/v1/write"
+  }
+}
+
+otelcol.processor.batch "beyla" {
+  output {
+    traces = [otelcol.exporter.otlp.beyla.input]
+  }
+}
+
+otelcol.exporter.otlp "beyla" {
+  client {
+    endpoint = coalesce(sys.env("SMART_ADDRESS_BEYLA_OTLP_ENDPOINT"), "lgtm:4317")
   }
 }

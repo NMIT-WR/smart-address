@@ -7,3 +7,4 @@ Task-focused guides for getting specific outcomes. These assume you already have
 - [Use the HTTP service](/how-to/use-service)
 - [Add another provider](/how-to/add-provider)
 - [Integrate legacy checkout (Bootstrap + vanilla JS)](/how-to/legacy-js-integration)
+- [Enable Linux eBPF observability (Beyla)](/how-to/ebpf)

@@ -83,6 +83,8 @@ Ship JSON logs + Prometheus metrics to LGTM via Alloy:
 docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
 ```
 
+Linux eBPF (Beyla) runbook: see `docs/ebpf.md` (Linux-only).
+
 ## Browser SDK (module script)
 
 ```html

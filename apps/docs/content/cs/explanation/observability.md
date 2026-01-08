@@ -60,6 +60,7 @@ docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/c
 - HTTP odpovědi obsahují `server-timing` s celkovou dobou requestu a časy providerů.
 - Hlavička `traceparent` pokračuje upstream trace.
 - Při zapnutém Alloy jdou JSON logy do Loki a Prometheus metriky se remote-write do LGTM.
+- Na Linuxu Beyla eBPF přidává RED + síťové metriky; volitelné Beyla spany jsou oddělené od Effect trace.
 
 ## Chyby
 
@@ -70,3 +71,4 @@ docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/c
 
 - Effect tracing: https://effect.website/docs/observability/tracing/
 - Wide events a tail sampling: https://loggingsucks.com/
+- Linux eBPF návod: /cs/how-to/ebpf

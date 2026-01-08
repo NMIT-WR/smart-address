@@ -7,3 +7,4 @@ Praktické návody zaměřené na konkrétní výsledek. Předpokládají, že u
 - [Použití HTTP služby](/cs/how-to/use-service)
 - [Přidání dalšího providera](/cs/how-to/add-provider)
 - [Integrace legacy checkoutu (Bootstrap + vanilla JS)](/cs/how-to/legacy-js-integration)
+- [Zapnutí Linux eBPF observability (Beyla)](/cs/how-to/ebpf)

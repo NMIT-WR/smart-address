@@ -8,6 +8,8 @@ services:
       - /etc/alloy/config.alloy
     # Root is required for docker.sock access and future eBPF components; run in trusted environments.
     user: "0"
+    privileged: true
+    pid: "service:smart-address"
     ports:
       - "12345:12345"
     volumes:
