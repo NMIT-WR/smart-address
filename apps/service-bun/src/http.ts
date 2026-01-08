@@ -85,7 +85,13 @@ const readHeaderValue = (
   if (!value) {
     return undefined;
   }
-  return Array.isArray(value) ? value[0] : value;
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return undefined;
 };
 
 const traceparentPattern =

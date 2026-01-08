@@ -16,6 +16,7 @@
     "@effect/platform": "catalog:prod",
     "@effect/platform-bun": "catalog:prod",
     "@effect/rpc": "catalog:prod",
+    "@opentelemetry/api": "^1.9.0",
     "@smart-address/core": "workspace:*",
     "@smart-address/integrations": "workspace:*",
     "@smart-address/rpc": "workspace:*",
