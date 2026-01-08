@@ -12,6 +12,7 @@ Run Beyla eBPF metrics (and optional traces) for smart-address on Linux using Al
 - Optional: `SMART_ADDRESS_BEYLA_OTLP_ENDPOINT` to override the OTLP target for Beyla traces (default is `lgtm:4317`).
 - Optional: edit `deploy/alloy/config.alloy` and include `traces` in `exports` to enable Beyla spans.
 
+## Setup
 ```bash
 ./scripts/ebpf-preflight.sh
 ```
