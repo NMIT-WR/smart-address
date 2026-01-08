@@ -7,7 +7,7 @@ services:
       - "8787:8787"
     environment:
       SMART_ADDRESS_OTEL_ENABLED: "true"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318/v1/traces"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
       OTEL_SERVICE_NAME: "smart-address-service"
       NOMINATIM_USER_AGENT: "${NOMINATIM_USER_AGENT:-smart-address-service}"
       NOMINATIM_EMAIL: "${NOMINATIM_EMAIL:-}"
@@ -35,7 +35,8 @@ services:
       - smart-address-data:/app/data
     restart: unless-stopped
     depends_on:
-      - lgtm
+      lgtm:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8787/health"]
       interval: 30s

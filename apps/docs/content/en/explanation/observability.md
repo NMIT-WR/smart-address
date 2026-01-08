@@ -20,7 +20,7 @@ docker compose -f deploy/compose/obs.yaml up -d
 Environment variables that control observability:
 
 - `SMART_ADDRESS_OTEL_ENABLED` (default: `true`)
-- `OTEL_EXPORTER_OTLP_ENDPOINT` (default: `http://localhost:4318/v1/traces`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (default: `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (default: `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (optional)
 - `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` in dev, `0.05` in production)
@@ -32,7 +32,7 @@ Copy-paste example (local tracing):
 docker compose -f deploy/compose/obs.yaml up -d
 
 SMART_ADDRESS_OTEL_ENABLED=true \
-OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318/v1/traces" \
+OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318" \
 OTEL_SERVICE_NAME="smart-address-service" \
 SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE=1 \
 pnpm --filter @smart-address/service-bun dev

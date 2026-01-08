@@ -13,6 +13,7 @@ Usage: PORTS="8787 3000" scripts/free-ports.sh
 Frees any processes listening on the ports listed in $PORTS (default: "8787 3000")
 by calling kill_port for each entry. If Docker is available, the script also
 runs "docker compose down" to stop local compose services.
+Override compose files via COMPOSE_FILES="path1:path2".
 EOF
 }
 
@@ -43,5 +44,12 @@ for port in ${PORTS}; do
 done
 
 if command -v docker >/dev/null 2>&1; then
-  docker compose down >/dev/null 2>&1 || true
+  # Use COMPOSE_FILES (colon-separated) when provided; otherwise target obs+app compose files.
+  compose_files="${COMPOSE_FILES:-deploy/compose/obs.yaml:deploy/compose/app.yaml}"
+  compose_args=()
+  IFS=":" read -r -a compose_paths <<< "${compose_files}"
+  for compose_path in "${compose_paths[@]}"; do
+    compose_args+=(-f "${compose_path}")
+  done
+  docker compose "${compose_args[@]}" down >/dev/null 2>&1 || true
 fi

@@ -16,6 +16,12 @@ services:
         limits:
           cpus: "1.0"
           memory: 1g
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
 
 volumes:
   lgtm-data:

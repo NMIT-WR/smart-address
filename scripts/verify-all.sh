@@ -68,7 +68,24 @@ run curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
 run curl -fsS -X POST "http://localhost:8787/accept" \
   -H "content-type: application/json" \
   --data @- <<'JSON'
-{"text":"Prague","strategy":"reliable","resultIndex":0,"resultCount":5,"suggestion":{"id":"nominatim:123","label":"Prague, CZ","address":{"city":"Prague","countryCode":"CZ"},"source":{"provider":"nominatim","kind":"public"}}}
+{
+  "text": "Prague",
+  "strategy": "reliable",
+  "resultIndex": 0,
+  "resultCount": 5,
+  "suggestion": {
+    "id": "nominatim:123",
+    "label": "Prague, CZ",
+    "address": {
+      "city": "Prague",
+      "countryCode": "CZ"
+    },
+    "source": {
+      "provider": "nominatim",
+      "kind": "public"
+    }
+  }
+}
 JSON
 
 kill "${SERVICE_PID}" 2>/dev/null || true

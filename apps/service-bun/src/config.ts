@@ -83,7 +83,7 @@ const rawConfig = Config.all({
     Config.withDefault(true)
   ),
   otelEndpoint: Config.string("OTEL_EXPORTER_OTLP_ENDPOINT").pipe(
-    Config.withDefault("http://localhost:4318/v1/traces")
+    Config.withDefault("http://localhost:4318")
   ),
   otelServiceName: Config.string("OTEL_SERVICE_NAME").pipe(
     Config.withDefault("smart-address-service")
@@ -132,6 +132,17 @@ const buildProviderBaseConfig = (options: {
 const trimmedOrDefault = (value: string, fallback: string): string => {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : fallback;
+};
+
+const normalizeOtelEndpoint = (value: string): string => {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return "http://localhost:4318/v1/traces";
+  }
+  if (trimmed.endsWith("/v1/traces")) {
+    return trimmed;
+  }
+  return `${trimmed.replace(/\/+$/, "")}/v1/traces`;
 };
 
 const defaultSampleRate = (): number => {
@@ -334,7 +345,7 @@ export const addressServiceConfig = rawConfig.pipe(
       sqlite: buildSqliteConfig(trimmedOptional(raw.sqlitePath)),
       observability: {
         otelEnabled: raw.otelEnabled,
-        otelEndpoint: raw.otelEndpoint.trim(),
+        otelEndpoint: normalizeOtelEndpoint(raw.otelEndpoint),
         otelServiceName: trimmedOrDefault(
           raw.otelServiceName,
           "smart-address-service"

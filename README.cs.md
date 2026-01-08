@@ -68,7 +68,7 @@ docker compose -f deploy/compose/obs.yaml up -d
 Doporučené env proměnné:
 
 - `SMART_ADDRESS_OTEL_ENABLED` (výchozí: `true`)
-- `OTEL_EXPORTER_OTLP_ENDPOINT` (výchozí: `http://localhost:4318/v1/traces`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (výchozí: `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (výchozí: `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (volitelné)
 - `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (výchozí: `1` v dev, `0.05` v production)
