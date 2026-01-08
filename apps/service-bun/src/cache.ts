@@ -161,9 +161,9 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
               Effect.withSpan("sqlite.write.cache", {
                 kind: "client",
                 attributes: sqliteSpanAttributes("INSERT"),
-              })
-            )
-            .pipe(Effect.asVoid),
+              }),
+              Effect.asVoid
+            ),
       };
     })
   );

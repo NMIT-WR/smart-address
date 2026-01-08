@@ -103,6 +103,9 @@ const parseTraceparent = (value: string): SpanContext | undefined => {
     return undefined;
   }
   const [version, traceId, spanId, flags] = trimmed.split("-");
+  if (version === "ff") {
+    return undefined;
+  }
   if (version.length !== 2) {
     return undefined;
   }

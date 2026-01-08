@@ -210,7 +210,8 @@ const recordProviderError = (
       onNone: () => Effect.void,
       onSome: (span) =>
         Effect.sync(() => {
-          span.event("exception", BigInt(Date.now()), {
+          const timestampNs = BigInt(Date.now()) * 1_000_000n;
+          span.event("exception", timestampNs, {
             "exception.type": errorType,
             "exception.message": errorMessage,
           });
@@ -230,7 +231,6 @@ const runProvider = <R>(provider: AddressProvider<R>, query: AddressQuery) =>
     Effect.withSpan("address.provider", {
       kind: "client",
       attributes: {
-        "address.provider": provider.name,
         "provider.name": provider.name,
         "provider.kind": readProviderKind(provider),
       },
