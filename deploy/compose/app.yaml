@@ -1,7 +1,7 @@
 services:
   smart-address:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile
     ports:
       - "8787:8787"
