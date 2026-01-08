@@ -55,6 +55,25 @@ Metriky (cache + zdraví providerů):
 curl "http://localhost:8787/metrics"
 ```
 
+## Observabilita (OpenTelemetry)
+
+Smart Address posílá jeden wide event na request a trace přes Effect + OpenTelemetry.
+
+Lokální OTEL backend:
+
+```bash
+docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+```
+
+Doporučené env proměnné:
+
+- `SMART_ADDRESS_OTEL_ENABLED` (výchozí: `true`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (výchozí: `http://localhost:4318/v1/traces`)
+- `OTEL_SERVICE_NAME` (výchozí: `smart-address-service`)
+- `OTEL_SERVICE_VERSION` (volitelné)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (výchozí: `1` v dev, `0.05` v production)
+- `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (výchozí: `2000`)
+
 ## SDK pro prohlížeč (module script)
 
 ```html

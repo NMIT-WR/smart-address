@@ -216,7 +216,7 @@ export const makeHereDiscoverProvider = (config: HereDiscoverConfig) =>
       }
 
       const start = yield* currentTimeMillis;
-      yield* Effect.logInfo("here-discover request", {
+      yield* Effect.logDebug("here-discover request", {
         url: request.url,
         params: logParams,
         query,
@@ -225,7 +225,7 @@ export const makeHereDiscoverProvider = (config: HereDiscoverConfig) =>
       const response = yield* execute(request);
       const elapsedMs = (yield* currentTimeMillis) - start;
 
-      yield* Effect.logInfo("here-discover response", {
+      yield* Effect.logDebug("here-discover response", {
         status: response.status,
         elapsedMs,
         headers: response.headers,
@@ -244,7 +244,7 @@ export const makeHereDiscoverProvider = (config: HereDiscoverConfig) =>
       }
 
       const body = yield* response.json;
-      yield* Effect.logInfo("here-discover response body", body);
+      yield* Effect.logDebug("here-discover response body", body);
 
       return yield* parseHereDiscoverResponse(body).pipe(
         Effect.tapError((error) =>

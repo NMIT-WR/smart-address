@@ -23,11 +23,12 @@ import {
   makeAddressRateLimiter,
   withRateLimiter,
 } from "@smart-address/integrations/rate-limit";
-import { Context, Effect, Exit, Layer } from "effect";
+import { Context, Effect, Exit, Layer, Option } from "effect";
 import { currentTimeMillis } from "effect/Clock";
 import { type DurationInput, seconds } from "effect/Duration";
 import { AddressMetrics } from "./metrics";
 import type { SuggestRequest } from "./request";
+import { RequestEvent } from "./request-event";
 
 export interface AddressSuggestor {
   readonly suggest: (
@@ -93,14 +94,28 @@ const withProviderMetrics = <R>(
       const start = yield* currentTimeMillis;
       const exit = yield* Effect.exit(provider.suggest(query));
       const durationMs = (yield* currentTimeMillis) - start;
+      const ok = Exit.isSuccess(exit);
       yield* metrics
         .recordProvider({
           provider: provider.name,
           durationMs,
-          ok: Exit.isSuccess(exit),
+          ok,
         })
         .pipe(Effect.catchAll(() => Effect.void));
-      return yield* Effect.done(exit);
+      const maybeEvent = yield* Effect.serviceOption(RequestEvent);
+      yield* Option.match(maybeEvent, {
+        onNone: () => Effect.void,
+        onSome: (event) =>
+          event.recordProvider({
+            provider: provider.name,
+            durationMs,
+            ok,
+          }),
+      }).pipe(Effect.catchAll(() => Effect.void));
+      if (Exit.isFailure(exit)) {
+        return yield* Effect.failCause(exit.cause);
+      }
+      return exit.value;
     }),
 });
 
@@ -175,10 +190,17 @@ export const AddressSuggestorLayer = (config: AddressSuggestorConfig) =>
 
       return {
         suggest: (request) =>
-          (request.strategy === "fast"
-            ? fastService.suggest(request.query)
-            : reliableService.suggest(request.query)
-          ).pipe(Effect.map(sortSuggestionsByScore)),
+          Effect.gen(function* () {
+            const isFast = request.strategy === "fast";
+            const plan = isFast ? fastPlan : reliablePlan;
+            const maybeEvent = yield* Effect.serviceOption(RequestEvent);
+            yield* Option.match(maybeEvent, {
+              onNone: () => Effect.void,
+              onSome: (event) => event.recordPlan(plan),
+            }).pipe(Effect.catchAll(() => Effect.void));
+            const service = isFast ? fastService : reliableService;
+            return yield* service.suggest(request.query);
+          }).pipe(Effect.map(sortSuggestionsByScore)),
       };
     })
   );

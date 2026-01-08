@@ -185,7 +185,13 @@ const runProvider = <R>(provider: AddressProvider<R>, query: AddressQuery) =>
         suggestions: [],
         error: normalizeProviderError(provider.name, error),
       })
-    )
+    ),
+    Effect.withSpan("address.provider", {
+      kind: "client",
+      attributes: {
+        "address.provider": provider.name,
+      },
+    })
   );
 
 const isPlan = <R>(
@@ -247,7 +253,18 @@ const collectStageResults = <R>(
         errors.push(toSuggestionError(result.error));
       }
     }
-  });
+  }).pipe(
+    Effect.withSpan("address.stage", {
+      kind: "internal",
+      attributes: {
+        ...(stage.name ? { "address.stage.name": stage.name } : {}),
+        "address.stage.concurrency": stage.concurrency ?? "unbounded",
+        "address.stage.providers": stage.providers.map(
+          (provider) => provider.name
+        ),
+      },
+    })
+  );
 
 const runPlan = <R>(
   plan: AddressProviderPlan<R>,
@@ -275,7 +292,17 @@ const runPlan = <R>(
       suggestions: applyLimit(Array.from(suggestions.values()), limit),
       errors,
     };
-  });
+  }).pipe(
+    Effect.withSpan("address.plan", {
+      kind: "internal",
+      attributes: {
+        "address.plan.stages": plan.stages.length,
+        ...(query.limit === undefined
+          ? {}
+          : { "address.query.limit": query.limit }),
+      },
+    })
+  );
 
 export const makeAddressSuggestionService = <R>(
   input: AddressProviderInput<R>,

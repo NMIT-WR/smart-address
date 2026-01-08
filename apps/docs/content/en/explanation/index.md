@@ -4,6 +4,7 @@ Background and mental models for why the system works the way it does. Use these
 
 - [Architecture](/explanation/architecture)
 - [Strategies](/explanation/strategies)
+- [Observability](/explanation/observability)
 - [HERE Discover PRD](/explanation/here-discover-prd)
 - [Caching](/explanation/caching)
 - [Data ownership](/explanation/data-ownership)

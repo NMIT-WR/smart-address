@@ -52,7 +52,7 @@ class AcceptRequestError extends Data.TaggedError("AcceptRequestError")<{
 }> {}
 
 const normalizeCount = (value: number | undefined): number | undefined => {
-  if (!Number.isFinite(value)) {
+  if (value === undefined || !Number.isFinite(value)) {
     return undefined;
   }
   const normalized = Math.trunc(value);
@@ -70,11 +70,14 @@ export const toAcceptRequest = (
     return Effect.fail(new AcceptRequestError({ message: parsed.error }));
   }
 
+  const resultIndex = normalizeCount(payload.resultIndex);
+  const resultCount = normalizeCount(payload.resultCount);
+
   return Effect.succeed({
     query: parsed.query,
     strategy: parsed.strategy,
     suggestion: payload.suggestion,
-    resultIndex: normalizeCount(payload.resultIndex),
-    resultCount: normalizeCount(payload.resultCount),
+    ...(resultIndex !== undefined ? { resultIndex } : {}),
+    ...(resultCount !== undefined ? { resultCount } : {}),
   });
 };

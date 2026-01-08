@@ -21,6 +21,7 @@ https://github.com/PaulJPhilp/EffectPatterns#getting-started
 - Documentation follows Diataxis (tutorials, how-to, reference, explanation).
 - Docs live in `apps/docs/content/en` and `apps/docs/content/cs` and must stay structurally mirrored (same pages, same paths).
 - Update docs (EN + CS) whenever APIs, behavior, or versions change (also keep `README.md` and `README.cs.md` in sync).
+- Observability: use RequestEvent wide events (one per request) with tail sampling; use `annotateSpans` for request-level metadata and `annotateCurrentSpan` for span-specific details; avoid extra logs.
 - Write AI-friendly docs:
   - Use stable section headings (EN: `## Goal`, `## Prerequisites`, `## Inputs`, `## Output`, `## Errors`, `## See also`; CS: `## Cíl`, `## Předpoklady`, `## Vstupy`, `## Výstup`, `## Chyby`, `## Viz také`).
   - Prefer explicit contracts (inputs/outputs/defaults) over narrative.

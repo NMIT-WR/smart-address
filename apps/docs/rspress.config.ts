@@ -8,7 +8,7 @@ const rawDocsServiceBaseUrl = process.env.DOCS_SERVICE_BASE_URL?.trim();
 const docsServiceBaseUrl =
   rawDocsServiceBaseUrl && rawDocsServiceBaseUrl.length > 0
     ? rawDocsServiceBaseUrl
-    : 'http://localhost:8787';
+    : "http://localhost:8787";
 
 const enNav = [
   { text: "Tutorials", link: "/tutorials/" },
@@ -147,11 +147,11 @@ export default defineConfig({
   builderConfig: {
     server: {
       proxy: {
-        '/demo': {
+        "/demo": {
           target: docsServiceBaseUrl,
           changeOrigin: true,
         },
-        '/suggest': {
+        "/suggest": {
           target: docsServiceBaseUrl,
           changeOrigin: true,
         },

@@ -17,6 +17,14 @@ interface AddressServiceConfig {
   readonly hereDiscoverRateLimit: Duration | null;
   readonly cache: AddressCacheConfig;
   readonly sqlite: AddressSqliteConfig;
+  readonly observability: {
+    readonly otelEnabled: boolean;
+    readonly otelEndpoint: string;
+    readonly otelServiceName: string;
+    readonly otelServiceVersion?: string;
+    readonly wideEventSampleRate: number;
+    readonly wideEventSlowMs: number;
+  };
 }
 
 const rawConfig = Config.all({
@@ -71,6 +79,22 @@ const rawConfig = Config.all({
   sqlitePath: Config.string("SMART_ADDRESS_DB_PATH").pipe(
     Config.withDefault("")
   ),
+  otelEnabled: Config.boolean("SMART_ADDRESS_OTEL_ENABLED").pipe(
+    Config.withDefault(true)
+  ),
+  otelEndpoint: Config.string("OTEL_EXPORTER_OTLP_ENDPOINT").pipe(
+    Config.withDefault("http://localhost:4318/v1/traces")
+  ),
+  otelServiceName: Config.string("OTEL_SERVICE_NAME").pipe(
+    Config.withDefault("smart-address-service")
+  ),
+  otelServiceVersion: Config.option(Config.string("OTEL_SERVICE_VERSION")),
+  wideEventSampleRate: Config.option(
+    Config.number("SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE")
+  ),
+  wideEventSlowMs: Config.integer("SMART_ADDRESS_WIDE_EVENT_SLOW_MS").pipe(
+    Config.withDefault(2000)
+  ),
 });
 
 const optionalValue = <A>(value: Option.Option<A>): A | undefined =>
@@ -95,10 +119,33 @@ const redactedOptional = (
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
+const buildProviderBaseConfig = (options: {
+  baseUrl: string | undefined;
+  defaultLimit: number | undefined;
+}) => ({
+  ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+  ...(options.defaultLimit !== undefined
+    ? { defaultLimit: options.defaultLimit }
+    : {}),
+});
+
 const trimmedOrDefault = (value: string, fallback: string): string => {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : fallback;
 };
+
+const defaultSampleRate = (): number => {
+  const env =
+    (typeof Bun !== "undefined" ? Bun.env.NODE_ENV : undefined) ??
+    globalThis.process?.env?.NODE_ENV ??
+    "";
+  return env.toLowerCase() === "production" ? 0.05 : 1;
+};
+
+const clampSampleRate = (value: number): number =>
+  Number.isFinite(value)
+    ? Math.min(1, Math.max(0, value))
+    : defaultSampleRate();
 
 const defaultCoordinate = (
   lat: number | undefined,
@@ -116,11 +163,11 @@ const toRateLimit = (
   return value <= 0 ? null : millis(value);
 };
 
-const withOptionalValue = <K extends keyof AddressCacheConfig, V>(
+const withOptionalValue = <K extends keyof AddressCacheConfig>(
   key: K,
-  value: V | undefined
+  value: AddressCacheConfig[K] | undefined
 ): Partial<AddressCacheConfig> =>
-  value === undefined ? {} : ({ [key]: value } as Pick<AddressCacheConfig, K>);
+  value === undefined ? {} : ({ [key]: value } as Partial<AddressCacheConfig>);
 
 const withOptionalDuration = <K extends keyof AddressCacheConfig>(
   key: K,
@@ -128,7 +175,7 @@ const withOptionalDuration = <K extends keyof AddressCacheConfig>(
 ): Partial<AddressCacheConfig> =>
   value === undefined
     ? {}
-    : ({ [key]: millis(value) } as Pick<AddressCacheConfig, K>);
+    : ({ [key]: millis(value) } as Partial<AddressCacheConfig>);
 
 const buildCacheConfig = (options: {
   l1Capacity: number | undefined;
@@ -152,24 +199,15 @@ const buildNominatimConfig = (options: {
   referer: string | undefined;
   userAgent: string;
   defaultLimit: number | undefined;
-}): NominatimConfig => {
-  const config: NominatimConfig = { userAgent: options.userAgent };
-
-  if (options.baseUrl) {
-    config.baseUrl = options.baseUrl;
-  }
-  if (options.email) {
-    config.email = options.email;
-  }
-  if (options.referer) {
-    config.referer = options.referer;
-  }
-  if (options.defaultLimit !== undefined) {
-    config.defaultLimit = options.defaultLimit;
-  }
-
-  return config;
-};
+}): NominatimConfig => ({
+  userAgent: options.userAgent,
+  ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+  ...(options.email ? { email: options.email } : {}),
+  ...(options.referer ? { referer: options.referer } : {}),
+  ...(options.defaultLimit !== undefined
+    ? { defaultLimit: options.defaultLimit }
+    : {}),
+});
 
 const buildRadarAutocompleteConfig = (options: {
   apiKey: string | undefined;
@@ -183,25 +221,13 @@ const buildRadarAutocompleteConfig = (options: {
     return null;
   }
 
-  const config: RadarAutocompleteConfig = { apiKey: options.apiKey };
-
-  if (options.baseUrl) {
-    config.baseUrl = options.baseUrl;
-  }
-  if (options.defaultLimit !== undefined) {
-    config.defaultLimit = options.defaultLimit;
-  }
-  if (options.layers) {
-    config.layers = options.layers;
-  }
-  if (options.near) {
-    config.near = options.near;
-  }
-  if (options.countryCode) {
-    config.countryCode = options.countryCode;
-  }
-
-  return config;
+  return {
+    apiKey: options.apiKey,
+    ...buildProviderBaseConfig(options),
+    ...(options.layers ? { layers: options.layers } : {}),
+    ...(options.near ? { near: options.near } : {}),
+    ...(options.countryCode ? { countryCode: options.countryCode } : {}),
+  };
 };
 
 const buildHereDiscoverConfig = (options: {
@@ -217,27 +243,14 @@ const buildHereDiscoverConfig = (options: {
     return null;
   }
 
-  const config: HereDiscoverConfig = { apiKey: options.apiKey };
-
-  if (options.baseUrl) {
-    config.baseUrl = options.baseUrl;
-  }
-  if (options.defaultLimit !== undefined) {
-    config.defaultLimit = options.defaultLimit;
-  }
-  if (options.language) {
-    config.language = options.language;
-  }
-  if (options.inArea) {
-    config.inArea = options.inArea;
-  }
-
   const at = options.at ?? options.defaultAt;
-  if (at) {
-    config.at = at;
-  }
-
-  return config;
+  return {
+    apiKey: options.apiKey,
+    ...buildProviderBaseConfig(options),
+    ...(options.language ? { language: options.language } : {}),
+    ...(options.inArea ? { inArea: options.inArea } : {}),
+    ...(at ? { at } : {}),
+  };
 };
 
 const buildSqliteConfig = (path: string | undefined): AddressSqliteConfig =>
@@ -259,6 +272,9 @@ export const addressServiceConfig = rawConfig.pipe(
     const hereDefaultLat = optionalValue(raw.hereDefaultLat);
     const hereDefaultLng = optionalValue(raw.hereDefaultLng);
     const hereRateLimitMs = optionalValue(raw.hereRateLimitMs);
+    const wideEventSampleRate = clampSampleRate(
+      optionalValue(raw.wideEventSampleRate) ?? defaultSampleRate()
+    );
 
     const nominatimUserAgent = trimmedOrDefault(
       raw.nominatimUserAgent,
@@ -301,6 +317,10 @@ export const addressServiceConfig = rawConfig.pipe(
       l2SWRMs,
     });
 
+    const otelServiceVersion = trimmedOptionalFromOption(
+      raw.otelServiceVersion
+    );
+
     return {
       port: raw.port,
       providerTimeout: millis(raw.providerTimeoutMs),
@@ -312,6 +332,17 @@ export const addressServiceConfig = rawConfig.pipe(
       hereDiscoverRateLimit: toRateLimit(hereRateLimitMs, null),
       cache: cacheConfig,
       sqlite: buildSqliteConfig(trimmedOptional(raw.sqlitePath)),
+      observability: {
+        otelEnabled: raw.otelEnabled,
+        otelEndpoint: raw.otelEndpoint.trim(),
+        otelServiceName: trimmedOrDefault(
+          raw.otelServiceName,
+          "smart-address-service"
+        ),
+        ...(otelServiceVersion ? { otelServiceVersion } : {}),
+        wideEventSampleRate,
+        wideEventSlowMs: Math.max(0, raw.wideEventSlowMs),
+      },
     };
   })
 );

@@ -1,6 +1,10 @@
-import { fromWeb } from "@effect/platform/HttpServerRequest";
+import {
+  fromWeb,
+  type HttpServerRequest,
+} from "@effect/platform/HttpServerRequest";
+import type { HttpServerResponse } from "@effect/platform/HttpServerResponse";
 import { describe, expect, it } from "@effect-native/bun-test";
-import { Effect, Ref } from "effect";
+import { Effect, Ref, Tracer } from "effect";
 import {
   handleAcceptPost,
   handleMetricsGet,
@@ -8,12 +12,53 @@ import {
   handleSuggestPost,
 } from "../src/http";
 import type { AddressMetrics } from "../src/metrics";
+import { RequestEventConfigLayer } from "../src/request-event";
 import {
   makeRequestUrl,
   makeRunAcceptRequest,
   makeSuggestPostRequest,
   parseJsonResponse,
 } from "./http-helpers";
+
+interface RecordedSpan {
+  name: string;
+  attributes: Map<string, unknown>;
+}
+
+const makeTestTracer = (spans: RecordedSpan[]) => {
+  let counter = 0;
+  return Tracer.make({
+    span: (name, parent, context, links, startTime, kind) => {
+      const attributes = new Map<string, unknown>();
+      spans.push({ name, attributes });
+      let status: Tracer.SpanStatus = { _tag: "Started", startTime };
+      const span: Tracer.Span = {
+        _tag: "Span",
+        name,
+        spanId: `span-${counter++}`,
+        traceId: "trace-1",
+        parent,
+        context,
+        status,
+        attributes,
+        links,
+        sampled: true,
+        kind,
+        end: (endTime, exit) => {
+          status = { _tag: "Ended", startTime, endTime, exit };
+          span.status = status;
+        },
+        attribute: (key, value) => {
+          attributes.set(key, value);
+        },
+        event: () => undefined,
+        addLinks: () => undefined,
+      };
+      return span;
+    },
+    context: (f) => f(),
+  });
+};
 
 const sampleResult = {
   suggestions: [
@@ -67,6 +112,25 @@ const metrics: AddressMetrics = {
 };
 
 const runAcceptRequest = makeRunAcceptRequest(handleAcceptPost);
+const requestEventConfigLayer = RequestEventConfigLayer({
+  serviceName: "test-service",
+  serviceVersion: "test",
+  sampleRate: 1,
+  slowThresholdMs: 0,
+});
+
+const expectSuggestResponse = (
+  handler: (request: HttpServerRequest) => Effect.Effect<HttpServerResponse>,
+  request: HttpServerRequest
+) =>
+  Effect.gen(function* () {
+    const { web, body } = yield* parseJsonResponse(
+      yield* handler(request).pipe(Effect.provide(requestEventConfigLayer))
+    );
+
+    expect(web.status).toBe(200);
+    expect(body.suggestions[0]?.id).toBe("sample:1");
+  });
 
 describe("http handlers", () => {
   it.effect("handles GET /suggest", () =>
@@ -74,25 +138,41 @@ describe("http handlers", () => {
       const request = fromWeb(
         new Request(makeRequestUrl("/suggest?text=Main&strategy=fast"))
       );
+      yield* expectSuggestResponse(handleSuggestGet(suggestor), request);
+    })
+  );
 
-      const { web, body } = yield* parseJsonResponse(
-        yield* handleSuggestGet(suggestor)(request)
+  it.effect("propagates request metadata to child spans", () =>
+    Effect.gen(function* () {
+      const spans: RecordedSpan[] = [];
+      const tracer = makeTestTracer(spans);
+      const suggestorWithSpan = {
+        suggest: () =>
+          Effect.succeed(sampleResult).pipe(Effect.withSpan("child-suggest")),
+      };
+      const request = fromWeb(
+        new Request(makeRequestUrl("/suggest?text=Main&strategy=fast"), {
+          headers: { "x-request-id": "req-123" },
+        })
       );
 
-      expect(web.status).toBe(200);
-      expect(body.suggestions[0]?.id).toBe("sample:1");
+      yield* handleSuggestGet(suggestorWithSpan)(request).pipe(
+        Effect.provide(requestEventConfigLayer),
+        Effect.withTracer(tracer)
+      );
+
+      const childSpan = spans.find((span) => span.name === "child-suggest");
+      expect(childSpan).toBeDefined();
+      expect(childSpan?.attributes.get("request.id")).toBe("req-123");
+      expect(childSpan?.attributes.get("request.kind")).toBe("suggest");
+      expect(childSpan?.attributes.get("request.source")).toBe("http");
     })
   );
 
   it.effect("handles POST /suggest", () =>
     Effect.gen(function* () {
       const request = makeSuggestPostRequest({ text: "Main" });
-      const { web, body } = yield* parseJsonResponse(
-        yield* handleSuggestPost(suggestor)(request)
-      );
-
-      expect(web.status).toBe(200);
-      expect(body.suggestions[0]?.id).toBe("sample:1");
+      yield* expectSuggestResponse(handleSuggestPost(suggestor), request);
     })
   );
 
@@ -100,7 +180,9 @@ describe("http handlers", () => {
     Effect.gen(function* () {
       const request = makeSuggestPostRequest({});
       const { web, body } = yield* parseJsonResponse(
-        yield* handleSuggestPost(suggestor)(request)
+        yield* handleSuggestPost(suggestor)(request).pipe(
+          Effect.provide(requestEventConfigLayer)
+        )
       );
 
       expect(web.status).toBe(400);
@@ -113,7 +195,7 @@ describe("http handlers", () => {
       const { web, body } = yield* runAcceptRequest(
         acceptPayload,
         () => Effect.void
-      );
+      ).pipe(Effect.provide(requestEventConfigLayer));
 
       expect(web.status).toBe(200);
       expect(body.ok).toBe(true);
@@ -125,7 +207,7 @@ describe("http handlers", () => {
       const recorded = yield* Ref.make<unknown>(null);
       const { web } = yield* runAcceptRequest(acceptPayload, (payload) =>
         Ref.set(recorded, payload)
-      );
+      ).pipe(Effect.provide(requestEventConfigLayer));
       const logged = yield* Ref.get(recorded);
 
       expect(web.status).toBe(200);
@@ -141,7 +223,7 @@ describe("http handlers", () => {
       const { web, body } = yield* runAcceptRequest(
         { suggestion: acceptPayload.suggestion },
         () => Effect.void
-      );
+      ).pipe(Effect.provide(requestEventConfigLayer));
 
       expect(web.status).toBe(400);
       expect(body.error).toBeTypeOf("string");
@@ -152,7 +234,9 @@ describe("http handlers", () => {
     Effect.gen(function* () {
       const request = fromWeb(new Request(makeRequestUrl("/metrics")));
       const { web, body } = yield* parseJsonResponse(
-        yield* handleMetricsGet(metrics)(request)
+        yield* handleMetricsGet(metrics)(request).pipe(
+          Effect.provide(requestEventConfigLayer)
+        )
       );
 
       expect(web.status).toBe(200);

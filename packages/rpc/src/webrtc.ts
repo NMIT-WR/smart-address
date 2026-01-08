@@ -5,7 +5,7 @@ import {
 } from "@effect/platform/Socket";
 import { SocketServer, SocketServerError } from "@effect/platform/SocketServer";
 import { Effect, Layer } from "effect";
-import type { Context } from "effect/Context";
+import type * as Context from "effect/Context";
 
 export interface DataChannelMessageEvent {
   readonly data: string | ArrayBuffer | ArrayBufferView;
@@ -64,13 +64,21 @@ const makeReadableStream = (
     start(controller) {
       const onMessage: DataChannelListener<"message"> = (event) => {
         const data = event.data;
+        if (typeof data === "string") {
+          controller.enqueue(data);
+          return;
+        }
         if (data instanceof ArrayBuffer) {
           controller.enqueue(new Uint8Array(data));
           return;
         }
-        controller.enqueue(
-          typeof data === "string" ? data : new Uint8Array(data)
-        );
+        if (ArrayBuffer.isView(data)) {
+          controller.enqueue(
+            new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+          );
+          return;
+        }
+        controller.enqueue(new Uint8Array(data));
       };
       const onClose: DataChannelListener<"close"> = () => {
         cleanup?.();

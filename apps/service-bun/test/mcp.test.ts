@@ -3,6 +3,7 @@ import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect } from "effect";
 import { AddressCachedSuggestor } from "../src/cache";
 import { AddressMcpHandlersLayer, AddressMcpToolkit } from "../src/mcp";
+import { RequestEventConfigLayer } from "../src/request-event";
 
 const sampleResult = {
   suggestions: [
@@ -20,6 +21,13 @@ const suggestor = {
   suggest: () => Effect.succeed(sampleResult),
 };
 
+const requestEventConfigLayer = RequestEventConfigLayer({
+  serviceName: "test-service",
+  serviceVersion: "test",
+  sampleRate: 1,
+  slowThresholdMs: 0,
+});
+
 describe("mcp toolkit", () => {
   it.effect("registers suggest-address tool metadata", () =>
     Effect.gen(function* () {
@@ -30,7 +38,8 @@ describe("mcp toolkit", () => {
           return server.tools;
         }).pipe(
           Effect.provide(AddressMcpHandlersLayer),
-          Effect.provide(McpServer.McpServer.layer)
+          Effect.provide(McpServer.McpServer.layer),
+          Effect.provide(requestEventConfigLayer)
         )
       );
 
@@ -60,7 +69,8 @@ describe("mcp toolkit", () => {
         return yield* toolkit.handle("suggest-address", { text: "Demo" });
       }).pipe(
         Effect.provide(AddressMcpHandlersLayer),
-        Effect.provideService(AddressCachedSuggestor, suggestor)
+        Effect.provideService(AddressCachedSuggestor, suggestor),
+        Effect.provide(requestEventConfigLayer)
       );
 
       expect(result.result).toMatchObject(sampleResult);

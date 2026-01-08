@@ -11,6 +11,11 @@ import {
 import { addressServiceConfig } from "./config";
 import { AddressMcpHandlersLayer, AddressMcpLayer } from "./mcp";
 import { AddressMetricsLayer } from "./metrics";
+import { makeOtelLayer } from "./otel";
+import {
+  type RequestEventConfig,
+  RequestEventConfigLayer,
+} from "./request-event";
 import { AddressRoutesLayer } from "./routes";
 import { AddressRpcServerLayer } from "./rpc";
 import { AddressSearchLogSqlite } from "./search-log";
@@ -19,6 +24,7 @@ import { AddressSuggestorLayer } from "./service";
 const serverLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
     const config = yield* addressServiceConfig;
+    const observability = config.observability;
     const metricsLayer = AddressMetricsLayer;
     const cacheStoreLayer = AddressCacheStoreSqlite(config.sqlite);
     const cacheLayer = AddressSuggestionCacheLayer(config.cache).pipe(
@@ -54,8 +60,24 @@ const serverLayer = Layer.unwrapEffect(
       Layer.provide(metricsLayer)
     );
 
+    const otelLayer = makeOtelLayer({
+      enabled: observability.otelEnabled,
+      endpoint: observability.otelEndpoint,
+      serviceName: observability.otelServiceName,
+      serviceVersion: observability.otelServiceVersion,
+    }).pipe(Layer.provide(fetchHttpClientLayer));
+
+    const requestEventConfig: RequestEventConfig = {
+      serviceName: observability.otelServiceName,
+      serviceVersion: observability.otelServiceVersion,
+      sampleRate: observability.wideEventSampleRate,
+      slowThresholdMs: observability.wideEventSlowMs,
+    };
+
     return serve(appLayer).pipe(
-      Layer.provide(BunHttpServer.layer({ port: config.port }))
+      Layer.provide(BunHttpServer.layer({ port: config.port })),
+      Layer.provide(RequestEventConfigLayer(requestEventConfig)),
+      Layer.provide(otelLayer)
     );
   })
 );

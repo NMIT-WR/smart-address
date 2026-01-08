@@ -2,14 +2,14 @@ import { type AddressQuery, normalizeAddressQuery } from "@smart-address/core";
 import type { AddressStrategy } from "@smart-address/rpc/suggest";
 
 interface QueryPayload {
-  readonly text?: string;
-  readonly q?: string;
-  readonly limit?: number;
-  readonly countryCode?: string;
-  readonly locale?: string;
-  readonly sessionToken?: string;
-  readonly strategy?: AddressStrategy;
-  readonly mode?: AddressStrategy;
+  readonly text?: string | undefined;
+  readonly q?: string | undefined;
+  readonly limit?: number | undefined;
+  readonly countryCode?: string | undefined;
+  readonly locale?: string | undefined;
+  readonly sessionToken?: string | undefined;
+  readonly strategy?: AddressStrategy | undefined;
+  readonly mode?: AddressStrategy | undefined;
 }
 
 interface ParsedQueryPayload {

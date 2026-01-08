@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@effect/ai": "catalog:prod",
+    "@effect/opentelemetry": "^0.60.0",
     "@effect/platform": "catalog:prod",
     "@effect/platform-bun": "catalog:prod",
     "@effect/rpc": "catalog:prod",

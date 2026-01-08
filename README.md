@@ -55,6 +55,25 @@ Metrics snapshot (cache + provider health):
 curl "http://localhost:8787/metrics"
 ```
 
+## Observability (OpenTelemetry)
+
+Smart Address emits one wide event per request and traces via Effect + OpenTelemetry.
+
+Run a local OTEL backend:
+
+```bash
+docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+```
+
+Recommended env vars:
+
+- `SMART_ADDRESS_OTEL_ENABLED` (default: `true`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (default: `http://localhost:4318/v1/traces`)
+- `OTEL_SERVICE_NAME` (default: `smart-address-service`)
+- `OTEL_SERVICE_VERSION` (optional)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` in dev, `0.05` in production)
+- `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
+
 ## Browser SDK (module script)
 
 ```html

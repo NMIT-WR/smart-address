@@ -1,4 +1,14 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite/core", "ultracite/react"]
+  "extends": ["ultracite/core", "ultracite/react"],
+  "files": {
+    "includes": [
+      "**/*",
+      "!**/.schaltwerk",
+      "!apps/landing/src/routeTree.gen.ts"
+    ]
+  },
+  "javascript": {
+    "globals": ["Bun"]
+  }
 }

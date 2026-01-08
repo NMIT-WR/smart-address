@@ -4,6 +4,7 @@ Kontext a mentální modely pro fungování systému. Použijte tyto stránky, k
 
 - [Architektura](/cs/explanation/architecture)
 - [Strategie](/cs/explanation/strategies)
+- [Observabilita](/cs/explanation/observability)
 - [HERE Discover PRD](/cs/explanation/here-discover-prd)
 - [Caching](/cs/explanation/caching)
 - [Vlastnictví dat](/cs/explanation/data-ownership)

@@ -4,7 +4,7 @@ import {
   addressQueryKey,
 } from "@smart-address/core";
 import { AddressSuggestionResultSchema } from "@smart-address/core/schema";
-import { Cache, Context, Effect, Either, Layer, Ref } from "effect";
+import { Cache, Context, Effect, Either, Layer, Option, Ref } from "effect";
 import { currentTimeMillis } from "effect/Clock";
 import {
   type DurationInput,
@@ -22,6 +22,7 @@ import {
 } from "effect/Schema";
 import { AddressMetrics, type CacheMetricEvent } from "./metrics";
 import type { SuggestRequest } from "./request";
+import { type CacheEventUpdate, RequestEvent } from "./request-event";
 import { AddressSearchLog } from "./search-log";
 import { AddressSuggestor } from "./service";
 import { type AddressSqliteConfig, openAddressSqlite } from "./sqlite";
@@ -253,8 +254,19 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
         Object.entries(config).filter(([, value]) => value !== undefined)
       ) as Partial<AddressCacheConfig>;
       const resolved = { ...defaultCacheConfig, ...overrides };
-      const recordCache = (event: CacheMetricEvent) =>
+      const recordCacheMetric = (event: CacheMetricEvent) =>
         metrics.recordCache(event).pipe(Effect.catchAll(() => Effect.void));
+
+      const recordCacheUpdate = (update: CacheEventUpdate) =>
+        Effect.serviceOption(RequestEvent).pipe(
+          Effect.flatMap((maybeEvent) =>
+            Option.match(maybeEvent, {
+              onNone: () => Effect.void,
+              onSome: (event) => event.recordCache(update),
+            })
+          ),
+          Effect.catchAll(() => Effect.void)
+        );
 
       const storeEntry = (
         key: string,
@@ -274,6 +286,10 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
             result,
           };
           yield* store.set(key, entry);
+          yield* recordCacheUpdate({
+            ttlMs: policy.ttlMs,
+            swrMs: policy.swrMs,
+          });
         }).pipe(Effect.catchAll(() => Effect.void));
 
       const revalidate = (
@@ -308,21 +324,44 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
           );
         });
 
+      const handleCacheHit = (
+        entryKey: AddressCacheKey,
+        cached: AddressCacheEntry,
+        now: number
+      ) =>
+        Effect.gen(function* () {
+          const isStale = cached.staleAt <= now;
+          yield* recordCacheMetric("l2-hit");
+          yield* recordCacheUpdate({
+            l2: "hit",
+            stale: isStale ? true : undefined,
+            revalidated: isStale ? true : undefined,
+            ttlMs: cached.expiresAt - cached.storedAt,
+            swrMs: cached.staleAt - cached.storedAt,
+          });
+          if (isStale) {
+            yield* revalidate(entryKey.key, entryKey.request, entryKey.fetch);
+          }
+          return cached.result;
+        });
+
+      const fetchAndStore = (entryKey: AddressCacheKey) =>
+        Effect.gen(function* () {
+          yield* recordCacheMetric("l2-miss");
+          yield* recordCacheUpdate({ l2: "miss" });
+          const result = yield* entryKey.fetch;
+          yield* storeEntry(entryKey.key, entryKey.request, result);
+          return result;
+        });
+
       const lookup = (entryKey: AddressCacheKey) =>
         Effect.gen(function* () {
           const cached = yield* store.get(entryKey.key);
           const now = yield* currentTimeMillis;
-          if (cached && cached.expiresAt > now) {
-            yield* recordCache("l2-hit");
-            if (cached.staleAt <= now) {
-              yield* revalidate(entryKey.key, entryKey.request, entryKey.fetch);
-            }
-            return cached.result;
+          if (!cached || cached.expiresAt <= now) {
+            return yield* fetchAndStore(entryKey);
           }
-          yield* recordCache("l2-miss");
-          const result = yield* entryKey.fetch;
-          yield* storeEntry(entryKey.key, entryKey.request, result);
-          return result;
+          return yield* handleCacheHit(entryKey, cached, now);
         });
 
       const l1 = yield* Cache.make({
@@ -339,7 +378,17 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
             )
             .pipe(
               Effect.tap((result) =>
-                recordCache(Either.isLeft(result) ? "l1-hit" : "l1-miss")
+                Effect.all(
+                  [
+                    recordCacheMetric(
+                      Either.isLeft(result) ? "l1-hit" : "l1-miss"
+                    ),
+                    recordCacheUpdate({
+                      l1: Either.isLeft(result) ? "hit" : "miss",
+                    }),
+                  ],
+                  { concurrency: "unbounded" }
+                ).pipe(Effect.asVoid)
               ),
               Effect.map((result) =>
                 Either.isLeft(result) ? result.left : result.right
@@ -365,21 +414,28 @@ export const AddressCachedSuggestorLayer = Layer.effect(
     const raw = yield* AddressSuggestor;
     const httpClient = yield* HttpClient;
     const log = yield* AddressSearchLog;
+    const recordResult = (result: AddressSuggestionResult) =>
+      Effect.serviceOption(RequestEvent).pipe(
+        Effect.flatMap((maybeEvent) =>
+          Option.match(maybeEvent, {
+            onNone: () => Effect.void,
+            onSome: (event) => event.recordResult(result),
+          })
+        ),
+        Effect.catchAll(() => Effect.void)
+      );
     const provideHttpClient = <A>(
       effect: Effect.Effect<A, never, HttpClient>
     ): Effect.Effect<A, never, never> =>
       effect.pipe(Effect.provideService(HttpClient, httpClient));
     return {
       suggest: (request) =>
-        cache
-          .getOrFetch(request, provideHttpClient(raw.suggest(request)))
-          .pipe(
-            Effect.tap((result) =>
-              log
-                .record(request, result)
-                .pipe(Effect.catchAll(() => Effect.void))
-            )
-          ),
+        cache.getOrFetch(request, provideHttpClient(raw.suggest(request))).pipe(
+          Effect.tap((result) => recordResult(result)),
+          Effect.tap((result) =>
+            log.record(request, result).pipe(Effect.catchAll(() => Effect.void))
+          )
+        ),
     };
   })
 );

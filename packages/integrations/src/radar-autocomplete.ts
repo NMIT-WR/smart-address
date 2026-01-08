@@ -233,7 +233,7 @@ export const makeRadarAutocompleteProvider = (
 
     return Effect.gen(function* () {
       const start = yield* currentTimeMillis;
-      yield* Effect.logInfo("radar-autocomplete request", {
+      yield* Effect.logDebug("radar-autocomplete request", {
         url: request.url,
         params,
         headers: logHeaders,
@@ -243,7 +243,7 @@ export const makeRadarAutocompleteProvider = (
       const response = yield* execute(request);
       const elapsedMs = (yield* currentTimeMillis) - start;
 
-      yield* Effect.logInfo("radar-autocomplete response", {
+      yield* Effect.logDebug("radar-autocomplete response", {
         status: response.status,
         elapsedMs,
         headers: response.headers,
