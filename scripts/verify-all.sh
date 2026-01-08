@@ -109,6 +109,10 @@ kill "${SERVICE_PID}" 2>/dev/null || true
 wait "${SERVICE_PID}" 2>/dev/null || true
 SERVICE_PID=""
 
+if [[ -x "$ROOT_DIR/scripts/free-ports.sh" ]]; then
+  "$ROOT_DIR/scripts/free-ports.sh"
+fi
+
 run docker build -t smart-address-service .
 run docker compose "${COMPOSE_FILES[@]}" up -d
 COMPOSE_UP="1"
