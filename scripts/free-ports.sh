@@ -6,6 +6,21 @@ cd "$ROOT_DIR"
 
 PORTS="${PORTS:-8787 3000}"
 
+usage() {
+  cat <<'EOF'
+Usage: PORTS="8787 3000" scripts/free-ports.sh
+
+Frees any processes listening on the ports listed in $PORTS (default: "8787 3000")
+by calling kill_port for each entry. If Docker is available, the script also
+runs "docker compose down" to stop local compose services.
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 kill_port() {
   local port="$1"
   local pids=""

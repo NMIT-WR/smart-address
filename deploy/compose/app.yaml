@@ -7,9 +7,7 @@ services:
       - "8787:8787"
     environment:
       SMART_ADDRESS_OTEL_ENABLED: "true"
-      SMART_ADDRESS_OBSERVABILITY_OTEL_ENABLED: "true"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318/v1/traces"
-      SMART_ADDRESS_OBSERVABILITY_OTEL_ENDPOINT: "http://lgtm:4318/v1/traces"
       OTEL_SERVICE_NAME: "smart-address-service"
       NOMINATIM_USER_AGENT: "${NOMINATIM_USER_AGENT:-smart-address-service}"
       NOMINATIM_EMAIL: "${NOMINATIM_EMAIL:-}"

@@ -6,6 +6,7 @@ cd "$ROOT_DIR"
 
 SERVICE_PID=""
 COMPOSE_UP="0"
+COMPOSE_FILES=(-f deploy/compose/obs.yaml -f deploy/compose/app.yaml)
 
 if [[ -x "$ROOT_DIR/scripts/free-ports.sh" ]]; then
   "$ROOT_DIR/scripts/free-ports.sh"
@@ -17,7 +18,7 @@ cleanup() {
     wait "${SERVICE_PID}" 2>/dev/null || true
   fi
   if [[ "${COMPOSE_UP}" == "1" ]]; then
-    docker compose down
+    docker compose "${COMPOSE_FILES[@]}" down
   fi
 }
 
@@ -75,7 +76,7 @@ wait "${SERVICE_PID}" 2>/dev/null || true
 SERVICE_PID=""
 
 run docker build -t smart-address-service .
-run docker compose up -d
+run docker compose "${COMPOSE_FILES[@]}" up -d
 COMPOSE_UP="1"
 
 if ! wait_for_health; then
@@ -86,5 +87,5 @@ fi
 run curl -fsS "http://localhost:8787/health"
 run curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
 
-docker compose down
+docker compose "${COMPOSE_FILES[@]}" down
 COMPOSE_UP="0"
