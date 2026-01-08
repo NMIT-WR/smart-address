@@ -23,6 +23,22 @@ discovery.relabel "smart_address_logs" {
   }
 }
 
+discovery.relabel "smart_address_pyroscope" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = ".*/.*smart-address.*"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "service_name"
+  }
+}
+
 loki.source.docker "smart_address" {
   host          = "unix:///var/run/docker.sock"
   targets       = discovery.docker.containers.targets
@@ -137,4 +153,15 @@ otelcol.exporter.otlp "beyla" {
   client {
     endpoint = coalesce(sys.env("SMART_ADDRESS_BEYLA_OTLP_ENDPOINT"), "lgtm:4317")
   }
+}
+
+pyroscope.write "lgtm" {
+  endpoint {
+    url = "http://lgtm:4040"
+  }
+}
+
+pyroscope.ebpf "smart_address" {
+  forward_to = [pyroscope.write.lgtm.receiver]
+  targets    = discovery.relabel.smart_address_pyroscope.output
 }

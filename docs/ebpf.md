@@ -1,12 +1,13 @@
 # eBPF runbook (Linux)
 
 ## Goal
-Run Beyla eBPF metrics (and optional traces) for smart-address on Linux using Alloy + LGTM.
+Run Beyla eBPF metrics (and optional traces) plus Pyroscope eBPF profiling for smart-address on Linux using Alloy + LGTM.
 
 ## Prerequisites
 - Linux kernel >= 5.8 with BTF enabled.
 - Docker engine running on the Linux host or VM.
 - This repo with `deploy/compose/obs.yaml`, `deploy/compose/app.yaml`, and `deploy/compose/alloy.yaml`.
+- Alloy runs as root with host PID namespace and `/tmp/symb-cache` mounted (configured in `deploy/compose/alloy.yaml`).
 
 ## Inputs
 - Optional: `SMART_ADDRESS_BEYLA_OTLP_ENDPOINT` to override the OTLP target for Beyla traces (default is `lgtm:4317`).
@@ -29,6 +30,7 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 
 ## Output
 - Grafana shows Beyla RED + network metrics (Prometheus data source).
+- Pyroscope shows CPU profiles for `smart-address` after load.
 - Optional: Beyla spans appear in Tempo when `exports` includes `traces`.
 
 ## Errors

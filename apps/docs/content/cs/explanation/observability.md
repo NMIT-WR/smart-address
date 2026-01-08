@@ -61,6 +61,7 @@ docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/c
 - Hlavička `traceparent` pokračuje upstream trace.
 - Při zapnutém Alloy jdou JSON logy do Loki a Prometheus metriky se remote-write do LGTM.
 - Na Linuxu Beyla eBPF přidává RED + síťové metriky; volitelné Beyla spany jsou oddělené od Effect trace.
+- Na Linuxu Pyroscope eBPF přidává CPU profily v Pyroscope.
 
 ## Chyby
 

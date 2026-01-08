@@ -9,7 +9,7 @@ services:
     # Root is required for docker.sock access and future eBPF components; run in trusted environments.
     user: "0"
     privileged: true
-    pid: "service:smart-address"
+    pid: "host"
     ports:
       - "12345:12345"
     volumes:
@@ -18,6 +18,7 @@ services:
       # docker.sock grants access to container logs; consider docker group for non-root alternatives.
       - /var/run/docker.sock:/var/run/docker.sock
       - alloy-data:/var/lib/alloy/data
+      - alloy-symb-cache:/tmp/symb-cache
     depends_on:
       - lgtm
       - smart-address
@@ -25,3 +26,4 @@ services:
 
 volumes:
   alloy-data:
+  alloy-symb-cache:
