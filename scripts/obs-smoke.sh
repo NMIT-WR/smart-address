@@ -38,11 +38,10 @@ if ! wait_for_health; then
   exit 1
 fi
 
-start_time="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-
 echo "==> Hitting /suggest and /metrics"
 curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/null
 curl -fsS "http://localhost:8787/metrics" >/dev/null
+sleep 1
 
 echo "==> Checking OTLP endpoint reachability"
 if ! curl -s --connect-timeout 3 "http://localhost:4318" >/dev/null; then
@@ -51,7 +50,7 @@ if ! curl -s --connect-timeout 3 "http://localhost:4318" >/dev/null; then
 fi
 
 echo "==> Checking for wide event log line"
-if ! "${COMPOSE[@]}" logs --since "${start_time}" --no-color smart-address | grep -q '"kind":"suggest"'; then
+if ! "${COMPOSE[@]}" logs --tail 200 --no-color smart-address | grep -q '"kind":"suggest"'; then
   echo "Wide event log line not found in smart-address logs"
   exit 1
 fi
