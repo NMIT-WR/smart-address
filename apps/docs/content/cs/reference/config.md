@@ -54,7 +54,7 @@ Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 ## Observabilita
 
 - `SMART_ADDRESS_OTEL_ENABLED` (boolean, default `true`)
-- `OTEL_EXPORTER_OTLP_ENDPOINT` (string, default `http://localhost:4318/v1/traces`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (string, default `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (string, default `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (string, volitelné)
 - `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (number, default `1` v dev, `0.05` v production)
