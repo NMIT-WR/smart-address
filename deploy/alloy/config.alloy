@@ -46,9 +46,9 @@ loki.process "smart_address" {
   stage.json {
     source = "message"
     expressions = {
-      service    = "[0].service"
-      kind       = "[0].kind"
-      statusCode = "[0].statusCode"
+      service    = "service"
+      kind       = "kind"
+      statusCode = "statusCode"
     }
   }
 
