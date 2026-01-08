@@ -134,6 +134,8 @@ const trimmedOrDefault = (value: string, fallback: string): string => {
   return trimmed.length > 0 ? trimmed : fallback;
 };
 
+const otelEndpointTrimTrailingSlashes = /\/+$/;
+
 const normalizeOtelEndpoint = (value: string): string => {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
@@ -142,7 +144,7 @@ const normalizeOtelEndpoint = (value: string): string => {
   if (trimmed.endsWith("/v1/traces")) {
     return trimmed;
   }
-  return `${trimmed.replace(/\/+$/, "")}/v1/traces`;
+  return `${trimmed.replace(otelEndpointTrimTrailingSlashes, "")}/v1/traces`;
 };
 
 const defaultSampleRate = (): number => {
