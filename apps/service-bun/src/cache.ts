@@ -162,7 +162,7 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
                 kind: "client",
                 attributes: sqliteSpanAttributes("INSERT"),
               }),
-              Effect.asVoid
+              Effect.tap(Effect.void)
             ),
       };
     })
