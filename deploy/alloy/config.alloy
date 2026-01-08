@@ -38,10 +38,17 @@ loki.process "smart_address" {
 
   stage.json {
     expressions = {
-      logLevel   = "logLevel"
-      service    = "message[0].service"
-      kind       = "message[0].kind"
-      statusCode = "message[0].statusCode"
+      logLevel = "logLevel"
+      message  = "message"
+    }
+  }
+
+  stage.json {
+    source = "message"
+    expressions = {
+      service    = "[0].service"
+      kind       = "[0].kind"
+      statusCode = "[0].statusCode"
     }
   }
 
@@ -69,6 +76,9 @@ prometheus.scrape "smart_address" {
       "job"             = "smart-address"
     },
   ]
+  http_headers = {
+    Accept = ["application/openmetrics-text", "text/plain; q=0.9"]
+  }
   scrape_interval = "15s"
   forward_to      = [prometheus.remote_write.lgtm.receiver]
 }

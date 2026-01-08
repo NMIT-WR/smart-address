@@ -1,16 +1,19 @@
 services:
   alloy:
-    image: grafana/alloy
+    image: grafana/alloy:v1.12.1
     command:
       - run
       - --server.http.listen-addr=0.0.0.0:12345
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
+    # Root is required for docker.sock access and future eBPF components; run in trusted environments.
     user: "0"
     ports:
       - "12345:12345"
     volumes:
+      # Keep Alloy config read-only to prevent in-container edits.
       - ../alloy/config.alloy:/etc/alloy/config.alloy:ro
+      # docker.sock grants access to container logs; consider docker group for non-root alternatives.
       - /var/run/docker.sock:/var/run/docker.sock
       - alloy-data:/var/lib/alloy/data
     depends_on:

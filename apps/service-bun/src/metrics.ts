@@ -192,7 +192,7 @@ const metricLine = (
   name: string,
   value: number,
   labels: Record<string, string | number | undefined> = {}
-): string => `${name}${formatLabels(labels)} ${value}\n`;
+): string => `${name}${formatLabels(labels)} ${value}`;
 
 export const renderPrometheusMetrics = (
   snapshot: AddressMetricsSnapshot

@@ -159,7 +159,7 @@ Hodnota `provider` závisí na konfiguraci (například `nominatim`, `radar-auto
 
 ### GET /metrics (200, Prometheus text)
 
-```
+```prometheus
 smart_address_cache_requests_total 120
 smart_address_cache_hits_total 85
 smart_address_provider_calls_total{provider="nominatim"} 80
