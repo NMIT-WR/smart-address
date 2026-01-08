@@ -58,6 +58,7 @@ docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/c
 - Tail sampling vždy ponechá chyby, pomalé requesty a ručně označené requesty; zbytek sampleuje.
 - HTTP odpovědi obsahují `x-request-id` (pokud je poslán, vrací se zpět; jinak se generuje).
 - HTTP odpovědi obsahují `server-timing` s celkovou dobou requestu a časy providerů.
+- Hlavička `traceparent` pokračuje upstream trace.
 - Při zapnutém Alloy jdou JSON logy do Loki a Prometheus metriky se remote-write do LGTM.
 
 ## Chyby

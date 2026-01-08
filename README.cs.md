@@ -75,6 +75,8 @@ Doporučené env proměnné:
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (výchozí: `2000`)
 - `SMART_ADDRESS_LOG_RAW_QUERY` (výchozí: `true` v dev, `false` v production)
 
+Příchozí hlavička `traceparent` pokračuje upstream trace.
+
 Posílání JSON logů a Prometheus metrik do LGTM přes Alloy:
 
 ```bash

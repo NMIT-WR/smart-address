@@ -27,6 +27,11 @@ Další protokoly:
 - MCP: `POST /mcp` (viz: [MCP nástroj](/cs/reference/mcp-tool))
 - Effect RPC: `/rpc` (viz: [Effect RPC](/cs/reference/rpc))
 
+### Hlavičky
+
+- `x-request-id` (volitelné; vrací se zpět)
+- `traceparent` (volitelné; W3C trace context)
+
 ### GET /suggest (query parametry)
 
 - Povinné: `text` (string) nebo `q` (alias)

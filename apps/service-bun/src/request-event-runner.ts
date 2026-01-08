@@ -1,5 +1,6 @@
 import { Cause, Effect, Exit } from "effect";
 import {
+  type FinalizedRequestEvent,
   makeRequestEvent,
   RequestEvent,
   type RequestEventKind,
@@ -15,6 +16,13 @@ interface RequestEventRunInit {
   readonly path: string;
   readonly spanName: string;
   readonly spanAttributes: Record<string, unknown>;
+}
+
+interface RequestEventRunOptions<A> {
+  readonly statusCode?: (value: A) => number;
+  readonly onFinalized?: (
+    finalized: FinalizedRequestEvent | undefined
+  ) => Effect.Effect<void>;
 }
 
 export const makeSuggestEventInit = (options: {
@@ -41,7 +49,8 @@ export const makeSuggestEventInit = (options: {
 
 export const runRequestEvent = <A, E, R>(
   init: RequestEventRunInit,
-  effect: Effect.Effect<A, E, R>
+  effect: Effect.Effect<A, E, R>,
+  options: RequestEventRunOptions<A> = {}
 ) =>
   Effect.gen(function* () {
     const requestEvent = yield* makeRequestEvent({
@@ -64,17 +73,25 @@ export const runRequestEvent = <A, E, R>(
       Effect.exit
     );
 
-    const statusCode = Exit.isSuccess(exit) ? 200 : 500;
+    const statusCode = Exit.isSuccess(exit)
+      ? options.statusCode?.(exit.value) ?? 200
+      : 500;
     if (Exit.isFailure(exit)) {
       const errorMessage = Cause.pretty(exit.cause);
       yield* requestEvent
         .recordError(errorMessage)
         .pipe(Effect.catchAll(() => Effect.void));
-      yield* requestEvent.flush(statusCode);
+      const finalized = yield* requestEvent.flush(statusCode);
+      if (options.onFinalized) {
+        yield* options.onFinalized(finalized);
+      }
       return yield* Effect.failCause(exit.cause);
     }
 
-    yield* requestEvent.flush(statusCode);
+    const finalized = yield* requestEvent.flush(statusCode);
+    if (options.onFinalized) {
+      yield* options.onFinalized(finalized);
+    }
     return exit.value;
   }).pipe(
     Effect.withSpan(init.spanName, {

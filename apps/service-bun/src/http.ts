@@ -8,8 +8,10 @@ import {
   text,
   unsafeJson,
 } from "@effect/platform/HttpServerResponse";
+import { withSpanContext } from "@effect/opentelemetry/Tracer";
+import type { SpanContext } from "@opentelemetry/api";
 import { toRecord } from "@effect/platform/UrlParams";
-import { Cause, Effect, Exit } from "effect";
+import { Effect, Ref } from "effect";
 import type { AddressAcceptLog } from "./accept-log";
 import { decodeAcceptPayload, toAcceptRequest } from "./accept-request";
 import type { AddressCachedSuggestor } from "./cache";
@@ -20,7 +22,7 @@ import {
   toSuggestRequest,
 } from "./request";
 import {
-  makeRequestEvent,
+  type FinalizedRequestEvent,
   makeRequestId,
   RequestEvent,
   type RequestEventKind,
@@ -30,6 +32,7 @@ import {
   recordAcceptFromContext,
   recordSuggestFromContext,
 } from "./request-event-context";
+import { runRequestEvent } from "./request-event-runner";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -76,6 +79,39 @@ const acceptsPrometheus = (request: HttpServerRequest): boolean => {
   );
 };
 
+const readHeaderValue = (
+  value: string | readonly string[] | undefined
+): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  return Array.isArray(value) ? value[0] : value;
+};
+
+const traceparentPattern =
+  /^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/;
+
+const parseTraceparent = (value: string): SpanContext | undefined => {
+  const trimmed = value.trim().toLowerCase();
+  if (!traceparentPattern.test(trimmed)) {
+    return undefined;
+  }
+  const [version, traceId, spanId, flags] = trimmed.split("-");
+  if (version.length !== 2) {
+    return undefined;
+  }
+  if (/^0{32}$/.test(traceId) || /^0{16}$/.test(spanId)) {
+    return undefined;
+  }
+  const traceFlags = Number.parseInt(flags, 16);
+  return {
+    traceId,
+    spanId,
+    traceFlags: traceFlags as SpanContext["traceFlags"],
+    isRemote: true,
+  };
+};
+
 interface HttpRequestEventInit {
   readonly kind: RequestEventKind;
   readonly markImportant?: boolean;
@@ -94,66 +130,64 @@ export const withHttpRequestEvent =
     const spanName = `${request.method} ${path}`;
 
     return Effect.gen(function* () {
-      const headerRequestId = request.headers["x-request-id"] ?? "";
+      const headerRequestId = readHeaderValue(request.headers["x-request-id"]);
       const requestId =
-        typeof headerRequestId === "string" && headerRequestId.trim().length > 0
+        headerRequestId && headerRequestId.trim().length > 0
           ? headerRequestId
           : makeRequestId();
-      const requestEvent = yield* makeRequestEvent({
-        requestId,
-        kind: init.kind,
-        source: "http",
-        method: request.method,
-        path,
+      const traceparent = readHeaderValue(request.headers["traceparent"]);
+      const spanContext = traceparent
+        ? parseTraceparent(traceparent)
+        : undefined;
+      const finalizedRef =
+        yield* Ref.make<FinalizedRequestEvent | undefined>(undefined);
+
+      const effect = Effect.gen(function* () {
+        if (init.markImportant) {
+          const requestEvent = yield* RequestEvent;
+          yield* requestEvent.markImportant();
+        }
+        return yield* handler(request);
       });
 
-      if (init.markImportant) {
-        yield* requestEvent.markImportant();
-      }
-
-      yield* Effect.annotateCurrentSpan({ "request.id": requestId });
-
-      const responseExit = yield* handler(request).pipe(
-        Effect.provideService(RequestEvent, requestEvent),
-        Effect.annotateSpans({
-          "request.id": requestId,
-          "request.kind": init.kind,
-          "request.source": "http",
-        }),
-        Effect.exit
+      const runEffect = runRequestEvent(
+        {
+          requestId,
+          kind: init.kind,
+          source: "http",
+          method: request.method,
+          path,
+          spanName,
+          spanAttributes: {
+            "http.method": request.method,
+            "http.route": path,
+            "request.kind": init.kind,
+            "request.source": "http",
+          },
+        },
+        effect,
+        {
+          statusCode: (response) => response.status,
+          onFinalized: (finalized) => Ref.set(finalizedRef, finalized),
+        }
       );
 
-      if (Exit.isSuccess(responseExit)) {
-        const response = responseExit.value;
-        const finalized = yield* requestEvent.flush(response.status);
-        return withRequestId(
-          withServerTiming(response, serverTimingHeader(finalized)),
-          requestId
-        );
-      }
+      const tracedEffect = spanContext
+        ? withSpanContext(runEffect, spanContext)
+        : runEffect;
 
-      const errorMessage = Cause.pretty(responseExit.cause);
-      yield* requestEvent
-        .recordError(errorMessage)
-        .pipe(Effect.catchAll(() => Effect.void));
+      const response = yield* tracedEffect.pipe(
+        Effect.catchAllCause(() =>
+          Effect.succeed(errorResponse("Internal error", 500))
+        )
+      );
 
-      const response = errorResponse("Internal error", 500);
-      const finalized = yield* requestEvent.flush(response.status);
+      const finalized = yield* Ref.get(finalizedRef);
       return withRequestId(
         withServerTiming(response, serverTimingHeader(finalized)),
         requestId
       );
-    }).pipe(
-      Effect.withSpan(spanName, {
-        kind: "server",
-        attributes: {
-          "http.method": request.method,
-          "http.route": path,
-          "request.kind": init.kind,
-          "request.source": "http",
-        },
-      })
-    );
+    });
   };
 
 const parseSuggestPayload = (payload: unknown) =>

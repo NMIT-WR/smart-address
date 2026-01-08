@@ -1,7 +1,11 @@
 import { Context, Effect, Layer } from "effect";
 import type { AcceptRequest } from "./accept-request";
 import { buildQueryLogFields } from "./log-fields";
-import { type AddressSqliteConfig, openAddressSqlite } from "./sqlite";
+import {
+  type AddressSqliteConfig,
+  openAddressSqlite,
+  sqliteSpanAttributes,
+} from "./sqlite";
 
 export interface AddressAcceptLog {
   readonly record: (request: AcceptRequest) => Effect.Effect<void>;
@@ -54,7 +58,12 @@ export const AddressAcceptLogSqlite = (config: AddressSqliteConfig = {}) =>
               request.resultCount ?? null,
               JSON.stringify(suggestion)
             );
-          }),
+          }).pipe(
+            Effect.withSpan("sqlite.write.accept_log", {
+              kind: "client",
+              attributes: sqliteSpanAttributes("INSERT"),
+            })
+          ),
       };
     })
   );

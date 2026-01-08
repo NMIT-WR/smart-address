@@ -27,6 +27,11 @@ Other protocols:
 - MCP: `POST /mcp` (see: [MCP tool](/reference/mcp-tool))
 - Effect RPC: `/rpc` (see: [Effect RPC](/reference/rpc))
 
+### Headers
+
+- `x-request-id` (optional; echoed back)
+- `traceparent` (optional; W3C trace context)
+
 ### GET /suggest (query parameters)
 
 - Required: `text` (string) or `q` (alias)

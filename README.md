@@ -75,6 +75,8 @@ Recommended env vars:
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
 - `SMART_ADDRESS_LOG_RAW_QUERY` (default: `true` in dev, `false` in production)
 
+Incoming `traceparent` headers are honored to continue upstream traces.
+
 Ship JSON logs + Prometheus metrics to LGTM via Alloy:
 
 ```bash
