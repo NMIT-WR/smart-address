@@ -9,6 +9,8 @@ services:
       SMART_ADDRESS_OTEL_ENABLED: "true"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
       OTEL_SERVICE_NAME: "smart-address-service"
+      SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE: "1"
+      SMART_ADDRESS_LOG_RAW_QUERY: "true"
       NOMINATIM_USER_AGENT: "${NOMINATIM_USER_AGENT:-smart-address-service}"
       NOMINATIM_EMAIL: "${NOMINATIM_EMAIL:-}"
       # Optional overrides:
