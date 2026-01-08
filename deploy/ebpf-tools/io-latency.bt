@@ -1,0 +1,37 @@
+#!/usr/bin/env bpftrace
+
+BEGIN
+{
+  $pid = $1;
+  $threshold_ms = $2;
+  if ($threshold_ms == 0) { $threshold_ms = 5; }
+  printf("Tracing read/write latency > %d ms for pid %d... Hit Ctrl-C to stop.\n", $threshold_ms, $pid);
+}
+
+tracepoint:syscalls:sys_enter_read /pid == $pid/
+{
+  @start[tid, "read"] = nsecs;
+}
+
+tracepoint:syscalls:sys_exit_read /@start[tid, "read"]/
+{
+  $delta_ms = (nsecs - @start[tid, "read"]) / 1000000;
+  if ($delta_ms >= $threshold_ms) {
+    printf("read  %d ms pid=%d comm=%s ret=%d\n", $delta_ms, pid, comm, args->ret);
+  }
+  delete(@start[tid, "read"]);
+}
+
+tracepoint:syscalls:sys_enter_write /pid == $pid/
+{
+  @start[tid, "write"] = nsecs;
+}
+
+tracepoint:syscalls:sys_exit_write /@start[tid, "write"]/
+{
+  $delta_ms = (nsecs - @start[tid, "write"]) / 1000000;
+  if ($delta_ms >= $threshold_ms) {
+    printf("write %d ms pid=%d comm=%s ret=%d\n", $delta_ms, pid, comm, args->ret);
+  }
+  delete(@start[tid, "write"]);
+}

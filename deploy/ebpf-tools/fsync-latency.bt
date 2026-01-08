@@ -1,0 +1,37 @@
+#!/usr/bin/env bpftrace
+
+BEGIN
+{
+  $pid = $1;
+  $threshold_ms = $2;
+  if ($threshold_ms == 0) { $threshold_ms = 5; }
+  printf("Tracing fsync latency > %d ms for pid %d... Hit Ctrl-C to stop.\n", $threshold_ms, $pid);
+}
+
+tracepoint:syscalls:sys_enter_fsync /pid == $pid/
+{
+  @start[tid] = nsecs;
+}
+
+tracepoint:syscalls:sys_exit_fsync /@start[tid]/
+{
+  $delta_ms = (nsecs - @start[tid]) / 1000000;
+  if ($delta_ms >= $threshold_ms) {
+    printf("fsync %d ms pid=%d comm=%s ret=%d\n", $delta_ms, pid, comm, args->ret);
+  }
+  delete(@start[tid]);
+}
+
+tracepoint:syscalls:sys_enter_fdatasync /pid == $pid/
+{
+  @start_fd[tid] = nsecs;
+}
+
+tracepoint:syscalls:sys_exit_fdatasync /@start_fd[tid]/
+{
+  $delta_ms = (nsecs - @start_fd[tid]) / 1000000;
+  if ($delta_ms >= $threshold_ms) {
+    printf("fdatasync %d ms pid=%d comm=%s ret=%d\n", $delta_ms, pid, comm, args->ret);
+  }
+  delete(@start_fd[tid]);
+}

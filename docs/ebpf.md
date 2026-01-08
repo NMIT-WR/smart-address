@@ -41,3 +41,4 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 ## See also
 - `scripts/ebpf-preflight.sh`
 - `deploy/alloy/config.alloy`
+- `docs/ebpf-sqlite-io.md`

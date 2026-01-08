@@ -9,4 +9,5 @@ Task-focused guides for getting specific outcomes. These assume you already have
 - [Add another provider](/how-to/add-provider)
 - [Integrate legacy checkout (Bootstrap + vanilla JS)](/how-to/legacy-js-integration)
 - [Enable Linux eBPF observability (Beyla)](/how-to/ebpf)
+- [Trace SQLite I/O latency (bpftrace)](/how-to/ebpf-sqlite-io)
 - [Deploy on Proxmox (Docker VM)](/how-to/proxmox)
