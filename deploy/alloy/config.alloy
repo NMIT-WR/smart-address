@@ -126,3 +126,15 @@ otelcol.exporter.otlp "beyla" {
     endpoint = coalesce(sys.env("SMART_ADDRESS_BEYLA_OTLP_ENDPOINT"), "lgtm:4317")
   }
 }
+
+otelcol.processor.batch "beyla" {
+  output {
+    traces = [otelcol.exporter.otlp.beyla.input]
+  }
+}
+
+otelcol.exporter.otlp "beyla" {
+  client {
+    endpoint = coalesce(sys.env("SMART_ADDRESS_BEYLA_OTLP_ENDPOINT"), "lgtm:4317")
+  }
+}
