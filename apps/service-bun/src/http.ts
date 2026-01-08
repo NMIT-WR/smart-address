@@ -61,13 +61,18 @@ const errorResponse = (message: string, status = 400) =>
 
 const acceptsPrometheus = (request: HttpServerRequest): boolean => {
   const accept = request.headers["accept"];
-  if (typeof accept !== "string") {
+  const value = Array.isArray(accept)
+    ? accept.join(",")
+    : typeof accept === "string"
+      ? accept
+      : undefined;
+  if (!value) {
     return false;
   }
-  const value = accept.toLowerCase();
+  const normalized = value.toLowerCase();
   return (
-    value.includes("text/plain") ||
-    value.includes("application/openmetrics-text")
+    normalized.includes("text/plain") ||
+    normalized.includes("application/openmetrics-text")
   );
 };
 
