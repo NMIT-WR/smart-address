@@ -1,1 +1,9 @@
-["index", "use-service", "add-provider", "legacy-js-integration", "ebpf"]
+[
+  "index",
+  "dev-modes",
+  "use-service",
+  "add-provider",
+  "legacy-js-integration",
+  "ebpf",
+  "proxmox"
+]
