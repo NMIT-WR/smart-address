@@ -50,7 +50,15 @@ if ! curl -s --connect-timeout 3 "http://localhost:4318" >/dev/null; then
 fi
 
 echo "==> Checking for wide event log line"
-if ! "${COMPOSE[@]}" logs --tail 200 --no-color smart-address | grep -q '"kind":"suggest"'; then
+found=0
+for _ in {1..10}; do
+  if "${COMPOSE[@]}" logs --tail 200 --no-color smart-address | grep -q '"kind":"suggest"'; then
+    found=1
+    break
+  fi
+  sleep 1
+done
+if [[ "${found}" -ne 1 ]]; then
   echo "Wide event log line not found in smart-address logs"
   exit 1
 fi
