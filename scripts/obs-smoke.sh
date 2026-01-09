@@ -44,7 +44,7 @@ curl -fsS "http://localhost:8787/metrics" >/dev/null
 sleep 1
 
 echo "==> Checking OTLP endpoint reachability"
-if ! curl -s --connect-timeout 3 "http://localhost:4318" >/dev/null; then
+  if ! curl -s --connect-timeout 3 --max-time 5 "http://localhost:4318" >/dev/null; then
   echo "OTLP HTTP endpoint not reachable on http://localhost:4318"
   exit 1
 fi

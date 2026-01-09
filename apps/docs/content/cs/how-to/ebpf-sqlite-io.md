@@ -45,10 +45,10 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 
 ## Chyby
 
-- `bpftrace: command not found`: nainstalujte `bpftrace` ve VM.
-- `permission denied`: použijte `sudo` a ověřte podporu eBPF.
+- Pokud uvidíte `bpftrace: command not found`, nainstalujte `bpftrace` ve VM.
+- Pokud uvidíte `permission denied`, použijte `sudo` a ověřte podporu eBPF.
 
 ## Viz také
 
-- `/docs/ebpf-sqlite-io.md`
+- `/cs/how-to/ebpf-sqlite-io`
 - `/cs/how-to/ebpf`

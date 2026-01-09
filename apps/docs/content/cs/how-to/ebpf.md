@@ -1,15 +1,18 @@
 # Linux eBPF observabilita (Beyla)
 
 ## Cíl
+
 Sbírat eBPF RED + síťové metriky (a volitelně spany) plus CPU profily pro službu smart-address na Linuxu.
 
 ## Předpoklady
+
 - Linux kernel >= 5.8 s BTF (`/sys/kernel/btf/vmlinux`).
 - Docker běžící na Linux hostu/VM (eBPF je pouze pro Linux).
 - `deploy/compose/obs.yaml`, `deploy/compose/app.yaml`, `deploy/compose/alloy.yaml`.
 - Alloy běží jako root s host PID namespace a namountovaným `/tmp/symb-cache`.
 
 ## Vstupy
+
 - Volitelně: `SMART_ADDRESS_BEYLA_OTLP_ENDPOINT` pro přepsání OTLP endpointu pro Beyla spany (výchozí `lgtm:4317`).
 - Volitelně: upravte `deploy/alloy/config.alloy` a přidejte `traces` do `exports` pro zapnutí Beyla spanů.
 
@@ -28,16 +31,19 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 ```
 
 ## Výstup
+
 - Grafana ukazuje Beyla RED + síťové metriky v Prometheus datasource.
 - Pyroscope zobrazuje CPU profily pro `smart-address` po zátěži.
 - Pokud je zapnuto, Beyla spany se zobrazí v Tempo (odděleně od Effect trace).
 
 ## Chyby
+
 - `FAIL: Linux required`: spusťte v Linux VM nebo Proxmox VM.
 - `BTF missing`: aktualizujte kernel nebo zapněte BTF.
 - `Docker daemon not reachable`: spusťte Docker nebo opravte oprávnění.
 
 ## Viz také
-- `/docs/ebpf.md`
+
 - `/cs/explanation/observability`
 - `/cs/how-to/ebpf-sqlite-io`
+- `/cs/how-to/dev-modes`

@@ -1,6 +1,6 @@
 services:
   lgtm:
-    image: grafana/otel-lgtm
+    image: grafana/otel-lgtm:0.11.17
     ports:
       - "3000:3000"
       - "4317:4317"
@@ -21,7 +21,7 @@ services:
       - "8787:8787"
     environment:
       SMART_ADDRESS_OTEL_ENABLED: "true"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318/v1/traces"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
       OTEL_SERVICE_NAME: "smart-address-service"
       OTEL_SERVICE_VERSION: "${OTEL_SERVICE_VERSION:-}"
       SMART_ADDRESS_DB_PATH: "/app/data/smart-address.db"
@@ -50,20 +50,33 @@ services:
       - lgtm
 
   alloy:
-    image: grafana/alloy
+    image: grafana/alloy:v1.12.2
     command:
       - run
       - --server.http.listen-addr=0.0.0.0:12345
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
-    user: "0"
-    privileged: true
+    # Set ALLOY_UID/ALLOY_GID to run as non-root; root is the default fallback.
+    user: "${ALLOY_UID:-0}:${ALLOY_GID:-0}"
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - SYS_PTRACE
+      - NET_ADMIN
+      - NET_RAW
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    # Host PID namespace is required for eBPF profiling. Remove if eBPF is disabled.
     pid: "host"
     ports:
       - "12345:12345"
     volumes:
       - ../alloy/config.alloy:/etc/alloy/config.alloy:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      # For least privilege, point SMART_ADDRESS_DOCKER_SOCKET at a socket proxy.
+      - ${SMART_ADDRESS_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
       - ./data/alloy:/var/lib/alloy/data
       - ./data/symb-cache:/tmp/symb-cache
     depends_on:

@@ -1,14 +1,17 @@
 # SQLite I/O latency tracing (bpftrace)
 
 ## Goal
-Inspect SQLite read/write and fsync latency spikes on Linux to correlate slow I/O with request windows.
+
+Inspect SQLite read/write and fsync latency spikes on Linux to help correlate slow I/O with request windows.
 
 ## Prerequisites
+
 - Linux host/VM with eBPF support.
 - `bpftrace` installed and root privileges.
 - smart-address running in Docker.
 
 ## Inputs
+
 - Target PID of the smart-address container.
 - Optional latency threshold in milliseconds.
 
@@ -36,12 +39,15 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 ```
 
 ## Output
+
 - Console lines showing `read`, `write`, `fsync`, and `fdatasync` latency in milliseconds.
 - Correlate timestamps with request spans in Grafana.
 
 ## Errors
-- `bpftrace: command not found`: install `bpftrace` in the VM.
-- `permission denied`: run with `sudo` and ensure the kernel supports eBPF.
+
+- If you see `bpftrace: command not found`, install `bpftrace` in the VM.
+- If you see `permission denied`, run with `sudo` and ensure the kernel supports eBPF.
 
 ## See also
+
 - `docs/ebpf.md`

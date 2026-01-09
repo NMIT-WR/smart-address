@@ -76,22 +76,23 @@ export const runRequestEvent = <A, E, R>(
     const statusCode = Exit.isSuccess(exit)
       ? (options.statusCode?.(exit.value) ?? 200)
       : 500;
+    const notifyFinalized = (finalized: FinalizedRequestEvent | undefined) =>
+      options.onFinalized
+        ? options.onFinalized(finalized).pipe(Effect.catchAll(() => Effect.void))
+        : Effect.void;
+
     if (Exit.isFailure(exit)) {
       const errorMessage = Cause.pretty(exit.cause);
       yield* requestEvent
         .recordError(errorMessage)
         .pipe(Effect.catchAll(() => Effect.void));
       const finalized = yield* requestEvent.flush(statusCode);
-      if (options.onFinalized) {
-        yield* options.onFinalized(finalized);
-      }
+      yield* notifyFinalized(finalized);
       return yield* Effect.failCause(exit.cause);
     }
 
     const finalized = yield* requestEvent.flush(statusCode);
-    if (options.onFinalized) {
-      yield* options.onFinalized(finalized);
-    }
+    yield* notifyFinalized(finalized);
     return exit.value;
   }).pipe(
     Effect.withSpan(init.spanName, {

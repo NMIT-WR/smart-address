@@ -275,26 +275,30 @@ export const renderPrometheusMetrics = (
         stat: "avg",
       })
     );
-    lines.push(
-      metricLine(
-        "smart_address_provider_latency_ms",
-        provider.latencyMs.min ?? 0,
-        {
-          provider: provider.provider,
-          stat: "min",
-        }
-      )
-    );
-    lines.push(
-      metricLine(
-        "smart_address_provider_latency_ms",
-        provider.latencyMs.max ?? 0,
-        {
-          provider: provider.provider,
-          stat: "max",
-        }
-      )
-    );
+    if (provider.latencyMs.min !== null) {
+      lines.push(
+        metricLine(
+          "smart_address_provider_latency_ms",
+          provider.latencyMs.min,
+          {
+            provider: provider.provider,
+            stat: "min",
+          }
+        )
+      );
+    }
+    if (provider.latencyMs.max !== null) {
+      lines.push(
+        metricLine(
+          "smart_address_provider_latency_ms",
+          provider.latencyMs.max,
+          {
+            provider: provider.provider,
+            stat: "max",
+          }
+        )
+      );
+    }
   }
 
   lines.push(

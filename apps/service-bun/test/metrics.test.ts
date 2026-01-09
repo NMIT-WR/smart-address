@@ -1,7 +1,11 @@
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect } from "effect";
 import { TestContext } from "effect/TestContext";
-import { AddressMetrics, AddressMetricsLayer } from "../src/metrics";
+import {
+  AddressMetrics,
+  AddressMetricsLayer,
+  renderPrometheusMetrics,
+} from "../src/metrics";
 
 describe("address metrics", () => {
   it.effect("tracks cache and provider metrics", () =>
@@ -87,5 +91,38 @@ describe("address metrics", () => {
       expect(provider?.latencyMs.min).toBe(0);
       expect(provider?.latencyMs.max).toBe(0);
     }).pipe(Effect.provide(AddressMetricsLayer), Effect.provide(TestContext))
+  );
+
+  it.effect("omits min/max Prometheus metrics when missing", () =>
+    Effect.sync(() => {
+      const output = renderPrometheusMetrics({
+        startedAt: 0,
+        updatedAt: 0,
+        cache: {
+          requests: 0,
+          hits: 0,
+          l1Hits: 0,
+          l1Misses: 0,
+          l2Hits: 0,
+          l2Misses: 0,
+          hitRate: 0,
+          l1HitRate: 0,
+          l2HitRate: 0,
+        },
+        providers: [
+          {
+            provider: "empty-provider",
+            calls: 0,
+            errors: 0,
+            errorRate: 0,
+            latencyMs: { avg: 0, min: null, max: null },
+          },
+        ],
+      });
+
+      expect(output).toContain('stat="avg"');
+      expect(output).not.toContain('stat="min"');
+      expect(output).not.toContain('stat="max"');
+    })
   );
 });

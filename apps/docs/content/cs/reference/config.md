@@ -57,9 +57,9 @@ Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 - `OTEL_EXPORTER_OTLP_ENDPOINT` (string, default `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (string, default `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (string, volitelné)
-- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (number, default `1` v dev, `0.05` v production)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (number, default `1` v dev, `0.05` v produkci)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (number, default `2000`)
-- `SMART_ADDRESS_LOG_RAW_QUERY` (boolean, default `true` v dev, `false` v production)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (boolean, default `true` v dev, `false` v produkci)
 
 ## Minimální příklad
 

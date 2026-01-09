@@ -143,18 +143,6 @@ otelcol.exporter.otlp "beyla" {
   }
 }
 
-otelcol.processor.batch "beyla" {
-  output {
-    traces = [otelcol.exporter.otlp.beyla.input]
-  }
-}
-
-otelcol.exporter.otlp "beyla" {
-  client {
-    endpoint = coalesce(sys.env("SMART_ADDRESS_BEYLA_OTLP_ENDPOINT"), "lgtm:4317")
-  }
-}
-
 pyroscope.write "lgtm" {
   endpoint {
     url = "http://lgtm:4040"
