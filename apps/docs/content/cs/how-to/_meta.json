@@ -1,1 +1,10 @@
-["index", "use-service", "add-provider", "legacy-js-integration"]
+[
+  "index",
+  "use-service",
+  "add-provider",
+  "legacy-js-integration",
+  "dev-modes",
+  "proxmox",
+  "ebpf",
+  "ebpf-sqlite-io"
+]

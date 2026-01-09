@@ -171,6 +171,161 @@ const toSnapshot = (state: MetricsState): AddressMetricsSnapshot => {
   };
 };
 
+const escapeLabelValue = (value: string): string =>
+  value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/"/g, '\\"');
+
+const formatLabels = (
+  labels: Record<string, string | number | undefined>
+): string => {
+  const entries = Object.entries(labels).filter(
+    ([, value]) => value !== undefined
+  );
+  if (entries.length === 0) {
+    return "";
+  }
+  return `{${entries
+    .map(([key, value]) => `${key}="${escapeLabelValue(String(value))}"`)
+    .join(",")}}`;
+};
+
+const metricLine = (
+  name: string,
+  value: number,
+  labels: Record<string, string | number | undefined> = {}
+): string => `${name}${formatLabels(labels)} ${value}`;
+
+export const renderPrometheusMetrics = (
+  snapshot: AddressMetricsSnapshot
+): string => {
+  const lines: string[] = [];
+
+  lines.push("# HELP smart_address_cache_requests_total Cache requests.");
+  lines.push("# TYPE smart_address_cache_requests_total counter");
+  lines.push(
+    metricLine("smart_address_cache_requests_total", snapshot.cache.requests)
+  );
+
+  lines.push("# HELP smart_address_cache_hits_total Cache hits.");
+  lines.push("# TYPE smart_address_cache_hits_total counter");
+  lines.push(metricLine("smart_address_cache_hits_total", snapshot.cache.hits));
+
+  lines.push("# HELP smart_address_cache_l1_hits_total L1 cache hits.");
+  lines.push("# TYPE smart_address_cache_l1_hits_total counter");
+  lines.push(
+    metricLine("smart_address_cache_l1_hits_total", snapshot.cache.l1Hits)
+  );
+
+  lines.push("# HELP smart_address_cache_l1_misses_total L1 cache misses.");
+  lines.push("# TYPE smart_address_cache_l1_misses_total counter");
+  lines.push(
+    metricLine("smart_address_cache_l1_misses_total", snapshot.cache.l1Misses)
+  );
+
+  lines.push("# HELP smart_address_cache_l2_hits_total L2 cache hits.");
+  lines.push("# TYPE smart_address_cache_l2_hits_total counter");
+  lines.push(
+    metricLine("smart_address_cache_l2_hits_total", snapshot.cache.l2Hits)
+  );
+
+  lines.push("# HELP smart_address_cache_l2_misses_total L2 cache misses.");
+  lines.push("# TYPE smart_address_cache_l2_misses_total counter");
+  lines.push(
+    metricLine("smart_address_cache_l2_misses_total", snapshot.cache.l2Misses)
+  );
+
+  lines.push("# HELP smart_address_cache_hit_rate Cache hit rate.");
+  lines.push("# TYPE smart_address_cache_hit_rate gauge");
+  lines.push(
+    metricLine("smart_address_cache_hit_rate", snapshot.cache.hitRate)
+  );
+
+  lines.push("# HELP smart_address_cache_l1_hit_rate L1 cache hit rate.");
+  lines.push("# TYPE smart_address_cache_l1_hit_rate gauge");
+  lines.push(
+    metricLine("smart_address_cache_l1_hit_rate", snapshot.cache.l1HitRate)
+  );
+
+  lines.push("# HELP smart_address_cache_l2_hit_rate L2 cache hit rate.");
+  lines.push("# TYPE smart_address_cache_l2_hit_rate gauge");
+  lines.push(
+    metricLine("smart_address_cache_l2_hit_rate", snapshot.cache.l2HitRate)
+  );
+
+  lines.push("# HELP smart_address_provider_calls_total Provider calls.");
+  lines.push("# TYPE smart_address_provider_calls_total counter");
+  lines.push("# HELP smart_address_provider_errors_total Provider errors.");
+  lines.push("# TYPE smart_address_provider_errors_total counter");
+  lines.push("# HELP smart_address_provider_latency_ms Provider latency (ms).");
+  lines.push("# TYPE smart_address_provider_latency_ms gauge");
+
+  for (const provider of snapshot.providers) {
+    lines.push(
+      metricLine("smart_address_provider_calls_total", provider.calls, {
+        provider: provider.provider,
+      })
+    );
+    lines.push(
+      metricLine("smart_address_provider_errors_total", provider.errors, {
+        provider: provider.provider,
+      })
+    );
+    lines.push(
+      metricLine("smart_address_provider_latency_ms", provider.latencyMs.avg, {
+        provider: provider.provider,
+        stat: "avg",
+      })
+    );
+    if (provider.latencyMs.min !== null) {
+      lines.push(
+        metricLine(
+          "smart_address_provider_latency_ms",
+          provider.latencyMs.min,
+          {
+            provider: provider.provider,
+            stat: "min",
+          }
+        )
+      );
+    }
+    if (provider.latencyMs.max !== null) {
+      lines.push(
+        metricLine(
+          "smart_address_provider_latency_ms",
+          provider.latencyMs.max,
+          {
+            provider: provider.provider,
+            stat: "max",
+          }
+        )
+      );
+    }
+  }
+
+  lines.push(
+    "# HELP smart_address_metrics_started_at_seconds Metrics start time."
+  );
+  lines.push("# TYPE smart_address_metrics_started_at_seconds gauge");
+  lines.push(
+    metricLine(
+      "smart_address_metrics_started_at_seconds",
+      Math.floor(snapshot.startedAt / 1000)
+    )
+  );
+
+  lines.push(
+    "# HELP smart_address_metrics_updated_at_seconds Metrics update time."
+  );
+  lines.push("# TYPE smart_address_metrics_updated_at_seconds gauge");
+  lines.push(
+    metricLine(
+      "smart_address_metrics_updated_at_seconds",
+      Math.floor(snapshot.updatedAt / 1000)
+    )
+  );
+
+  return `${lines.join("\n")}\n`;
+};
+
 export const AddressMetricsLayer = Layer.effect(
   AddressMetrics,
   Effect.gen(function* () {

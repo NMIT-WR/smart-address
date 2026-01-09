@@ -4,7 +4,7 @@ import {
 } from "@effect/platform/HttpServerRequest";
 import type { HttpServerResponse } from "@effect/platform/HttpServerResponse";
 import { describe, expect, it } from "@effect-native/bun-test";
-import { Effect, Ref, Tracer } from "effect";
+import { Effect, Option, Ref, Tracer } from "effect";
 import {
   handleAcceptPost,
   handleMetricsGet,
@@ -18,11 +18,13 @@ import {
   makeRunAcceptRequest,
   makeSuggestPostRequest,
   parseJsonResponse,
+  parseTextResponse,
 } from "./http-helpers";
 
 interface RecordedSpan {
   name: string;
   attributes: Map<string, unknown>;
+  traceId: string;
 }
 
 const makeTestTracer = (spans: RecordedSpan[]) => {
@@ -30,13 +32,14 @@ const makeTestTracer = (spans: RecordedSpan[]) => {
   return Tracer.make({
     span: (name, parent, context, links, startTime, kind) => {
       const attributes = new Map<string, unknown>();
-      spans.push({ name, attributes });
+      const traceId = Option.isSome(parent) ? parent.value.traceId : "trace-1";
+      spans.push({ name, attributes, traceId });
       let status: Tracer.SpanStatus = { _tag: "Started", startTime };
       const span: Tracer.Span = {
         _tag: "Span",
         name,
         spanId: `span-${counter++}`,
-        traceId: "trace-1",
+        traceId,
         parent,
         context,
         status,
@@ -117,6 +120,7 @@ const requestEventConfigLayer = RequestEventConfigLayer({
   serviceVersion: "test",
   sampleRate: 1,
   slowThresholdMs: 0,
+  logRawQuery: true,
 });
 
 const expectSuggestResponse = (
@@ -167,6 +171,30 @@ describe("http handlers", () => {
       expect(childSpan?.attributes.get("request.id")).toBe("req-123");
       expect(childSpan?.attributes.get("request.kind")).toBe("suggest");
       expect(childSpan?.attributes.get("request.source")).toBe("http");
+    })
+  );
+
+  it.effect("continues traceparent headers", () =>
+    Effect.gen(function* () {
+      const spans: RecordedSpan[] = [];
+      const tracer = makeTestTracer(spans);
+      const traceId = "4bf92f3577b34da6a3ce929d0e0e4736";
+      const spanId = "00f067aa0ba902b7";
+      const request = fromWeb(
+        new Request(makeRequestUrl("/suggest?text=Main&strategy=fast"), {
+          headers: {
+            traceparent: `00-${traceId}-${spanId}-01`,
+          },
+        })
+      );
+
+      yield* handleSuggestGet(suggestor)(request).pipe(
+        Effect.provide(requestEventConfigLayer),
+        Effect.withTracer(tracer)
+      );
+
+      const rootSpan = spans.find((span) => span.name === "GET /suggest");
+      expect(rootSpan?.traceId).toBe(traceId);
     })
   );
 
@@ -244,6 +272,26 @@ describe("http handlers", () => {
       expect(web.status).toBe(200);
       expect(body.cache.requests).toBe(2);
       expect(body.cache.hitRate).toBe(0.5);
+    })
+  );
+
+  it.effect("returns Prometheus metrics when requested", () =>
+    Effect.gen(function* () {
+      const request = fromWeb(
+        new Request(makeRequestUrl("/metrics"), {
+          headers: { accept: "text/plain" },
+        })
+      );
+      const { web, body } = yield* parseTextResponse(
+        yield* handleMetricsGet(metrics)(request).pipe(
+          Effect.provide(requestEventConfigLayer)
+        )
+      );
+
+      expect(web.status).toBe(200);
+      expect(web.headers.get("content-type")).toContain("text/plain");
+      expect(body).toContain("smart_address_cache_requests_total");
+      expect(body).toContain("smart_address_metrics_updated_at_seconds");
     })
   );
 });

@@ -6,10 +6,11 @@ Explain how Smart Address captures one wide event per request and emits traces v
 
 ## Prerequisites
 
+- Docker + Docker Compose.
 - (Optional) Local OpenTelemetry backend for viewing traces:
 
 ```bash
-docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+docker compose -f deploy/compose/obs.yaml up -d
 ```
 
 - Run the service with OTEL enabled (see Inputs).
@@ -19,22 +20,35 @@ docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/ote
 Environment variables that control observability:
 
 - `SMART_ADDRESS_OTEL_ENABLED` (default: `true`)
-- `OTEL_EXPORTER_OTLP_ENDPOINT` (default: `http://localhost:4318/v1/traces`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (default: `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (default: `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (optional)
 - `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` in dev, `0.05` in production)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (default: `true` in dev, `false` in production)
 
 Copy-paste example (local tracing):
 
 ```bash
-docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+docker compose -f deploy/compose/obs.yaml up -d
 
 SMART_ADDRESS_OTEL_ENABLED=true \
-OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318/v1/traces" \
+OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318" \
 OTEL_SERVICE_NAME="smart-address-service" \
 SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE=1 \
 pnpm --filter @smart-address/service-bun dev
+```
+
+Run the service and LGTM together (Docker):
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
+```
+
+Ship logs + metrics to LGTM via Alloy:
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
 ```
 
 ## Output
@@ -44,6 +58,10 @@ pnpm --filter @smart-address/service-bun dev
 - Tail sampling keeps errors, slow requests, and manually marked requests, sampling the rest.
 - HTTP responses include `x-request-id` (echoed if provided, otherwise generated).
 - HTTP responses include `server-timing` with total request duration and provider timings.
+- Incoming `traceparent` headers continue an upstream trace.
+- When Alloy is enabled, JSON logs flow to Loki and Prometheus metrics are remote-written into LGTM.
+- On Linux, Beyla eBPF adds RED + network metrics; optional Beyla spans are separate from Effect traces.
+- On Linux, Pyroscope eBPF adds CPU profiles in Pyroscope.
 
 ## Errors
 
@@ -54,3 +72,4 @@ pnpm --filter @smart-address/service-bun dev
 
 - Effect tracing: https://effect.website/docs/observability/tracing/
 - Wide events and tail sampling: https://loggingsucks.com/
+- Linux eBPF how-to: /how-to/ebpf

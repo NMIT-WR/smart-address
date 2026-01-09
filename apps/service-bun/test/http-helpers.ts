@@ -19,6 +19,15 @@ export const parseJsonResponse = (
     return { web, body };
   });
 
+export const parseTextResponse = (
+  response: HttpServerResponse
+): Effect.Effect<{ web: Response; body: string }> =>
+  Effect.gen(function* () {
+    const web = toWeb(response);
+    const body = yield* Effect.promise(() => web.text());
+    return { web, body };
+  });
+
 export const makeRequestUrl = (path: string) => new URL(path, testOrigin);
 
 export const makeSuggestPostRequest = (body: unknown) =>

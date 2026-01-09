@@ -1,4 +1,4 @@
-import { Context, Data, Effect, Layer } from "effect";
+import { Context, Data, Effect, Layer, Option } from "effect";
 import { type DurationInput, toMillis } from "effect/Duration";
 
 export type AddressStrategy = "fast" | "reliable";
@@ -174,24 +174,73 @@ export interface AddressSuggestionServiceOptions {
   readonly stopAtLimit?: boolean;
 }
 
+const readProviderKind = (provider: AddressProvider<unknown>): string => {
+  const candidate = (provider as { kind?: string }).kind;
+  return typeof candidate === "string" && candidate.length > 0
+    ? candidate
+    : "unknown";
+};
+
+const errorTypeFromProviderError = (error: AddressProviderError): string => {
+  if (error.cause instanceof Error && error.cause.name.length > 0) {
+    return error.cause.name;
+  }
+  return error._tag ?? "AddressProviderError";
+};
+
+const recordProviderError = (
+  provider: AddressProvider<unknown>,
+  error: AddressProviderError
+) => {
+  const providerKind = readProviderKind(provider);
+  const errorType = errorTypeFromProviderError(error);
+  const errorMessage = error.message;
+
+  return Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({
+      "provider.name": provider.name,
+      "provider.kind": providerKind,
+      "provider.error": true,
+      "provider.error_type": errorType,
+      "provider.error_message": errorMessage,
+    });
+
+    const maybeSpan = yield* Effect.option(Effect.currentSpan);
+    yield* Option.match(maybeSpan, {
+      onNone: () => Effect.void,
+      onSome: (span) =>
+        Effect.sync(() => {
+          const timestampNs = BigInt(Date.now()) * 1_000_000n;
+          span.event("exception", timestampNs, {
+            "exception.type": errorType,
+            "exception.message": errorMessage,
+          });
+        }),
+    });
+  }).pipe(Effect.catchAll(() => Effect.void));
+};
+
 const runProvider = <R>(provider: AddressProvider<R>, query: AddressQuery) =>
   provider.suggest(query).pipe(
+    Effect.mapError((error) => normalizeProviderError(provider.name, error)),
+    Effect.tapError((error) => recordProviderError(provider, error)),
     Effect.map((suggestions) => ({
       suggestions,
       error: null as AddressProviderError | null,
     })),
-    Effect.catchAll((error) =>
-      Effect.succeed({
-        suggestions: [],
-        error: normalizeProviderError(provider.name, error),
-      })
-    ),
     Effect.withSpan("address.provider", {
       kind: "client",
       attributes: {
-        "address.provider": provider.name,
+        "provider.name": provider.name,
+        "provider.kind": readProviderKind(provider),
       },
-    })
+    }),
+    Effect.catchAll((error) =>
+      Effect.succeed({
+        suggestions: [],
+        error,
+      })
+    )
   );
 
 const isPlan = <R>(
