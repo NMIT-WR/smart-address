@@ -63,12 +63,13 @@ const errorResponse = (message: string, status = 400) =>
   jsonResponse({ error: message }, status);
 
 const acceptsPrometheus = (request: HttpServerRequest): boolean => {
-  const accept = request.headers["accept"];
-  const value = Array.isArray(accept)
-    ? accept.join(",")
-    : typeof accept === "string"
-      ? accept
-      : undefined;
+  const accept = request.headers.accept;
+  let value: string | undefined;
+  if (Array.isArray(accept)) {
+    value = accept.join(",");
+  } else if (typeof accept === "string") {
+    value = accept;
+  }
   if (!value) {
     return false;
   }

@@ -78,7 +78,9 @@ export const runRequestEvent = <A, E, R>(
       : 500;
     const notifyFinalized = (finalized: FinalizedRequestEvent | undefined) =>
       options.onFinalized
-        ? options.onFinalized(finalized).pipe(Effect.catchAll(() => Effect.void))
+        ? options
+            .onFinalized(finalized)
+            .pipe(Effect.catchAll(() => Effect.void))
         : Effect.void;
 
     if (Exit.isFailure(exit)) {

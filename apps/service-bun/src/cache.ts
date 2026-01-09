@@ -156,14 +156,13 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
               expiresAt,
               JSON.stringify(entry)
             );
-          })
-            .pipe(
-              Effect.withSpan("sqlite.write.cache", {
-                kind: "client",
-                attributes: sqliteSpanAttributes("INSERT"),
-              }),
-              Effect.tap(Effect.void)
-            ),
+          }).pipe(
+            Effect.withSpan("sqlite.write.cache", {
+              kind: "client",
+              attributes: sqliteSpanAttributes("INSERT"),
+            }),
+            Effect.tap(Effect.void)
+          ),
       };
     })
   );
