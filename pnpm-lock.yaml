@@ -60,6 +60,9 @@ importers:
       '@effect/language-service':
         specifier: catalog:tooling
         version: 0.62.5
+      effect:
+        specifier: catalog:prod
+        version: 3.19.13
       jscpd:
         specifier: ^4.0.5
         version: 4.0.5
