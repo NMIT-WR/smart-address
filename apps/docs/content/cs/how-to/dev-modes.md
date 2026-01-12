@@ -29,7 +29,7 @@ SMART_ADDRESS_LINUX_DOCKER_CONTEXT=colima ./scripts/dev-full-linux.sh
 
 ## Výstup
 
-- Rychlý režim: Grafana na `http://localhost:3000`, trace v Tempo, lokální Bun logy.
+- Rychlý režim: Grafana na `http://localhost:3000`, traces v Tempo, lokální Bun logy.
 - Plný režim: Beyla metriky, Pyroscope profily a služba v Dockeru.
 
 ## Chyby

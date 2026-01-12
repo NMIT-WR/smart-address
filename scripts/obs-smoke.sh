@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+source "$ROOT_DIR/scripts/lib/wait-for-url.sh"
+
 COMPOSE=(
   docker compose
   -f deploy/compose/obs.yaml
@@ -23,20 +25,7 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 wait_for_health() {
-  local attempts=30
-  local i=1
-  while [[ "${i}" -le "${attempts}" ]]; do
-    if curl -fsS "http://localhost:8787/health" >/dev/null 2>&1; then
-      return 0
-    fi
-    sleep 1
-    i=$((i + 1))
-  done
-  return 1
-}
-
-check_beyla_spanmetrics() {
-  prom_query_has_value "traces_spanmetrics_calls_total%7Bservice%3D%22smart-address%22%7D"
+  wait_for_url "http://localhost:8787/health"
 }
 
 prom_query_has_value() {
@@ -71,6 +60,10 @@ for entry in result:
 
 sys.exit(0 if max_value > 0 else 1)
 '
+}
+
+check_beyla_spanmetrics() {
+  prom_query_has_value "traces_spanmetrics_calls_total%7Bservice%3D%22smart-address%22%7D"
 }
 
 check_loki_streams() {

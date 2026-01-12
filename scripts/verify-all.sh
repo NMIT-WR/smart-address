@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+source "$ROOT_DIR/scripts/lib/wait-for-url.sh"
+
 SERVICE_PID=""
 COMPOSE_UP="0"
 COMPOSE_FILES=(-f deploy/compose/obs.yaml -f deploy/compose/alloy.yaml -f deploy/compose/app.yaml)
@@ -28,20 +30,6 @@ trap cleanup EXIT
 run() {
   echo "==> $*"
   "$@"
-}
-
-wait_for_url() {
-  local url="$1"
-  local attempts=30
-  local i=1
-  while [[ "${i}" -le "${attempts}" ]]; do
-    if curl -fsS "${url}" >/dev/null 2>&1; then
-      return 0
-    fi
-    sleep 1
-    i=$((i + 1))
-  done
-  return 1
 }
 
 wait_for_health() {

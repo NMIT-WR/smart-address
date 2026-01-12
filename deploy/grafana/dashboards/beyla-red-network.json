@@ -70,7 +70,7 @@
           "refId": "A"
         }
       ],
-      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 }
     },
     {

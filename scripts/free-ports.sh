@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+interrupt() {
+  echo "Interrupted, exiting..." >&2
+  exit 130
+}
+trap interrupt SIGTERM SIGINT
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
