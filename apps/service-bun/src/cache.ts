@@ -88,7 +88,7 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(
     AddressCacheStore,
     Effect.sync(() => {
-      const { db } = openAddressSqlite(config);
+      const { db, path: dbPath } = openAddressSqlite(config);
       const select = db.prepare(
         "SELECT entry_json, expires_at FROM address_cache WHERE key = ?"
       );
@@ -135,7 +135,7 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
           }).pipe(
             Effect.withSpan("sqlite.read.cache", {
               kind: "client",
-              attributes: sqliteSpanAttributes("SELECT"),
+              attributes: sqliteSpanAttributes("SELECT", dbPath),
             })
           ),
         set: (key, entry) =>
@@ -159,9 +159,8 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
           }).pipe(
             Effect.withSpan("sqlite.write.cache", {
               kind: "client",
-              attributes: sqliteSpanAttributes("INSERT"),
-            }),
-            Effect.tap(Effect.void)
+              attributes: sqliteSpanAttributes("INSERT", dbPath),
+            })
           ),
       };
     })

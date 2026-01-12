@@ -6,7 +6,7 @@ cd "$ROOT_DIR"
 
 SERVICE_PID=""
 COMPOSE_UP="0"
-COMPOSE_FILES=(-f deploy/compose/obs.yaml -f deploy/compose/app.yaml)
+COMPOSE_FILES=(-f deploy/compose/obs.yaml -f deploy/compose/alloy.yaml -f deploy/compose/app.yaml)
 
 if [[ -x "$ROOT_DIR/scripts/free-ports.sh" ]]; then
   "$ROOT_DIR/scripts/free-ports.sh"
@@ -29,11 +29,12 @@ run() {
   "$@"
 }
 
-wait_for_health() {
+wait_for_url() {
+  local url="$1"
   local attempts=30
   local i=1
   while [[ "${i}" -le "${attempts}" ]]; do
-    if curl -fsS "http://localhost:8787/health" >/dev/null; then
+    if curl -fsS "${url}" >/dev/null; then
       return 0
     fi
     sleep 1
@@ -42,17 +43,12 @@ wait_for_health() {
   return 1
 }
 
+wait_for_health() {
+  wait_for_url "http://localhost:8787/health"
+}
+
 wait_for_suggest() {
-  local attempts=30
-  local i=1
-  while [[ "${i}" -le "${attempts}" ]]; do
-    if curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/null; then
-      return 0
-    fi
-    sleep 1
-    i=$((i + 1))
-  done
-  return 1
+  wait_for_url "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
 }
 
 run pnpm install

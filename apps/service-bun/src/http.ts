@@ -95,6 +95,49 @@ const readHeaderValue = (
   return undefined;
 };
 
+const maxRequestIdLength = 128;
+const hasControlChars = (value: string) => {
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code <= 0x1f || code === 0x7f) {
+      return true;
+    }
+  }
+  return false;
+};
+const sanitizeRequestId = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || trimmed.length > maxRequestIdLength) {
+    return undefined;
+  }
+  if (hasControlChars(trimmed)) {
+    return undefined;
+  }
+  return trimmed;
+};
+
+const acceptsOpenMetrics = (request: HttpServerRequest): boolean => {
+  const accept = request.headers.accept;
+  let value: string | undefined;
+  if (Array.isArray(accept)) {
+    value = accept.join(",");
+  } else if (typeof accept === "string") {
+    value = accept;
+  }
+  if (!value) {
+    return false;
+  }
+  return value.toLowerCase().includes("application/openmetrics-text");
+};
+
+const prometheusContentType = (request: HttpServerRequest): string =>
+  acceptsOpenMetrics(request)
+    ? "application/openmetrics-text; version=1.0.0; charset=utf-8"
+    : "text/plain; version=0.0.4; charset=utf-8";
+
 const traceparentPattern =
   /^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/;
 const traceIdZeroPattern = /^0{32}$/;
@@ -116,6 +159,9 @@ const parseTraceparent = (value: string): SpanContext | undefined => {
     return undefined;
   }
   const traceFlags = Number.parseInt(flags, 16);
+  if (!Number.isFinite(traceFlags)) {
+    return undefined;
+  }
   return {
     traceId,
     spanId,
@@ -143,10 +189,7 @@ export const withHttpRequestEvent =
 
     return Effect.gen(function* () {
       const headerRequestId = readHeaderValue(request.headers["x-request-id"]);
-      const requestId =
-        headerRequestId && headerRequestId.trim().length > 0
-          ? headerRequestId
-          : makeRequestId();
+      const requestId = sanitizeRequestId(headerRequestId) ?? makeRequestId();
       const traceparent = readHeaderValue(request.headers.traceparent);
       const spanContext = traceparent
         ? parseTraceparent(traceparent)
@@ -281,7 +324,7 @@ export const handleMetricsGet = (metrics: AddressMetrics) =>
         const body = renderPrometheusMetrics(snapshot);
         return withCors(
           setHeaders(text(body), {
-            "content-type": "text/plain; version=0.0.4",
+            "content-type": prometheusContentType(request),
           })
         );
       })

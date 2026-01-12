@@ -9,7 +9,10 @@ export const availableLanguages = new Map([
 const clientLocales =
   typeof navigator === "undefined"
     ? []
-    : [navigator.language, ...navigator.languages];
+    : [
+        ...(navigator.language ? [navigator.language] : []),
+        ...(navigator.languages ?? []),
+      ];
 
 const LocaleContext = createLocaleContext({
   availableLanguages,

@@ -88,14 +88,20 @@ beyla.ebpf "smart_address" {
   discovery {
     instrument {
       open_ports = 8787
+      name = "smart-address"
+      exports = ["metrics", "traces"]
     }
   }
-  name = "smart-address"
-  // Add "traces" to enable Beyla spans.
-  exports = ["metrics"]
+  // Beyla spans are enabled by default; remove "traces" to disable.
 
   metrics {
     features = ["application", "network"]
+  }
+
+  traces {
+    sampler {
+      name = "always_on"
+    }
   }
 
   output {
@@ -140,6 +146,9 @@ otelcol.processor.batch "beyla" {
 otelcol.exporter.otlp "beyla" {
   client {
     endpoint = coalesce(sys.env("SMART_ADDRESS_BEYLA_OTLP_ENDPOINT"), "lgtm:4317")
+    tls {
+      insecure = true
+    }
   }
 }
 

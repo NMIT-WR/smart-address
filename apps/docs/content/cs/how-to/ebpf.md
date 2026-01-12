@@ -14,7 +14,7 @@ Sbírat eBPF RED + síťové metriky (a volitelně spany) plus CPU profily pro s
 ## Vstupy
 
 - Volitelně: `SMART_ADDRESS_BEYLA_OTLP_ENDPOINT` pro přepsání OTLP endpointu pro Beyla spany (výchozí `lgtm:4317`).
-- Volitelně: upravte `deploy/alloy/config.alloy` a přidejte `traces` do `exports` pro zapnutí Beyla spanů.
+- Beyla spany jsou zapnuté ve výchozím nastavení. Pro vypnutí odeberte `traces` ze seznamu `exports` uvnitř `beyla.ebpf` -> `discovery` -> `instrument` a smažte blok `traces {}`.
 
 ```bash
 ./scripts/ebpf-preflight.sh
@@ -34,7 +34,7 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 
 - Grafana ukazuje Beyla RED + síťové metriky v Prometheus datasource.
 - Pyroscope zobrazuje CPU profily pro `smart-address` po zátěži.
-- Pokud je zapnuto, Beyla spany se zobrazí v Tempo (odděleně od Effect trace).
+- Beyla spany se zobrazují v Tempo (odděleně od Effect trace). Pro vypnutí odeberte `traces` z `exports` a blok `traces {}`.
 
 ## Chyby
 

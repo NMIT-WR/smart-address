@@ -50,5 +50,5 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 
 ## See also
 
-- `/how-to/ebpf-sqlite-io`
 - `/how-to/ebpf`
+- `/explanation/observability`

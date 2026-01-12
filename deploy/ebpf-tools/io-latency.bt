@@ -17,7 +17,7 @@ tracepoint:syscalls:sys_enter_read /pid == @target_pid/
   @start_read[tid] = nsecs;
 }
 
-tracepoint:syscalls:sys_exit_read /@start_read[tid]/
+tracepoint:syscalls:sys_exit_read /@start_read[tid] && pid == @target_pid/
 {
   $delta_ms = (nsecs - @start_read[tid]) / 1000000;
   if ($delta_ms >= @threshold_ms) {
@@ -31,7 +31,7 @@ tracepoint:syscalls:sys_enter_write /pid == @target_pid/
   @start_write[tid] = nsecs;
 }
 
-tracepoint:syscalls:sys_exit_write /@start_write[tid]/
+tracepoint:syscalls:sys_exit_write /@start_write[tid] && pid == @target_pid/
 {
   $delta_ms = (nsecs - @start_write[tid]) / 1000000;
   if ($delta_ms >= @threshold_ms) {

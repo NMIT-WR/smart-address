@@ -57,7 +57,7 @@ Service environment variables. All values are read from the process environment.
 - `OTEL_EXPORTER_OTLP_ENDPOINT` (string, default `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (string, default `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (string, optional)
-- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (number, default `1` in dev, `0.05` in production)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (number, default `1`, set below `1` to enable tail sampling)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (number, default `2000`)
 - `SMART_ADDRESS_LOG_RAW_QUERY` (boolean, default `true` in dev, `false` in production)
 

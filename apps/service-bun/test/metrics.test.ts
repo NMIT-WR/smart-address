@@ -94,8 +94,8 @@ describe("address metrics", () => {
   );
 
   it.effect("omits min/max Prometheus metrics when missing", () =>
-    Effect.sync(() => {
-      const output = renderPrometheusMetrics({
+    Effect.succeed(
+      renderPrometheusMetrics({
         startedAt: 0,
         updatedAt: 0,
         cache: {
@@ -118,11 +118,17 @@ describe("address metrics", () => {
             latencyMs: { avg: 0, min: null, max: null },
           },
         ],
-      });
-
-      expect(output).toContain('stat="avg"');
-      expect(output).not.toContain('stat="min"');
-      expect(output).not.toContain('stat="max"');
-    })
+      })
+    ).pipe(
+      Effect.tap((output) =>
+        Effect.sync(() => {
+          expect(output).toContain('stat="avg"');
+          expect(output).not.toContain('stat="min"');
+          expect(output).not.toContain('stat="max"');
+        })
+      ),
+      Effect.asVoid,
+      Effect.provide(TestContext)
+    )
   );
 });

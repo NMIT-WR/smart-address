@@ -104,7 +104,7 @@ curl "http://localhost:8787/metrics"
 Prometheus scrape example:
 
 ```bash
-curl -H "accept: text/plain" "http://localhost:8787/metrics"
+curl -H "Accept: text/plain" "http://localhost:8787/metrics"
 ```
 
 ## Output

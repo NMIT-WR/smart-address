@@ -23,7 +23,7 @@ Environment proměnné, které řídí observabilitu:
 - `OTEL_EXPORTER_OTLP_ENDPOINT` (default: `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (default: `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (volitelné)
-- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` v dev, `0.05` v produkci)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1`)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
 - `SMART_ADDRESS_LOG_RAW_QUERY` (default: `true` v dev, `false` v produkci)
 
@@ -55,18 +55,20 @@ docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/c
 
 - Jeden wide event na request (HTTP, RPC, MCP) s kontextem, cache výsledky, provider časy a počty výsledků.
 - Trace span pro každý request s vnořenými spany pro plány/stage/provider.
-- Tail sampling vždy ponechá chyby, pomalé requesty a ručně označené requesty; zbytek sampleuje.
+- Wide eventy se ukládají pro každý request; když nastavíte `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` pod `1`, tail sampling ponechá chyby, pomalé requesty a ručně označené requesty a zbytek sampleuje.
 - HTTP odpovědi obsahují `x-request-id` (pokud je poslán, vrací se zpět; jinak se generuje).
 - HTTP odpovědi obsahují `server-timing` s celkovou dobou requestu i časy providerů.
 - Hlavička `traceparent` pokračuje upstream trace.
 - Při zapnutém Alloy jdou JSON logy do Loki a Prometheus metriky se remote-write do LGTM.
-- Na Linuxu Beyla eBPF přidává RED + síťové metriky; volitelné Beyla spany jsou oddělené od Effect trace.
+- Grafana dashboardy jsou provisionované ve složce "Smart Address" (Overview, Beyla RED + Network, Traces + Span Metrics) při spuštění LGTM compose stacku; Grafanu otevřete na `http://localhost:3000`.
+- Na Linuxu Beyla eBPF přidává RED + síťové metriky; Beyla spany jsou oddělené od Effect trace a lze je vypnout odebráním `traces` z `exports` a smazáním bloku `traces {}`.
 - Na Linuxu Pyroscope eBPF přidává CPU profily v Pyroscope.
+- Alerting: preferujte SLO burn-rate alerty před statickými prahy; statické prahy používejte jen jako guardrails.
 
 ## Chyby
 
 - Pokud je OTEL endpoint nedostupný, služba běží dál, jen se neexportují trasy.
-- Tail sampling může záměrně zahazovat rychlé úspěšné requesty.
+- Pokud zapnete tail sampling (`SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` < `1`), rychlé úspěšné requesty se mohou zahazovat.
 
 ## Viz také
 

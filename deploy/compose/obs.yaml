@@ -2,14 +2,16 @@ services:
   lgtm:
     image: grafana/otel-lgtm:0.11.17
     ports:
-      - "3000:3000"
-      - "4317:4317"
-      - "4318:4318"
-      - "4040:4040"
-      - "9090:9090"
-      - "9009:9009"
+      - "3000:3000" # Grafana UI
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "4040:4040" # Pyroscope
+      - "9090:9090" # Prometheus UI / remote write
+      - "9010:9009" # LGTM internal (remapped from 9009)
     volumes:
       - lgtm-data:/data
+      - ../grafana/provisioning/dashboards/smart-address.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/smart-address.yaml:ro
+      - ../grafana/dashboards:/otel-lgtm/grafana/conf/provisioning/dashboards/smart-address:ro
     restart: unless-stopped
     deploy:
       resources:

@@ -71,7 +71,7 @@ Doporučené env proměnné:
 - `OTEL_EXPORTER_OTLP_ENDPOINT` (výchozí: `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (výchozí: `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (volitelné)
-- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (výchozí: `1` v dev, `0.05` v production)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (výchozí: `1`)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (výchozí: `2000`)
 - `SMART_ADDRESS_LOG_RAW_QUERY` (výchozí: `true` v dev, `false` v production)
 
@@ -83,7 +83,7 @@ Posílání JSON logů a Prometheus metrik do LGTM přes Alloy:
 docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
 ```
 
-Linux eBPF (Beyla) runbook: viz `docs/ebpf.md` (pouze Linux).
+Linux eBPF (Beyla) runbook: viz `apps/docs/content/cs/how-to/ebpf.md` (pouze Linux).
 
 ## SDK pro prohlížeč (module script)
 

@@ -6,9 +6,21 @@ services:
       - --server.http.listen-addr=0.0.0.0:12345
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
-    # Root is required for docker.sock access and future eBPF components; run in trusted environments.
+    # Root is required for docker.sock access and eBPF profiling; run in trusted environments.
     user: "0"
-    privileged: true
+    # Capabilities required for eBPF profiling + network tracing.
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - SYS_PTRACE
+      - NET_ADMIN
+      - NET_RAW
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    # Host PID namespace is required for eBPF profiling. Remove if eBPF is disabled.
     pid: "host"
     ports:
       - "12345:12345"

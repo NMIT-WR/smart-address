@@ -71,7 +71,7 @@ Recommended env vars:
 - `OTEL_EXPORTER_OTLP_ENDPOINT` (default: `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (default: `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (optional)
-- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` in dev, `0.05` in production)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1`)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
 - `SMART_ADDRESS_LOG_RAW_QUERY` (default: `true` in dev, `false` in production)
 
@@ -83,7 +83,7 @@ Ship JSON logs + Prometheus metrics to LGTM via Alloy:
 docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
 ```
 
-Linux eBPF (Beyla) runbook: see `docs/ebpf.md` (Linux-only).
+Linux eBPF (Beyla) runbook: see `apps/docs/content/en/how-to/ebpf.md` (Linux-only).
 
 ## Browser SDK (module script)
 

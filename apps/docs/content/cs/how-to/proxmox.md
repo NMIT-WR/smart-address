@@ -13,6 +13,7 @@ Spustit Smart Address + LGTM + Alloy na Proxmox VM s perzistencí a restart poli
 ## Vstupy
 
 - Proměnné prostředí pro providery.
+- Volitelně: `SMART_ADDRESS_DOCKER_SOCKET` pro socket proxy k Alloy (doporučeno pro least privilege).
 - `deploy/proxmox/compose.yaml`.
 
 ```bash
@@ -33,3 +34,4 @@ docker compose -f deploy/proxmox/compose.yaml up -d
 ## Viz také
 
 - `/cs/how-to/ebpf`
+- `/cs/explanation/observability`

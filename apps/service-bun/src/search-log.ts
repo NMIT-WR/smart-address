@@ -21,7 +21,7 @@ export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(
     AddressSearchLog,
     Effect.sync(() => {
-      const { db } = openAddressSqlite(config);
+      const { db, path: dbPath } = openAddressSqlite(config);
       const insert = db.prepare(`
         INSERT INTO address_search_log (
           created_at,
@@ -53,7 +53,7 @@ export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
           }).pipe(
             Effect.withSpan("sqlite.write.search_log", {
               kind: "client",
-              attributes: sqliteSpanAttributes("INSERT"),
+              attributes: sqliteSpanAttributes("INSERT", dbPath),
             })
           ),
       };

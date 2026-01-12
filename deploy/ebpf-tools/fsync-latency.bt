@@ -17,7 +17,7 @@ tracepoint:syscalls:sys_enter_fsync /pid == @target_pid/
   @start[tid] = nsecs;
 }
 
-tracepoint:syscalls:sys_exit_fsync /@start[tid]/
+tracepoint:syscalls:sys_exit_fsync /@start[tid] && pid == @target_pid/
 {
   $delta_ms = (nsecs - @start[tid]) / 1000000;
   if ($delta_ms >= @threshold_ms) {
@@ -31,7 +31,7 @@ tracepoint:syscalls:sys_enter_fdatasync /pid == @target_pid/
   @start_fd[tid] = nsecs;
 }
 
-tracepoint:syscalls:sys_exit_fdatasync /@start_fd[tid]/
+tracepoint:syscalls:sys_exit_fdatasync /@start_fd[tid] && pid == @target_pid/
 {
   $delta_ms = (nsecs - @start_fd[tid]) / 1000000;
   if ($delta_ms >= @threshold_ms) {

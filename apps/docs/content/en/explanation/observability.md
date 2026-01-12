@@ -23,7 +23,7 @@ Environment variables that control observability:
 - `OTEL_EXPORTER_OTLP_ENDPOINT` (default: `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (default: `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (optional)
-- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1` in dev, `0.05` in production)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (default: `1`)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (default: `2000`)
 - `SMART_ADDRESS_LOG_RAW_QUERY` (default: `true` in dev, `false` in production)
 
@@ -55,18 +55,20 @@ docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/c
 
 - One wide event per request (HTTP, RPC, MCP) with request context, cache outcomes, provider timings, and result counts.
 - A trace span per request, with nested spans for provider plans/stages/providers.
-- Tail sampling keeps errors, slow requests, and manually marked requests, sampling the rest.
+- Wide events are recorded for every request by default; set `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` below `1` to enable tail sampling (keeps errors, slow requests, and manually marked requests while sampling the rest).
 - HTTP responses include `x-request-id` (echoed if provided, otherwise generated).
 - HTTP responses include `server-timing` with total request duration and provider timings.
 - Incoming `traceparent` headers continue an upstream trace.
 - When Alloy is enabled, JSON logs flow to Loki and Prometheus metrics are remote-written into LGTM.
-- On Linux, Beyla eBPF adds RED + network metrics; optional Beyla spans are separate from Effect traces.
+- Grafana dashboards are provisioned under the "Smart Address" folder (Overview, Beyla RED + Network, Traces + Span Metrics) when you run the LGTM compose stack; open Grafana at `http://localhost:3000`.
+- On Linux, Beyla eBPF adds RED + network metrics; Beyla spans are separate from Effect traces and can be disabled by removing `traces` from `exports` and deleting the `traces {}` block.
 - On Linux, Pyroscope eBPF adds CPU profiles in Pyroscope.
+- Alerting: prefer SLO burn-rate alerts over static thresholds; keep static thresholds only as guardrails.
 
 ## Errors
 
 - If the OTEL endpoint is unreachable, the service still runs but spans are not exported.
-- Tail sampling may intentionally drop fast successful requests.
+- If you enable tail sampling (`SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` < `1`), fast successful requests may be dropped.
 
 ## See also
 

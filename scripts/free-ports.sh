@@ -43,8 +43,8 @@ kill_port() {
   elif command -v netstat >/dev/null 2>&1; then
     if [[ "${os_name}" == "Linux" ]]; then
       pids="$(
-        netstat -anvp tcp 2>/dev/null \
-          | awk -v p=":${port}" '$4 ~ p && $6 == "LISTEN" && $7 ~ /^[0-9]+\\// {split($7, parts, "/"); print parts[1]}' \
+        netstat -tlnp 2>/dev/null \
+          | awk -v p=":${port}" '$4 ~ p {split($7, parts, "/"); print parts[1]}' \
           | tr '\n' ' '
       )"
     fi

@@ -215,7 +215,10 @@ const decideSampling = (
     return { keep: true, reason: "forced" };
   }
   const rate = clampSampleRate(config.sampleRate);
-  const keep = rate >= 1 || random() < rate;
+  if (rate >= 1) {
+    return { keep: true, reason: "always", rate: 1 };
+  }
+  const keep = random() < rate;
   return keep
     ? { keep, reason: "sample", rate }
     : { keep, reason: "drop", rate };

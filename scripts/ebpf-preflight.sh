@@ -3,6 +3,22 @@ set -euo pipefail
 
 failures=0
 
+usage() {
+  cat <<'EOF'
+Usage: scripts/ebpf-preflight.sh
+
+Checks Linux + eBPF prerequisites:
+- Linux kernel >= 5.8
+- BTF enabled (/sys/kernel/btf/vmlinux)
+- Docker CLI + daemon reachable
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 pass() {
   echo "PASS: $1"
 }

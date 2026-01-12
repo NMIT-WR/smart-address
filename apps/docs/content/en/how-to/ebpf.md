@@ -14,7 +14,7 @@ Collect eBPF RED + network metrics (and optional spans) plus CPU profiles for th
 ## Inputs
 
 - Optional: `SMART_ADDRESS_BEYLA_OTLP_ENDPOINT` to override the OTLP endpoint for Beyla traces (default `lgtm:4317`).
-- Optional: edit `deploy/alloy/config.alloy` and add `traces` to `exports` to enable Beyla spans.
+- Beyla spans are enabled by default. To disable them, remove `traces` from the `exports` list inside `beyla.ebpf` -> `discovery` -> `instrument` and delete the `traces {}` block.
 
 ```bash
 ./scripts/ebpf-preflight.sh
@@ -34,7 +34,7 @@ curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ" >/dev/
 
 - Grafana shows Beyla RED + network metrics under the Prometheus data source.
 - Pyroscope shows CPU profiles for `smart-address` after load.
-- If enabled, Beyla spans appear in Tempo (separate from Effect traces).
+- Beyla spans appear in Tempo (separate from Effect traces). Remove `traces` from `exports` and the `traces {}` block to disable them.
 
 ## Errors
 

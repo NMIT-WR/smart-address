@@ -13,6 +13,7 @@ Run Smart Address + LGTM + Alloy on a Proxmox VM with persistent storage and res
 ## Inputs
 
 - Environment variables for providers.
+- Optional: `SMART_ADDRESS_DOCKER_SOCKET` to point Alloy at a socket proxy (recommended for least privilege).
 - `deploy/proxmox/compose.yaml`.
 
 ```bash
@@ -33,3 +34,4 @@ docker compose -f deploy/proxmox/compose.yaml up -d
 ## See also
 
 - `/how-to/ebpf`
+- `/explanation/observability`

@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: "smart-address"
+    orgId: 1
+    folder: "Smart Address"
+    type: file
+    disableDeletion: false
+    allowUiUpdates: false
+    updateIntervalSeconds: 10
+    options:
+      path: /otel-lgtm/grafana/conf/provisioning/dashboards/smart-address
+      foldersFromFilesStructure: false

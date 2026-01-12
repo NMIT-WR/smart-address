@@ -97,7 +97,8 @@ export const openAddressSqlite = (config: AddressSqliteConfig = {}) => {
   return { db, path: dbPath };
 };
 
-export const sqliteSpanAttributes = (operation: string) => ({
+export const sqliteSpanAttributes = (operation: string, dbName?: string) => ({
   "db.system": "sqlite",
   "db.operation": operation,
+  ...(dbName ? { "db.name": dbName } : {}),
 });

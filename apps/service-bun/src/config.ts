@@ -157,7 +157,7 @@ const currentNodeEnv = (): string =>
 const isProductionEnv = (): boolean =>
   currentNodeEnv().toLowerCase() === "production";
 
-const defaultSampleRate = (): number => (isProductionEnv() ? 0.05 : 1);
+const defaultSampleRate = (): number => 1;
 
 const defaultLogRawQuery = (): boolean => !isProductionEnv();
 

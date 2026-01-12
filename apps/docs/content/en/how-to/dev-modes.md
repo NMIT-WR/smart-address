@@ -40,5 +40,6 @@ SMART_ADDRESS_LINUX_DOCKER_CONTEXT=colima ./scripts/dev-full-linux.sh
 - If eBPF fails, run `./scripts/ebpf-preflight.sh` inside the Linux VM.
 
 ## See also
+
 - `/how-to/ebpf`
 - `/how-to/proxmox`
