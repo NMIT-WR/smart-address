@@ -62,21 +62,25 @@ const jsonResponse = (body: unknown, status?: number) => {
 const errorResponse = (message: string, status = 400) =>
   jsonResponse({ error: message }, status);
 
-const acceptsPrometheus = (request: HttpServerRequest): boolean => {
+const readAcceptHeader = (request: HttpServerRequest): string | undefined => {
   const accept = request.headers.accept;
-  let value: string | undefined;
   if (Array.isArray(accept)) {
-    value = accept.join(",");
-  } else if (typeof accept === "string") {
-    value = accept;
+    return accept.join(",").toLowerCase();
   }
+  if (typeof accept === "string") {
+    return accept.toLowerCase();
+  }
+  return undefined;
+};
+
+const acceptsPrometheus = (request: HttpServerRequest): boolean => {
+  const value = readAcceptHeader(request);
   if (!value) {
     return false;
   }
-  const normalized = value.toLowerCase();
   return (
-    normalized.includes("text/plain") ||
-    normalized.includes("application/openmetrics-text")
+    value.includes("text/plain") ||
+    value.includes("application/openmetrics-text")
   );
 };
 
@@ -120,17 +124,8 @@ const sanitizeRequestId = (value: string | undefined): string | undefined => {
 };
 
 const acceptsOpenMetrics = (request: HttpServerRequest): boolean => {
-  const accept = request.headers.accept;
-  let value: string | undefined;
-  if (Array.isArray(accept)) {
-    value = accept.join(",");
-  } else if (typeof accept === "string") {
-    value = accept;
-  }
-  if (!value) {
-    return false;
-  }
-  return value.toLowerCase().includes("application/openmetrics-text");
+  const value = readAcceptHeader(request);
+  return value ? value.includes("application/openmetrics-text") : false;
 };
 
 const prometheusContentType = (request: HttpServerRequest): string =>
