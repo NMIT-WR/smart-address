@@ -4,7 +4,7 @@ import {
 } from "@effect/platform/HttpServerRequest";
 import type { HttpServerResponse } from "@effect/platform/HttpServerResponse";
 import { describe, expect, it } from "@effect-native/bun-test";
-import { Effect, Ref, Tracer } from "effect";
+import { Effect, Ref } from "effect";
 import {
   handleAcceptPost,
   handleMetricsGet,
@@ -19,46 +19,10 @@ import {
   makeSuggestPostRequest,
   parseJsonResponse,
 } from "./http-helpers";
-
-interface RecordedSpan {
-  name: string;
-  attributes: Map<string, unknown>;
-}
-
-const makeTestTracer = (spans: RecordedSpan[]) => {
-  let counter = 0;
-  return Tracer.make({
-    span: (name, parent, context, links, startTime, kind) => {
-      const attributes = new Map<string, unknown>();
-      spans.push({ name, attributes });
-      let status: Tracer.SpanStatus = { _tag: "Started", startTime };
-      const span: Tracer.Span = {
-        _tag: "Span",
-        name,
-        spanId: `span-${counter++}`,
-        traceId: "trace-1",
-        parent,
-        context,
-        status,
-        attributes,
-        links,
-        sampled: true,
-        kind,
-        end: (endTime, exit) => {
-          status = { _tag: "Ended", startTime, endTime, exit };
-          span.status = status;
-        },
-        attribute: (key, value) => {
-          attributes.set(key, value);
-        },
-        event: () => undefined,
-        addLinks: () => undefined,
-      };
-      return span;
-    },
-    context: (f) => f(),
-  });
-};
+import {
+  type RecordedSpan,
+  makeTestTracer,
+} from "../../../test-utils/test-tracer";
 
 const sampleResult = {
   suggestions: [

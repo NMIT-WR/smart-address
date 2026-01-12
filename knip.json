@@ -1,14 +1,14 @@
 {
   "$schema": "https://unpkg.com/knip@5.79.0/schema.json",
   "ignoreDependencies": ["@biomejs/biome"],
+  "ignoreFiles": ["test-utils/**"],
   "workspaces": {
     "apps/docs": {
       "entry": ["rspress.config.ts"],
       "ignoreDependencies": ["@smart-address/sdk"]
     },
     "apps/landing": {
-      "entry": ["src/router.tsx"],
-      "ignoreBinaries": ["eslint"]
+      "entry": ["src/router.tsx"]
     },
     "packages/core": {
       "entry": ["src/address.ts", "src/schema.ts"]
