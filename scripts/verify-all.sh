@@ -36,6 +36,20 @@ stop_service() {
     else
       kill "${SERVICE_PID}" 2>/dev/null || true
     fi
+    for _ in {1..10}; do
+      if ! kill -0 "${SERVICE_PID}" 2>/dev/null; then
+        break
+      fi
+      sleep 1
+    done
+    if kill -0 "${SERVICE_PID}" 2>/dev/null; then
+      echo "Warning: service did not exit after SIGTERM, sending SIGKILL" >&2
+      if [[ -n "${SERVICE_PGID}" ]]; then
+        kill -9 -- -"${SERVICE_PGID}" 2>/dev/null || kill -9 "${SERVICE_PID}" 2>/dev/null || true
+      else
+        kill -9 "${SERVICE_PID}" 2>/dev/null || true
+      fi
+    fi
     wait "${SERVICE_PID}" 2>/dev/null || true
     SERVICE_PID=""
     SERVICE_PGID=""
