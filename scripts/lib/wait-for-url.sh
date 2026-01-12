@@ -4,6 +4,7 @@
 wait_for_url() {
   local url="${1:-}"
   local attempts="${2:-30}"
+  local max_attempts=120
   local i=1
 
   if [[ -z "${url}" ]]; then
@@ -16,8 +17,14 @@ wait_for_url() {
     return 2
   fi
 
+  if [[ "${attempts}" -gt "${max_attempts}" ]]; then
+    echo "wait_for_url: attempts capped at ${max_attempts} (requested ${attempts})" >&2
+    attempts="${max_attempts}"
+  fi
+
   if ! command -v curl >/dev/null 2>&1; then
     echo "wait_for_url: curl not available" >&2
+    # Match shell "command not found" semantics for missing dependency.
     return 127
   fi
 
