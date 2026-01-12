@@ -10,6 +10,8 @@ services:
     user: "0"
     # Capabilities required for eBPF profiling + network tracing.
     cap_add:
+      # Needed so root can write to /var/lib/alloy/data (owned by alloy user).
+      - DAC_OVERRIDE
       - SYS_ADMIN
       - SYS_RESOURCE
       - SYS_PTRACE
