@@ -29,7 +29,7 @@ wait_for_url() {
   fi
 
   while [[ "${i}" -le "${attempts}" ]]; do
-    if curl -fsS --connect-timeout 2 --max-time 4 "${url}" >/dev/null 2>&1; then
+    if curl -fsS --connect-timeout 2 --max-time 4 "${url}" >/dev/null; then
       return 0
     fi
     i=$((i + 1))
