@@ -19,6 +19,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
     "@effect/language-service": "catalog:tooling",
+    "effect": "catalog:prod",
     "lefthook": "^2.0.13",
     "jscpd": "^4.0.5",
     "knip": "^5.79.0",

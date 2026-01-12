@@ -1,49 +1,15 @@
 import { describe, expect, it } from "@effect-native/bun-test";
-import { Effect, Tracer } from "effect";
+import { Effect } from "effect";
+import {
+  makeTestTracer,
+  type RecordedSpan,
+} from "../../../test-utils/test-tracer";
 import {
   type AddressProviderPlan,
   makeAddressProvider,
   makeAddressSuggestionService,
   normalizeAddressQuery,
 } from "../src/address";
-
-interface RecordedSpan {
-  name: string;
-  attributes: Map<string, unknown>;
-}
-
-const makeTestTracer = (spans: RecordedSpan[]) =>
-  Tracer.make({
-    span: (name, parent, context, links, startTime, kind) => {
-      const attributes = new Map<string, unknown>();
-      spans.push({ name, attributes });
-      let status: Tracer.SpanStatus = { _tag: "Started", startTime };
-      const span: Tracer.Span = {
-        _tag: "Span",
-        name,
-        spanId: "span-1",
-        traceId: "trace-1",
-        parent,
-        context,
-        status,
-        attributes,
-        links,
-        sampled: true,
-        kind,
-        end: (endTime, exit) => {
-          status = { _tag: "Ended", startTime, endTime, exit };
-          span.status = status;
-        },
-        attribute: (key, value) => {
-          attributes.set(key, value);
-        },
-        event: () => undefined,
-        addLinks: () => undefined,
-      };
-      return span;
-    },
-    context: (f) => f(),
-  });
 
 describe("address core", () => {
   it("normalizes address queries", () => {
