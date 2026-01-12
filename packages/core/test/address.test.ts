@@ -1,15 +1,15 @@
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect } from "effect";
 import {
+  makeTestTracer,
+  type RecordedSpan,
+} from "../../../test-utils/test-tracer";
+import {
   type AddressProviderPlan,
   makeAddressProvider,
   makeAddressSuggestionService,
   normalizeAddressQuery,
 } from "../src/address";
-import {
-  type RecordedSpan,
-  makeTestTracer,
-} from "../../../test-utils/test-tracer";
 
 describe("address core", () => {
   it("normalizes address queries", () => {

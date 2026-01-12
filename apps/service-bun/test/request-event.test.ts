@@ -57,10 +57,7 @@ describe("request event", () => {
 
       expect(finalized?.decision.keep).toBe(true);
       expect(finalized?.decision.reason).toBe("error");
-    }).pipe(
-      Effect.provide(configLayer({})),
-      Effect.provide(TestContext)
-    )
+    }).pipe(Effect.provide(configLayer({})), Effect.provide(TestContext))
   );
 
   it.effect("keeps slow requests", () =>
@@ -84,10 +81,7 @@ describe("request event", () => {
 
       expect(finalized?.decision.keep).toBe(true);
       expect(finalized?.decision.reason).toBe("forced");
-    }).pipe(
-      Effect.provide(configLayer({})),
-      Effect.provide(TestContext)
-    )
+    }).pipe(Effect.provide(configLayer({})), Effect.provide(TestContext))
   );
 
   it.effect("redacts raw query when disabled", () =>
