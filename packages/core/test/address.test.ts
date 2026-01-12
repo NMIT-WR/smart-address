@@ -1,6 +1,10 @@
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect } from "effect";
 import {
+  makeTestTracer,
+  type RecordedSpan,
+} from "../../../test-utils/test-tracer";
+import {
   type AddressProviderPlan,
   makeAddressProvider,
   makeAddressSuggestionService,

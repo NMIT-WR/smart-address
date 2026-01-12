@@ -6,6 +6,10 @@ import type { HttpServerResponse } from "@effect/platform/HttpServerResponse";
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect, Ref } from "effect";
 import {
+  type RecordedSpan,
+  makeTestTracer,
+} from "../../../test-utils/test-tracer";
+import {
   handleAcceptPost,
   handleMetricsGet,
   handleSuggestGet,
@@ -19,10 +23,6 @@ import {
   makeSuggestPostRequest,
   parseJsonResponse,
 } from "./http-helpers";
-import {
-  type RecordedSpan,
-  makeTestTracer,
-} from "../../../test-utils/test-tracer";
 
 const sampleResult = {
   suggestions: [
