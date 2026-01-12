@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { TestContext } from "effect/TestContext";
 import {
   makeRequestEvent,
+  type RequestEventConfig,
   RequestEventConfigLayer,
 } from "../src/request-event";
 
@@ -19,6 +20,19 @@ const baseConfig = {
   serviceVersion: "test",
 };
 
+const baseSamplingConfig = {
+  sampleRate: 0,
+  slowThresholdMs: 10_000,
+  random: () => 0.5,
+};
+
+const configLayer = (overrides: Partial<RequestEventConfig>) =>
+  RequestEventConfigLayer({
+    ...baseConfig,
+    ...baseSamplingConfig,
+    ...overrides,
+  });
+
 describe("request event", () => {
   it.effect("drops fast requests when sampled out", () =>
     Effect.gen(function* () {
@@ -29,14 +43,7 @@ describe("request event", () => {
       expect(finalized?.decision.keep).toBe(false);
       expect(finalized?.decision.reason).toBe("drop");
     }).pipe(
-      Effect.provide(
-        RequestEventConfigLayer({
-          ...baseConfig,
-          sampleRate: 0,
-          slowThresholdMs: 10_000,
-          random: () => 0.99,
-        })
-      ),
+      Effect.provide(configLayer({ random: () => 0.99 })),
       Effect.provide(TestContext)
     )
   );
@@ -49,17 +56,7 @@ describe("request event", () => {
 
       expect(finalized?.decision.keep).toBe(true);
       expect(finalized?.decision.reason).toBe("error");
-    }).pipe(
-      Effect.provide(
-        RequestEventConfigLayer({
-          ...baseConfig,
-          sampleRate: 0,
-          slowThresholdMs: 10_000,
-          random: () => 0.5,
-        })
-      ),
-      Effect.provide(TestContext)
-    )
+    }).pipe(Effect.provide(configLayer({})), Effect.provide(TestContext))
   );
 
   it.effect("keeps slow requests", () =>
@@ -70,14 +67,7 @@ describe("request event", () => {
       expect(finalized?.decision.keep).toBe(true);
       expect(finalized?.decision.reason).toBe("slow");
     }).pipe(
-      Effect.provide(
-        RequestEventConfigLayer({
-          ...baseConfig,
-          sampleRate: 0,
-          slowThresholdMs: 0,
-          random: () => 0.5,
-        })
-      ),
+      Effect.provide(configLayer({ slowThresholdMs: 0 })),
       Effect.provide(TestContext)
     )
   );
@@ -90,16 +80,6 @@ describe("request event", () => {
 
       expect(finalized?.decision.keep).toBe(true);
       expect(finalized?.decision.reason).toBe("forced");
-    }).pipe(
-      Effect.provide(
-        RequestEventConfigLayer({
-          ...baseConfig,
-          sampleRate: 0,
-          slowThresholdMs: 10_000,
-          random: () => 0.5,
-        })
-      ),
-      Effect.provide(TestContext)
-    )
+    }).pipe(Effect.provide(configLayer({})), Effect.provide(TestContext))
   );
 });
