@@ -34,8 +34,10 @@ services:
       - alloy-data:/var/lib/alloy/data
       - alloy-symb-cache:/tmp/symb-cache
     depends_on:
-      - lgtm
-      - smart-address
+      lgtm:
+        condition: service_healthy
+      smart-address:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "kill -0 1"]

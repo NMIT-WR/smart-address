@@ -125,7 +125,6 @@ interface RequestEventState extends RequestEventBase {
   readonly providers: ProviderEvent[];
   readonly result?: WideEvent["result"] | undefined;
   readonly accept?: WideEvent["accept"] | undefined;
-  readonly error?: { readonly message: string } | undefined;
   readonly forceSample?: boolean | undefined;
   readonly flushed?: boolean | undefined;
 }

@@ -8,8 +8,7 @@
       "ignoreDependencies": ["@smart-address/sdk"]
     },
     "apps/landing": {
-      "entry": ["src/router.tsx"],
-      "ignoreBinaries": ["eslint"]
+      "entry": ["src/router.tsx"]
     },
     "packages/core": {
       "entry": ["src/address.ts", "src/schema.ts"]
