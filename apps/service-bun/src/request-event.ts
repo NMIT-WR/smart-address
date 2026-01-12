@@ -63,8 +63,15 @@ export interface ProviderEvent {
   readonly ok: boolean;
 }
 
-interface WideEvent {
-  readonly timestamp: string;
+interface RequestEventPlan {
+  readonly stages: ReadonlyArray<{
+    readonly name?: string | undefined;
+    readonly concurrency?: number | "unbounded" | undefined;
+    readonly providers: readonly string[];
+  }>;
+}
+
+interface RequestEventBase {
   readonly requestId: string;
   readonly traceId?: string | undefined;
   readonly spanId?: string | undefined;
@@ -82,15 +89,16 @@ interface WideEvent {
   readonly queryHash?: string | undefined;
   readonly cacheKey?: string | undefined;
   readonly cache?: CacheEventUpdate | undefined;
-  readonly plan?:
-    | {
-        readonly stages: ReadonlyArray<{
-          readonly name?: string | undefined;
-          readonly concurrency?: number | "unbounded" | undefined;
-          readonly providers: readonly string[];
-        }>;
-      }
-    | undefined;
+  readonly plan?: RequestEventPlan | undefined;
+  readonly error?: { readonly message: string } | undefined;
+}
+
+interface WideEvent extends RequestEventBase {
+  readonly timestamp: string;
+  readonly service: string;
+  readonly version?: string | undefined;
+  readonly statusCode: number;
+  readonly durationMs: number;
   readonly providers?: readonly ProviderEvent[] | undefined;
   readonly result?:
     | {
@@ -107,7 +115,6 @@ interface WideEvent {
         readonly resultCount?: number | undefined;
       }
     | undefined;
-  readonly error?: { readonly message: string } | undefined;
   readonly sampling: SamplingDecision;
 }
 
@@ -117,26 +124,11 @@ interface SamplingDecision {
   readonly rate?: number | undefined;
 }
 
-interface RequestEventState {
-  readonly requestId: string;
-  readonly kind: RequestEventKind;
-  readonly source: RequestEventSource;
-  readonly method?: string | undefined;
-  readonly path?: string | undefined;
+interface RequestEventState extends RequestEventBase {
   readonly startedAt: number;
-  readonly traceId?: string | undefined;
-  readonly spanId?: string | undefined;
-  readonly strategy?: AddressStrategy | undefined;
-  readonly query?: AddressQuery | undefined;
-  readonly normalizedQuery?: AddressQuery | undefined;
-  readonly queryHash?: string | undefined;
-  readonly cacheKey?: string | undefined;
-  readonly cache?: CacheEventUpdate | undefined;
-  readonly plan?: WideEvent["plan"] | undefined;
   readonly providers: ProviderEvent[];
   readonly result?: WideEvent["result"] | undefined;
   readonly accept?: WideEvent["accept"] | undefined;
-  readonly error?: { readonly message: string } | undefined;
   readonly forceSample?: boolean | undefined;
   readonly flushed?: boolean | undefined;
 }
