@@ -13,9 +13,19 @@
   "templating": {
     "list": [
       {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "refresh": 1,
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "current": {}
+      },
+      {
         "name": "service",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "query": "label_values(http_server_request_duration_seconds_count, service_name)",
         "refresh": 1,
         "includeAll": true,
@@ -32,7 +42,7 @@
       "id": 1,
       "type": "timeseries",
       "title": "HTTP requests/s (service)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "targets": [
         {
           "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\"}[5m]))",
@@ -47,7 +57,7 @@
       "id": 2,
       "type": "timeseries",
       "title": "HTTP p95 latency (service)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "targets": [
         {
           "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\"}[5m])))",
@@ -62,7 +72,7 @@
       "id": 3,
       "type": "timeseries",
       "title": "HTTP 5xx errors/s (service)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "targets": [
         {
           "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\",http_response_status_code=~\"5..\"}[5m])) or vector(0)",
@@ -77,7 +87,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "Network bytes/s (Beyla)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "targets": [
         {
           "expr": "sum by (direction) (rate(beyla_network_flow_bytes_total[5m]))",
@@ -92,7 +102,7 @@
       "id": 5,
       "type": "stat",
       "title": "Instrumented processes (Beyla)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "targets": [
         {
           "expr": "sum(beyla_instrumented_processes)",
@@ -100,7 +110,20 @@
           "refId": "A"
         }
       ],
-      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
         "orientation": "horizontal"

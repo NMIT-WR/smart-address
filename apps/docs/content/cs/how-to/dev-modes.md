@@ -3,17 +3,7 @@
 ## Cíl
 
 Spustit Smart Address lokálně ve dvou režimech: rychlý macOS vývoj a plná Linux eBPF observabilita.
-
-## Předpoklady
-
-- Rychlý režim: Docker + Bun + pnpm na Macu.
-- Plný režim: Linux Docker kontext (Colima/Lima/Proxmox) s podporou eBPF.
-
-## Vstupy
-
-- Volitelně: `SMART_ADDRESS_LINUX_DOCKER_CONTEXT` pro výběr Linux Docker kontextu.
-
-## Použití
+Použijte jeden z těchto příkazů:
 
 **Rychlý režim** — LGTM v Dockeru, služba na hostu:
 
@@ -26,6 +16,15 @@ Spustit Smart Address lokálně ve dvou režimech: rychlý macOS vývoj a plná 
 ```bash
 SMART_ADDRESS_LINUX_DOCKER_CONTEXT=colima ./scripts/dev-full-linux.sh
 ```
+
+## Předpoklady
+
+- Rychlý režim: Docker + Bun + pnpm na Macu.
+- Plný režim: Linux Docker kontext (Colima/Lima/Proxmox) s podporou eBPF.
+
+## Vstupy
+
+- Volitelně: `SMART_ADDRESS_LINUX_DOCKER_CONTEXT` pro výběr Linux Docker kontextu.
 
 ## Výstup
 

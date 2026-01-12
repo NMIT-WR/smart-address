@@ -7,8 +7,40 @@ cd "$ROOT_DIR"
 source "$ROOT_DIR/scripts/lib/wait-for-url.sh"
 
 SERVICE_PID=""
+SERVICE_PGID=""
 COMPOSE_UP="0"
 COMPOSE_FILES=(-f deploy/compose/obs.yaml -f deploy/compose/alloy.yaml -f deploy/compose/app.yaml)
+
+run() {
+  echo "==> $*"
+  "$@"
+}
+
+start_service() {
+  echo "==> pnpm --filter @smart-address/service-bun start"
+  if command -v setsid >/dev/null 2>&1; then
+    setsid pnpm --filter @smart-address/service-bun start &
+    SERVICE_PID=$!
+    SERVICE_PGID=$SERVICE_PID
+  else
+    pnpm --filter @smart-address/service-bun start &
+    SERVICE_PID=$!
+    SERVICE_PGID=""
+  fi
+}
+
+stop_service() {
+  if [[ -n "${SERVICE_PID}" ]]; then
+    if [[ -n "${SERVICE_PGID}" ]]; then
+      kill -- -"${SERVICE_PGID}" 2>/dev/null || kill "${SERVICE_PID}" 2>/dev/null || true
+    else
+      kill "${SERVICE_PID}" 2>/dev/null || true
+    fi
+    wait "${SERVICE_PID}" 2>/dev/null || true
+    SERVICE_PID=""
+    SERVICE_PGID=""
+  fi
+}
 
 if [[ -x "$ROOT_DIR/scripts/free-ports.sh" ]]; then
   "$ROOT_DIR/scripts/free-ports.sh" || \
@@ -16,21 +48,13 @@ if [[ -x "$ROOT_DIR/scripts/free-ports.sh" ]]; then
 fi
 
 cleanup() {
-  if [[ -n "${SERVICE_PID}" ]]; then
-    kill "${SERVICE_PID}" 2>/dev/null || true
-    wait "${SERVICE_PID}" 2>/dev/null || true
-  fi
+  stop_service
   if [[ "${COMPOSE_UP}" == "1" ]]; then
-    docker compose "${COMPOSE_FILES[@]}" down
+    docker compose "${COMPOSE_FILES[@]}" down >/dev/null 2>&1 || true
   fi
 }
 
 trap cleanup EXIT
-
-run() {
-  echo "==> $*"
-  "$@"
-}
 
 wait_for_health() {
   wait_for_url "http://localhost:8787/health"
@@ -53,8 +77,7 @@ run pnpm --filter landing test
 run pnpm --filter landing build
 run pnpm --filter @smart-address/sdk test
 
-run pnpm --filter @smart-address/service-bun start &
-SERVICE_PID=$!
+start_service
 
 if ! wait_for_health; then
   echo "Service failed to become healthy on http://localhost:8787/health"
@@ -90,9 +113,7 @@ run curl -fsS -X POST "http://localhost:8787/accept" \
 }
 JSON
 
-kill "${SERVICE_PID}" 2>/dev/null || true
-wait "${SERVICE_PID}" 2>/dev/null || true
-SERVICE_PID=""
+stop_service
 
 if [[ -x "$ROOT_DIR/scripts/free-ports.sh" ]]; then
   "$ROOT_DIR/scripts/free-ports.sh" || \

@@ -3,17 +3,7 @@
 ## Goal
 
 Run Smart Address locally in two modes: fast macOS development and full Linux eBPF observability.
-
-## Prerequisites
-
-- Fast mode: Docker + Bun + pnpm on your Mac.
-- Full mode: Linux Docker context (Colima/Lima/Proxmox) with eBPF support.
-
-## Inputs
-
-- Optional: `SMART_ADDRESS_LINUX_DOCKER_CONTEXT` to select the Linux Docker context.
-
-## Usage
+Use one of these commands:
 
 **Fast mode** — LGTM in Docker, service on host:
 
@@ -26,6 +16,15 @@ Run Smart Address locally in two modes: fast macOS development and full Linux eB
 ```bash
 SMART_ADDRESS_LINUX_DOCKER_CONTEXT=colima ./scripts/dev-full-linux.sh
 ```
+
+## Prerequisites
+
+- Fast mode: Docker + Bun + pnpm on your Mac.
+- Full mode: Linux Docker context (Colima/Lima/Proxmox) with eBPF support.
+
+## Inputs
+
+- Optional: `SMART_ADDRESS_LINUX_DOCKER_CONTEXT` to select the Linux Docker context.
 
 ## Output
 

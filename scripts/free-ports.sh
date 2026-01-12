@@ -32,7 +32,7 @@ normalize_pids() {
   tr ' ' '\n' | awk '/^[0-9]+$/ {print $0}' | sort -u | tr '\n' ' '
 }
 
-kill_port() {
+get_port_pids() {
   local port="$1"
   local pids=""
   local os_name=""
@@ -56,13 +56,25 @@ kill_port() {
       )"
     fi
   fi
-  pids="$(normalize_pids <<< "${pids}")"
+  normalize_pids <<< "${pids}"
+}
+
+kill_port() {
+  local port="$1"
+  local pids=""
+  local remaining=""
+  pids="$(get_port_pids "${port}")"
 
   if [[ -n "${pids}" ]]; then
     echo "Killing processes on port ${port}: ${pids}"
     for pid in ${pids}; do
       kill "${pid}" 2>/dev/null || true
     done
+    sleep 0.2
+    remaining="$(get_port_pids "${port}")"
+    if [[ -n "${remaining}" ]]; then
+      echo "Warning: port ${port} still in use after SIGTERM (${remaining})" >&2
+    fi
   fi
 }
 

@@ -28,6 +28,7 @@ wait_for_health() {
   wait_for_url "http://localhost:8787/health"
 }
 
+# NOTE: Prometheus query must be URL-encoded (e.g. %7B for "{").
 prom_query_has_value() {
   local query="$1"
   local payload=""
@@ -116,7 +117,8 @@ if ! curl -fsS "http://localhost:3000/api/health" >/dev/null; then
 fi
 
 echo "==> Checking OTLP endpoint reachability"
-if ! curl -s --connect-timeout 3 --max-time 5 "http://localhost:4318" >/dev/null; then
+otlp_code="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 5 "http://localhost:4318" || true)"
+if [[ -z "${otlp_code}" || "${otlp_code}" == "000" ]]; then
   echo "OTLP HTTP endpoint not reachable on http://localhost:4318"
   exit 1
 fi
