@@ -1,9 +1,9 @@
+import { describe, expect, it } from "@effect-native/bun-test";
 import {
   fromWeb,
   type HttpServerRequest,
 } from "@effect/platform/HttpServerRequest";
 import type { HttpServerResponse } from "@effect/platform/HttpServerResponse";
-import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect, Ref } from "effect";
 import {
   type RecordedSpan,
