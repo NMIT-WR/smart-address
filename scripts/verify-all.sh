@@ -9,7 +9,8 @@ COMPOSE_UP="0"
 COMPOSE_FILES=(-f deploy/compose/obs.yaml -f deploy/compose/alloy.yaml -f deploy/compose/app.yaml)
 
 if [[ -x "$ROOT_DIR/scripts/free-ports.sh" ]]; then
-  "$ROOT_DIR/scripts/free-ports.sh"
+  "$ROOT_DIR/scripts/free-ports.sh" || \
+    echo "Warning: free-ports.sh failed, continuing anyway" >&2
 fi
 
 cleanup() {
@@ -34,7 +35,7 @@ wait_for_url() {
   local attempts=30
   local i=1
   while [[ "${i}" -le "${attempts}" ]]; do
-    if curl -fsS "${url}" >/dev/null; then
+    if curl -fsS "${url}" >/dev/null 2>&1; then
       return 0
     fi
     sleep 1
@@ -106,7 +107,8 @@ wait "${SERVICE_PID}" 2>/dev/null || true
 SERVICE_PID=""
 
 if [[ -x "$ROOT_DIR/scripts/free-ports.sh" ]]; then
-  "$ROOT_DIR/scripts/free-ports.sh"
+  "$ROOT_DIR/scripts/free-ports.sh" || \
+    echo "Warning: free-ports.sh failed, continuing anyway" >&2
 fi
 
 run docker build -t smart-address-service .

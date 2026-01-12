@@ -17,6 +17,11 @@ cleanup() {
 
 trap cleanup EXIT
 
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "python3 is required for scripts/obs-smoke.sh" >&2
+  exit 1
+fi
+
 wait_for_health() {
   local attempts=30
   local i=1

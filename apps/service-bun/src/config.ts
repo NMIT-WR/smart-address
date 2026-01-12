@@ -143,10 +143,11 @@ const normalizeOtelEndpoint = (value: string): string => {
   if (trimmed.length === 0) {
     return "http://localhost:4318/v1/traces";
   }
-  if (trimmed.endsWith("/v1/traces")) {
-    return trimmed;
+  const withoutTrailing = trimmed.replace(otelEndpointTrimTrailingSlashes, "");
+  if (withoutTrailing.endsWith("/v1/traces")) {
+    return withoutTrailing;
   }
-  return `${trimmed.replace(otelEndpointTrimTrailingSlashes, "")}/v1/traces`;
+  return `${withoutTrailing}/v1/traces`;
 };
 
 const currentNodeEnv = (): string =>

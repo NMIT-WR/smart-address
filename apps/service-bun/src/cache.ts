@@ -498,6 +498,7 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
                 attributes: {
                   "cache.layer": "l1",
                   "cache.key_hash": keyHash,
+                  // L1 uses configured TTL since entries don't track remaining lifetime.
                   "cache.ttl_ms": l1TtlMs,
                 },
               })

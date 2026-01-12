@@ -22,14 +22,15 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+normalize_pids() {
+  tr ' ' '\n' | awk '/^[0-9]+$/ {print $0}' | sort -u | tr '\n' ' '
+}
+
 kill_port() {
   local port="$1"
   local pids=""
   local os_name=""
   os_name="$(uname -s 2>/dev/null || echo "")"
-  normalize_pids() {
-    tr ' ' '\n' | awk '/^[0-9]+$/ {print $0}' | sort -u | tr '\n' ' '
-  }
   if command -v lsof >/dev/null 2>&1; then
     pids="$(lsof -tiTCP:"${port}" -sTCP:LISTEN || true)"
   elif command -v fuser >/dev/null 2>&1; then

@@ -13,17 +13,15 @@ Spustit Smart Address lokálně ve dvou režimech: rychlý macOS vývoj a plná 
 
 - Volitelně: `SMART_ADDRESS_LINUX_DOCKER_CONTEXT` pro výběr Linux Docker kontextu.
 
-## Rychlý režim
+## Použití
 
-LGTM v Dockeru, služba na hostu:
+**Rychlý režim** — LGTM v Dockeru, služba na hostu:
 
 ```bash
 ./scripts/dev-fast.sh
 ```
 
-## Plný režim
-
-Linux VM, služba + LGTM + Alloy eBPF v Dockeru:
+**Plný režim** — Linux VM, služba + LGTM + Alloy eBPF v Dockeru:
 
 ```bash
 SMART_ADDRESS_LINUX_DOCKER_CONTEXT=colima ./scripts/dev-full-linux.sh

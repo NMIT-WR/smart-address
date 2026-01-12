@@ -10,6 +10,23 @@
     "from": "now-15m",
     "to": "now"
   },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(http_server_request_duration_seconds_count, service_name)",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "smart-address-service",
+          "value": "smart-address-service"
+        }
+      }
+    ]
+  },
   "panels": [
     {
       "id": 1,
@@ -18,12 +35,12 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=\"smart-address-service\"}[5m]))",
+          "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\"}[5m]))",
           "legendFormat": "requests/s",
           "refId": "A"
         }
       ],
-      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 }
     },
     {
@@ -33,7 +50,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=\"smart-address-service\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\"}[5m])))",
           "legendFormat": "p95",
           "refId": "A"
         }
@@ -48,7 +65,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=\"smart-address-service\",http_response_status_code=~\"5..\"}[5m])) or vector(0)",
+          "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\",http_response_status_code=~\"5..\"}[5m])) or vector(0)",
           "legendFormat": "5xx",
           "refId": "A"
         }

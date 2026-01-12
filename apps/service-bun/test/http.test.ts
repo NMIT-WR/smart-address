@@ -279,7 +279,7 @@ describe("http handlers", () => {
     Effect.gen(function* () {
       const request = fromWeb(
         new Request(makeRequestUrl("/metrics"), {
-          headers: { accept: "text/plain" },
+          headers: { accept: "text/plain; version=0.0.4" },
         })
       );
       const { web, body } = yield* parseTextResponse(

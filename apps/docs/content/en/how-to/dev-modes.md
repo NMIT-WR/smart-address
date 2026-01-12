@@ -13,17 +13,15 @@ Run Smart Address locally in two modes: fast macOS development and full Linux eB
 
 - Optional: `SMART_ADDRESS_LINUX_DOCKER_CONTEXT` to select the Linux Docker context.
 
-## Fast Mode
+## Usage
 
-LGTM in Docker, service on host:
+**Fast mode** — LGTM in Docker, service on host:
 
 ```bash
 ./scripts/dev-fast.sh
 ```
 
-## Full Mode
-
-Linux VM, service + LGTM + Alloy eBPF in Docker:
+**Full mode** — Linux VM, service + LGTM + Alloy eBPF in Docker:
 
 ```bash
 SMART_ADDRESS_LINUX_DOCKER_CONTEXT=colima ./scripts/dev-full-linux.sh

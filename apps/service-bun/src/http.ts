@@ -79,7 +79,8 @@ const acceptsPrometheus = (request: HttpServerRequest): boolean => {
     return false;
   }
   return (
-    value.includes("text/plain") ||
+    value.includes("text/plain; version=0.0.4") ||
+    value.includes("text/plain;version=0.0.4") ||
     value.includes("application/openmetrics-text")
   );
 };
@@ -145,9 +146,6 @@ const parseTraceparent = (value: string): SpanContext | undefined => {
   }
   const [version, traceId, spanId, flags] = trimmed.split("-");
   if (version === "ff") {
-    return undefined;
-  }
-  if (version.length !== 2) {
     return undefined;
   }
   if (traceIdZeroPattern.test(traceId) || spanIdZeroPattern.test(spanId)) {
