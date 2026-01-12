@@ -44,7 +44,7 @@ get_port_pids() {
   elif command -v ss >/dev/null 2>&1; then
     pids="$(
       ss -ltnp "sport = :${port}" 2>/dev/null \
-        | awk 'NR>1 {match($NF, /pid=([0-9]+)/, m); if (m[1] != "") print m[1]}' \
+        | awk 'NR>1 { if (match($NF, /pid=[0-9]+/)) print substr($NF, RSTART+4, RLENGTH-4) }' \
         | tr '\n' ' '
     )"
   elif command -v netstat >/dev/null 2>&1; then

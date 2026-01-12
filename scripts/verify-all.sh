@@ -136,5 +136,5 @@ if ! wait_for_suggest; then
 fi
 run curl -fsS "http://localhost:8787/suggest?q=Prague&limit=5&countryCode=CZ"
 
-docker compose "${COMPOSE_FILES[@]}" down
+run docker compose "${COMPOSE_FILES[@]}" down
 COMPOSE_UP="0"

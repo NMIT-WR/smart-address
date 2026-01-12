@@ -25,8 +25,10 @@ wait_for_url() {
     if curl -fsS --connect-timeout 2 --max-time 4 "${url}" >/dev/null 2>&1; then
       return 0
     fi
-    sleep 1
     i=$((i + 1))
+    if [[ "${i}" -le "${attempts}" ]]; then
+      sleep 1
+    fi
   done
   return 1
 }

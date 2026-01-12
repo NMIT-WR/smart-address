@@ -28,6 +28,20 @@ wait_for_health() {
   wait_for_url "http://localhost:8787/health"
 }
 
+retry() {
+  local attempts="${1:-10}"
+  shift
+  local i=1
+  while [[ "${i}" -le "${attempts}" ]]; do
+    if "$@"; then
+      return 0
+    fi
+    sleep 1
+    i=$((i + 1))
+  done
+  return 1
+}
+
 # NOTE: Prometheus query must be URL-encoded (e.g. %7B for "{").
 prom_query_has_value() {
   local query="$1"
@@ -97,6 +111,12 @@ sys.exit(0 if len(result) > 0 else 1)
 '
 }
 
+check_wide_event_log() {
+  local logs=""
+  logs="$("${COMPOSE[@]}" logs --tail 200 --no-color smart-address)"
+  grep -q '"kind":"suggest"' <<<"${logs}"
+}
+
 echo "==> Starting observability stack"
 "${COMPOSE[@]}" up -d
 
@@ -124,72 +144,31 @@ if [[ -z "${otlp_code}" || "${otlp_code}" == "000" ]]; then
 fi
 
 echo "==> Checking Prometheus metrics (smart_address_cache_requests_total)"
-metrics_ok=0
-for _ in {1..20}; do
-  if prom_query_has_value "smart_address_cache_requests_total"; then
-    metrics_ok=1
-    break
-  fi
-  sleep 1
-done
-if [[ "${metrics_ok}" -ne 1 ]]; then
+if ! retry 20 prom_query_has_value "smart_address_cache_requests_total"; then
   echo "Prometheus metric smart_address_cache_requests_total not observed"
   exit 1
 fi
 
 echo "==> Checking Beyla metrics (beyla_network_flow_bytes_total)"
-beyla_metrics_ok=0
-for _ in {1..20}; do
-  if prom_query_has_value "beyla_network_flow_bytes_total"; then
-    beyla_metrics_ok=1
-    break
-  fi
-  sleep 1
-done
-if [[ "${beyla_metrics_ok}" -ne 1 ]]; then
+if ! retry 20 prom_query_has_value "beyla_network_flow_bytes_total"; then
   echo "Beyla network metrics not observed in Prometheus"
   exit 1
 fi
 
 echo "==> Checking for wide event log line"
-found=0
-for _ in {1..10}; do
-  logs="$("${COMPOSE[@]}" logs --tail 200 --no-color smart-address)"
-  if grep -q '"kind":"suggest"' <<<"${logs}"; then
-    found=1
-    break
-  fi
-  sleep 1
-done
-if [[ "${found}" -ne 1 ]]; then
+if ! retry 10 check_wide_event_log; then
   echo "Wide event log line not found in smart-address logs"
   exit 1
 fi
 
 echo "==> Checking Loki ingestion (job=smart-address, kind=suggest)"
-loki_ok=0
-for _ in {1..10}; do
-  if check_loki_streams; then
-    loki_ok=1
-    break
-  fi
-  sleep 1
-done
-if [[ "${loki_ok}" -ne 1 ]]; then
+if ! retry 10 check_loki_streams; then
   echo "Loki did not return smart-address suggest logs"
   exit 1
 fi
 
 echo "==> Checking Beyla spans in Tempo (spanmetrics)"
-trace_exports=0
-for _ in {1..20}; do
-  if check_beyla_spanmetrics; then
-    trace_exports=1
-    break
-  fi
-  sleep 1
-done
-if [[ "${trace_exports}" -ne 1 ]]; then
+if ! retry 20 check_beyla_spanmetrics; then
   echo "Beyla spans not observed via spanmetrics for service=smart-address"
   exit 1
 fi
