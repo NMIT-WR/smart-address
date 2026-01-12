@@ -1,0 +1,51 @@
+services:
+  alloy:
+    image: grafana/alloy:v1.12.2
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    # Root is required for docker.sock access and eBPF profiling; run in trusted environments.
+    user: "0"
+    # Capabilities required for eBPF profiling + network tracing.
+    cap_add:
+      # Needed so root can write to /var/lib/alloy/data (owned by alloy user).
+      - DAC_OVERRIDE
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - SYS_PTRACE
+      - NET_ADMIN
+      - NET_RAW
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    # Host PID namespace is required for eBPF profiling. Remove if eBPF is disabled.
+    pid: "host"
+    ports:
+      - "12345:12345"
+    volumes:
+      # Keep Alloy config read-only to prevent in-container edits.
+      - ../alloy/config.alloy:/etc/alloy/config.alloy:ro
+      # docker.sock grants access to container logs; consider docker group for non-root alternatives.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy/data
+      - alloy-symb-cache:/tmp/symb-cache
+    depends_on:
+      lgtm:
+        condition: service_healthy
+      smart-address:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "kill -0 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  alloy-data:
+  alloy-symb-cache:

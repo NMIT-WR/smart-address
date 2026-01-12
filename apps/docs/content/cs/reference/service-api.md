@@ -20,12 +20,17 @@ Default: `http://localhost:8787`
 - `GET /suggest` (query parametry)
 - `POST /suggest` (JSON nebo form)
 - `POST /accept` (JSON)
-- `GET /metrics` (JSON)
+- `GET /metrics` (JSON nebo Prometheus text)
 
 Další protokoly:
 
 - MCP: `POST /mcp` (viz: [MCP nástroj](/cs/reference/mcp-tool))
 - Effect RPC: `/rpc` (viz: [Effect RPC](/cs/reference/rpc))
+
+### Hlavičky
+
+- `x-request-id` (volitelné; vrací se zpět)
+- `traceparent` (volitelné; W3C trace context)
 
 ### GET /suggest (query parametry)
 
@@ -89,9 +94,17 @@ Stejná pole jako `GET /suggest`.
 ### GET /metrics
 
 Vrací JSON snapshot metrik cache a providerů pro interní monitoring.
+Pokud `Accept` obsahuje `text/plain` nebo `application/openmetrics-text`,
+endpoint vrací Prometheus text formát.
 
 ```bash
 curl "http://localhost:8787/metrics"
+```
+
+Prometheus scrape příklad:
+
+```bash
+curl -H "Accept: text/plain" "http://localhost:8787/metrics"
 ```
 
 ## Výstup
@@ -147,6 +160,14 @@ Hodnota `provider` závisí na konfiguraci (například `nominatim`, `radar-auto
     }
   ]
 }
+```
+
+### GET /metrics (200, Prometheus text)
+
+```text
+smart_address_cache_requests_total 120
+smart_address_cache_hits_total 85
+smart_address_provider_calls_total{provider="nominatim"} 80
 ```
 
 ### GET /health

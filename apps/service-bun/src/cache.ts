@@ -25,7 +25,11 @@ import type { SuggestRequest } from "./request";
 import { type CacheEventUpdate, RequestEvent } from "./request-event";
 import { AddressSearchLog } from "./search-log";
 import { AddressSuggestor } from "./service";
-import { type AddressSqliteConfig, openAddressSqlite } from "./sqlite";
+import {
+  type AddressSqliteConfig,
+  openAddressSqlite,
+  sqliteSpanAttributes,
+} from "./sqlite";
 
 interface AddressCacheEntry {
   readonly storedAt: number;
@@ -84,7 +88,7 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(
     AddressCacheStore,
     Effect.sync(() => {
-      const { db } = openAddressSqlite(config);
+      const { db, path: dbPath } = openAddressSqlite(config);
       const select = db.prepare(
         "SELECT entry_json, expires_at FROM address_cache WHERE key = ?"
       );
@@ -128,7 +132,12 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
               remove.run(key);
               return null;
             }
-          }),
+          }).pipe(
+            Effect.withSpan("sqlite.read.cache", {
+              kind: "client",
+              attributes: sqliteSpanAttributes("SELECT", dbPath),
+            })
+          ),
         set: (key, entry) =>
           Effect.sync(() => {
             const storedAt = Number.isFinite(entry.storedAt)
@@ -147,7 +156,12 @@ export const AddressCacheStoreSqlite = (config: AddressSqliteConfig = {}) =>
               expiresAt,
               JSON.stringify(entry)
             );
-          }).pipe(Effect.asVoid),
+          }).pipe(
+            Effect.withSpan("sqlite.write.cache", {
+              kind: "client",
+              attributes: sqliteSpanAttributes("INSERT", dbPath),
+            })
+          ),
       };
     })
   );
@@ -209,6 +223,8 @@ const computePolicy = (
 const makeCacheKey = (request: SuggestRequest) =>
   `${request.strategy}:${addressQueryKey(request.query)}`;
 
+const cacheKeyHash = (key: string) => Math.abs(hash(key)).toString(16);
+
 class AddressCacheKey implements Equal {
   readonly key: string;
   readonly request: SuggestRequest;
@@ -257,6 +273,7 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
         Object.entries(config).filter(([, value]) => value !== undefined)
       ) as Partial<AddressCacheConfig>;
       const resolved = { ...defaultCacheConfig, ...overrides };
+      const l1TtlMs = toMillis(resolved.l1Ttl);
       const recordCacheMetric = (event: CacheMetricEvent) =>
         metrics.recordCache(event).pipe(Effect.catchAll(() => Effect.void));
 
@@ -307,7 +324,17 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
             expiresAt: now + policy.ttlMs,
             result,
           };
-          yield* store.set(key, entry);
+          const keyHash = cacheKeyHash(key);
+          yield* store.set(key, entry).pipe(
+            Effect.withSpan("cache.set", {
+              kind: "internal",
+              attributes: {
+                "cache.layer": "l2",
+                "cache.key_hash": keyHash,
+                "cache.ttl_ms": policy.ttlMs,
+              },
+            })
+          );
           yield* recordCacheUpdateWith(
             {
               ttlMs: policy.ttlMs,
@@ -405,8 +432,25 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
 
       const lookup = (entryKey: AddressCacheKey) =>
         Effect.gen(function* () {
-          const cached = yield* store.get(entryKey.key);
           const now = yield* currentTimeMillis;
+          const keyHash = cacheKeyHash(entryKey.key);
+          const cached = yield* store.get(entryKey.key).pipe(
+            Effect.withSpan("cache.get", {
+              kind: "internal",
+              attributes: {
+                "cache.layer": "l2",
+                "cache.key_hash": keyHash,
+              },
+            }),
+            Effect.tap((entry) =>
+              Effect.annotateCurrentSpan({
+                "cache.hit": Boolean(entry),
+                "cache.ttl_ms": entry
+                  ? Math.max(0, entry.expiresAt - now)
+                  : undefined,
+              })
+            )
+          );
           if (!cached || cached.expiresAt <= now) {
             return yield* fetchAndStore(entryKey);
           }
@@ -430,24 +474,35 @@ export const AddressSuggestionCacheLayer = (config: AddressCacheConfig = {}) =>
               fetch,
               requestEvent
             );
-            const result = yield* l1
-              .getEither(entryKey)
-              .pipe(
-                Effect.tap((value) =>
-                  Effect.all(
-                    [
-                      recordCacheMetric(
-                        Either.isLeft(value) ? "l1-hit" : "l1-miss"
-                      ),
-                      recordCacheUpdateWith(
-                        { l1: Either.isLeft(value) ? "hit" : "miss" },
-                        requestEvent
-                      ),
-                    ],
-                    { concurrency: "unbounded" }
-                  ).pipe(Effect.asVoid)
-                )
-              );
+            const keyHash = cacheKeyHash(entryKey.key);
+            const result = yield* l1.getEither(entryKey).pipe(
+              Effect.tap((value) =>
+                Effect.all(
+                  [
+                    Effect.annotateCurrentSpan({
+                      "cache.hit": Either.isLeft(value),
+                    }),
+                    recordCacheMetric(
+                      Either.isLeft(value) ? "l1-hit" : "l1-miss"
+                    ),
+                    recordCacheUpdateWith(
+                      { l1: Either.isLeft(value) ? "hit" : "miss" },
+                      requestEvent
+                    ),
+                  ],
+                  { concurrency: "unbounded" }
+                ).pipe(Effect.asVoid)
+              ),
+              Effect.withSpan("cache.get", {
+                kind: "internal",
+                attributes: {
+                  "cache.layer": "l1",
+                  "cache.key_hash": keyHash,
+                  // L1 uses configured TTL since entries don't track remaining lifetime.
+                  "cache.ttl_ms": l1TtlMs,
+                },
+              })
+            );
             return Either.isLeft(result) ? result.left : result.right;
           }),
       };

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type {
   AddressProviderPlan,
   AddressQuery,
@@ -36,6 +37,7 @@ export interface RequestEventConfig {
   readonly serviceVersion?: string | undefined;
   readonly sampleRate: number;
   readonly slowThresholdMs: number;
+  readonly logRawQuery: boolean;
   readonly alwaysSample?: boolean | undefined;
   readonly random?: (() => number) | undefined;
 }
@@ -75,19 +77,22 @@ interface RequestEventBase {
   readonly spanId?: string | undefined;
   readonly kind: RequestEventKind;
   readonly source: RequestEventSource;
-  readonly service: string;
-  readonly version?: string | undefined;
   readonly method?: string | undefined;
   readonly path?: string | undefined;
-  readonly statusCode: number;
-  readonly durationMs: number;
   readonly strategy?: AddressStrategy | undefined;
   readonly query?: AddressQuery | undefined;
   readonly normalizedQuery?: AddressQuery | undefined;
+  readonly queryHash?: string | undefined;
   readonly cacheKey?: string | undefined;
   readonly cache?: CacheEventUpdate | undefined;
   readonly plan?: RequestEventPlan | undefined;
   readonly error?: { readonly message: string } | undefined;
+}
+
+interface SamplingDecision {
+  readonly keep: boolean;
+  readonly reason: "always" | "error" | "slow" | "forced" | "sample" | "drop";
+  readonly rate?: number | undefined;
 }
 
 interface WideEvent extends RequestEventBase {
@@ -113,12 +118,6 @@ interface WideEvent extends RequestEventBase {
       }
     | undefined;
   readonly sampling: SamplingDecision;
-}
-
-interface SamplingDecision {
-  readonly keep: boolean;
-  readonly reason: "always" | "error" | "slow" | "forced" | "sample" | "drop";
-  readonly rate?: number | undefined;
 }
 
 interface RequestEventState extends RequestEventBase {
@@ -182,6 +181,9 @@ const mergeCache = (
   ...update,
 });
 
+const hashQuery = (query: AddressQuery): string =>
+  createHash("sha256").update(addressQueryKey(query)).digest("hex");
+
 const decideSampling = (
   event: Omit<WideEvent, "sampling">,
   config: RequestEventConfig,
@@ -201,7 +203,10 @@ const decideSampling = (
     return { keep: true, reason: "forced" };
   }
   const rate = clampSampleRate(config.sampleRate);
-  const keep = rate >= 1 || random() < rate;
+  if (rate >= 1) {
+    return { keep: true, reason: "always", rate: 1 };
+  }
+  const keep = random() < rate;
   return keep
     ? { keep, reason: "sample", rate }
     : { keep, reason: "drop", rate };
@@ -279,6 +284,13 @@ export const makeRequestEvent = (init: RequestEventInit) =>
   Effect.gen(function* () {
     const config = yield* RequestEventConfig;
     const startedAt = yield* currentTimeMillis;
+    const initialSpan = yield* Effect.option(Effect.currentSpan);
+    const initialTraceId = Option.getOrUndefined(
+      Option.map(initialSpan, (value) => value.traceId)
+    );
+    const initialSpanId = Option.getOrUndefined(
+      Option.map(initialSpan, (value) => value.spanId)
+    );
     const state = yield* Ref.make<RequestEventState>({
       requestId: init.requestId,
       kind: init.kind,
@@ -286,15 +298,19 @@ export const makeRequestEvent = (init: RequestEventInit) =>
       method: init.method,
       path: init.path,
       startedAt,
+      traceId: initialTraceId,
+      spanId: initialSpanId,
       providers: [],
     });
 
     const baseRequestUpdate = (request: SuggestRequest | AcceptRequest) => {
       const normalized = normalizeAddressQuery(request.query);
+      const queryHash = hashQuery(normalized);
       return {
         strategy: request.strategy,
-        query: request.query,
+        ...(config.logRawQuery ? { query: request.query } : {}),
         normalizedQuery: normalized,
+        queryHash,
         cacheKey: `${request.strategy}:${addressQueryKey(normalized)}`,
       };
     };
@@ -362,16 +378,18 @@ export const makeRequestEvent = (init: RequestEventInit) =>
       Effect.gen(function* () {
         const now = yield* currentTimeMillis;
         const span = yield* Effect.option(Effect.currentSpan);
-        const traceId = Option.getOrUndefined(
+        const traceFromSpan = Option.getOrUndefined(
           Option.map(span, (value) => value.traceId)
         );
-        const spanId = Option.getOrUndefined(
+        const spanFromSpan = Option.getOrUndefined(
           Option.map(span, (value) => value.spanId)
         );
         const snapshot = yield* Ref.modify(state, (current) => {
           if (current.flushed) {
             return [Option.none<FinalizedRequestEvent>(), current] as const;
           }
+          const traceId = traceFromSpan ?? current.traceId;
+          const spanId = spanFromSpan ?? current.spanId;
           const durationMs = Math.max(0, now - current.startedAt);
           const eventBase = {
             timestamp: toIsoString(now),
@@ -389,6 +407,7 @@ export const makeRequestEvent = (init: RequestEventInit) =>
             strategy: current.strategy,
             query: current.query,
             normalizedQuery: current.normalizedQuery,
+            queryHash: current.queryHash,
             cacheKey: current.cacheKey,
             cache: current.cache,
             plan: current.plan,

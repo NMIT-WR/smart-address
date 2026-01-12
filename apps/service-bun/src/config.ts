@@ -24,6 +24,7 @@ interface AddressServiceConfig {
     readonly otelServiceVersion?: string;
     readonly wideEventSampleRate: number;
     readonly wideEventSlowMs: number;
+    readonly logRawQuery: boolean;
   };
 }
 
@@ -83,7 +84,7 @@ const rawConfig = Config.all({
     Config.withDefault(true)
   ),
   otelEndpoint: Config.string("OTEL_EXPORTER_OTLP_ENDPOINT").pipe(
-    Config.withDefault("http://localhost:4318/v1/traces")
+    Config.withDefault("http://localhost:4318")
   ),
   otelServiceName: Config.string("OTEL_SERVICE_NAME").pipe(
     Config.withDefault("smart-address-service")
@@ -95,6 +96,7 @@ const rawConfig = Config.all({
   wideEventSlowMs: Config.integer("SMART_ADDRESS_WIDE_EVENT_SLOW_MS").pipe(
     Config.withDefault(2000)
   ),
+  logRawQuery: Config.option(Config.boolean("SMART_ADDRESS_LOG_RAW_QUERY")),
 });
 
 const optionalValue = <A>(value: Option.Option<A>): A | undefined =>
@@ -134,13 +136,31 @@ const trimmedOrDefault = (value: string, fallback: string): string => {
   return trimmed.length > 0 ? trimmed : fallback;
 };
 
-const defaultSampleRate = (): number => {
-  const env =
-    (typeof Bun !== "undefined" ? Bun.env.NODE_ENV : undefined) ??
-    globalThis.process?.env?.NODE_ENV ??
-    "";
-  return env.toLowerCase() === "production" ? 0.05 : 1;
+const otelEndpointTrimTrailingSlashes = /\/+$/;
+
+const normalizeOtelEndpoint = (value: string): string => {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return "http://localhost:4318/v1/traces";
+  }
+  const withoutTrailing = trimmed.replace(otelEndpointTrimTrailingSlashes, "");
+  if (withoutTrailing.endsWith("/v1/traces")) {
+    return withoutTrailing;
+  }
+  return `${withoutTrailing}/v1/traces`;
 };
+
+const currentNodeEnv = (): string =>
+  (typeof Bun !== "undefined" ? Bun.env.NODE_ENV : undefined) ??
+  globalThis.process?.env?.NODE_ENV ??
+  "";
+
+const isProductionEnv = (): boolean =>
+  currentNodeEnv().toLowerCase() === "production";
+
+const defaultSampleRate = (): number => 1;
+
+const defaultLogRawQuery = (): boolean => !isProductionEnv();
 
 const clampSampleRate = (value: number): number =>
   Number.isFinite(value)
@@ -275,6 +295,7 @@ export const addressServiceConfig = rawConfig.pipe(
     const wideEventSampleRate = clampSampleRate(
       optionalValue(raw.wideEventSampleRate) ?? defaultSampleRate()
     );
+    const logRawQuery = optionalValue(raw.logRawQuery) ?? defaultLogRawQuery();
 
     const nominatimUserAgent = trimmedOrDefault(
       raw.nominatimUserAgent,
@@ -334,7 +355,7 @@ export const addressServiceConfig = rawConfig.pipe(
       sqlite: buildSqliteConfig(trimmedOptional(raw.sqlitePath)),
       observability: {
         otelEnabled: raw.otelEnabled,
-        otelEndpoint: raw.otelEndpoint.trim(),
+        otelEndpoint: normalizeOtelEndpoint(raw.otelEndpoint),
         otelServiceName: trimmedOrDefault(
           raw.otelServiceName,
           "smart-address-service"
@@ -342,6 +363,7 @@ export const addressServiceConfig = rawConfig.pipe(
         ...(otelServiceVersion ? { otelServiceVersion } : {}),
         wideEventSampleRate,
         wideEventSlowMs: Math.max(0, raw.wideEventSlowMs),
+        logRawQuery,
       },
     };
   })

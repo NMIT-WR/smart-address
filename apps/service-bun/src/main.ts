@@ -1,7 +1,7 @@
 import { layer as fetchHttpClientLayer } from "@effect/platform/FetchHttpClient";
 import { serve } from "@effect/platform/HttpLayerRouter";
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Logger } from "effect";
 import { AddressAcceptLogSqlite } from "./accept-log";
 import {
   AddressCachedSuggestorLayer,
@@ -72,6 +72,7 @@ const serverLayer = Layer.unwrapEffect(
       serviceVersion: observability.otelServiceVersion,
       sampleRate: observability.wideEventSampleRate,
       slowThresholdMs: observability.wideEventSlowMs,
+      logRawQuery: observability.logRawQuery,
     };
 
     return serve(appLayer).pipe(
@@ -82,4 +83,6 @@ const serverLayer = Layer.unwrapEffect(
   })
 );
 
-BunRuntime.runMain(Layer.launch(serverLayer));
+const main = Layer.launch(serverLayer).pipe(Effect.provide(Logger.json));
+
+BunRuntime.runMain(main);

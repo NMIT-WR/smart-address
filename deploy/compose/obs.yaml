@@ -1,0 +1,29 @@
+services:
+  lgtm:
+    image: grafana/otel-lgtm:0.11.17
+    ports:
+      - "3000:3000" # Grafana UI
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "4040:4040" # Pyroscope
+      - "9090:9090" # Prometheus UI / remote write
+      - "9010:9009" # LGTM internal (remapped from 9009)
+    volumes:
+      - lgtm-data:/data
+      - ../grafana/provisioning/dashboards/smart-address.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/smart-address.yaml:ro
+      - ../grafana/dashboards:/otel-lgtm/grafana/conf/provisioning/dashboards/smart-address:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+volumes:
+  lgtm-data:

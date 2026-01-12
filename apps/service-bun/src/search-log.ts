@@ -2,7 +2,11 @@ import type { AddressSuggestionResult } from "@smart-address/core";
 import { Context, Effect, Layer } from "effect";
 import { buildQueryLogFields } from "./log-fields";
 import type { SuggestRequest } from "./request";
-import { type AddressSqliteConfig, openAddressSqlite } from "./sqlite";
+import {
+  type AddressSqliteConfig,
+  openAddressSqlite,
+  sqliteSpanAttributes,
+} from "./sqlite";
 
 export interface AddressSearchLog {
   readonly record: (
@@ -17,7 +21,7 @@ export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
   Layer.effect(
     AddressSearchLog,
     Effect.sync(() => {
-      const { db } = openAddressSqlite(config);
+      const { db, path: dbPath } = openAddressSqlite(config);
       const insert = db.prepare(`
         INSERT INTO address_search_log (
           created_at,
@@ -46,7 +50,12 @@ export const AddressSearchLogSqlite = (config: AddressSqliteConfig = {}) =>
               cacheKey,
               JSON.stringify(result)
             );
-          }),
+          }).pipe(
+            Effect.withSpan("sqlite.write.search_log", {
+              kind: "client",
+              attributes: sqliteSpanAttributes("INSERT", dbPath),
+            })
+          ),
       };
     })
   );

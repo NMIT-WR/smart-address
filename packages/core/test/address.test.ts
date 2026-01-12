@@ -1,6 +1,10 @@
 import { describe, expect, it } from "@effect-native/bun-test";
 import { Effect } from "effect";
 import {
+  makeTestTracer,
+  type RecordedSpan,
+} from "../../../test-utils/test-tracer";
+import {
   type AddressProviderPlan,
   makeAddressProvider,
   makeAddressSuggestionService,
@@ -79,6 +83,28 @@ describe("address core", () => {
 
       expect(result.suggestions).toEqual([]);
       expect(result.errors).toEqual([{ provider: "boom", message: "nope" }]);
+    })
+  );
+
+  it.effect("annotates provider spans on failure", () =>
+    Effect.gen(function* () {
+      const spans: RecordedSpan[] = [];
+      const tracer = makeTestTracer(spans);
+      const provider = makeAddressProvider("boom", () =>
+        Effect.fail(new Error("nope"))
+      );
+      const service = makeAddressSuggestionService([provider]);
+
+      yield* service.suggest({ text: "Main" }).pipe(Effect.withTracer(tracer));
+
+      const providerSpan = spans.find(
+        (span) => span.name === "address.provider"
+      );
+
+      expect(providerSpan?.attributes.get("provider.error")).toBe(true);
+      expect(providerSpan?.attributes.get("provider.error_message")).toBe(
+        "nope"
+      );
     })
   );
 });

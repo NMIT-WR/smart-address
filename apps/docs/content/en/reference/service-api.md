@@ -20,12 +20,17 @@ Default: `http://localhost:8787`
 - `GET /suggest` (query params)
 - `POST /suggest` (JSON or form)
 - `POST /accept` (JSON)
-- `GET /metrics` (JSON)
+- `GET /metrics` (JSON or Prometheus text)
 
 Other protocols:
 
 - MCP: `POST /mcp` (see: [MCP tool](/reference/mcp-tool))
 - Effect RPC: `/rpc` (see: [Effect RPC](/reference/rpc))
+
+### Headers
+
+- `x-request-id` (optional; echoed back)
+- `traceparent` (optional; W3C trace context)
 
 ### GET /suggest (query parameters)
 
@@ -89,9 +94,17 @@ Same fields as `GET /suggest`.
 ### GET /metrics
 
 Returns a JSON snapshot of cache and provider metrics for internal monitoring.
+If the `Accept` header includes `text/plain` or `application/openmetrics-text`,
+the endpoint responds in Prometheus text format.
 
 ```bash
 curl "http://localhost:8787/metrics"
+```
+
+Prometheus scrape example:
+
+```bash
+curl -H "Accept: text/plain" "http://localhost:8787/metrics"
 ```
 
 ## Output
@@ -147,6 +160,14 @@ The `provider` value depends on configured providers (for example, `nominatim`, 
     }
   ]
 }
+```
+
+### GET /metrics (200, Prometheus text)
+
+```text
+smart_address_cache_requests_total 120
+smart_address_cache_hits_total 85
+smart_address_provider_calls_total{provider="nominatim"} 80
 ```
 
 ### GET /health

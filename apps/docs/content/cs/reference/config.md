@@ -51,6 +51,16 @@ Environment proměnné služby. Hodnoty se čtou z procesního prostředí.
 
 - `SMART_ADDRESS_DB_PATH` (string, default `data/smart-address.db` relativně k working directory služby)
 
+## Observabilita
+
+- `SMART_ADDRESS_OTEL_ENABLED` (boolean, default `true`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (string, default `http://localhost:4318`)
+- `OTEL_SERVICE_NAME` (string, default `smart-address-service`)
+- `OTEL_SERVICE_VERSION` (string, volitelné)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (number, default `1`, nastavte pod `1` pro tail sampling)
+- `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (number, default `2000`)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (boolean, default `true` v dev, `false` v produkci)
+
 ## Minimální příklad
 
 Volitelně přidejte `RADAR_API_KEY` pro zapnutí Radar Autocomplete nebo `HERE_API_KEY` pro zapnutí HERE Discover.

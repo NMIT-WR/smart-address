@@ -26,6 +26,7 @@ const requestEventConfigLayer = RequestEventConfigLayer({
   serviceVersion: "test",
   sampleRate: 1,
   slowThresholdMs: 0,
+  logRawQuery: true,
 });
 
 describe("mcp toolkit", () => {

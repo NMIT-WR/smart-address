@@ -1,0 +1,49 @@
+#!/usr/bin/env bpftrace
+
+BEGIN
+{
+  @target_pid = $1;
+  if (@target_pid == 0) {
+    printf("Usage: io-latency.bt <PID> [threshold_ms]\n");
+    exit();
+  }
+  @threshold_ms = $2;
+  if (@threshold_ms == 0) { @threshold_ms = 5; }
+  printf("Tracing read/write latency > %d ms for pid %d... Hit Ctrl-C to stop.\n", @threshold_ms, @target_pid);
+}
+
+tracepoint:syscalls:sys_enter_read /pid == @target_pid/
+{
+  @start_read[tid] = nsecs;
+}
+
+tracepoint:syscalls:sys_exit_read /@start_read[tid] && pid == @target_pid/
+{
+  $delta_ms = (nsecs - @start_read[tid]) / 1000000;
+  if ($delta_ms >= @threshold_ms) {
+    printf("read  %d ms pid=%d comm=%s ret=%d\n", $delta_ms, pid, comm, args->ret);
+  }
+  delete(@start_read[tid]);
+}
+
+tracepoint:syscalls:sys_enter_write /pid == @target_pid/
+{
+  @start_write[tid] = nsecs;
+}
+
+tracepoint:syscalls:sys_exit_write /@start_write[tid] && pid == @target_pid/
+{
+  $delta_ms = (nsecs - @start_write[tid]) / 1000000;
+  if ($delta_ms >= @threshold_ms) {
+    printf("write %d ms pid=%d comm=%s ret=%d\n", $delta_ms, pid, comm, args->ret);
+  }
+  delete(@start_write[tid]);
+}
+
+END
+{
+  clear(@start_read);
+  clear(@start_write);
+  clear(@target_pid);
+  clear(@threshold_ms);
+}

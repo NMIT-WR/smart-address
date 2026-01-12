@@ -1,0 +1,164 @@
+logging {
+  level  = "info"
+  format = "json"
+}
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "smart_address_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = ".*/.*smart-address.*"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+discovery.relabel "smart_address_pyroscope" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = ".*/.*smart-address.*"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "service_name"
+  }
+}
+
+loki.source.docker "smart_address" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  relabel_rules = discovery.relabel.smart_address_logs.rules
+  labels = {
+    job = "smart-address",
+  }
+  forward_to = [loki.process.smart_address.receiver]
+}
+
+loki.process "smart_address" {
+  forward_to = [loki.write.lgtm.receiver]
+
+  stage.json {
+    expressions = {
+      logLevel = "logLevel",
+      message  = "message",
+    }
+  }
+
+  stage.json {
+    source = "message"
+    expressions = {
+      service    = "service",
+      kind       = "kind",
+      statusCode = "statusCode",
+    }
+  }
+
+  stage.labels {
+    values = {
+      service     = "service",
+      kind        = "kind",
+      status_code = "statusCode",
+      level       = "logLevel",
+    }
+  }
+}
+
+loki.write "lgtm" {
+  endpoint {
+    url = "http://lgtm:3100/loki/api/v1/push"
+  }
+}
+
+beyla.ebpf "smart_address" {
+  discovery {
+    instrument {
+      open_ports = 8787
+      name = "smart-address"
+      exports = ["metrics", "traces"]
+    }
+  }
+  // Beyla spans are enabled by default; remove "traces" to disable.
+
+  metrics {
+    features = ["application", "network"]
+  }
+
+  traces {
+    sampler {
+      name = "always_on"
+    }
+  }
+
+  output {
+    traces = [otelcol.processor.batch.beyla.input]
+  }
+}
+
+prometheus.scrape "smart_address" {
+  targets = [
+    {
+      "__address__"      = "smart-address:8787",
+      "__metrics_path__" = "/metrics",
+      "job"              = "smart-address",
+    },
+  ]
+  http_headers = {
+    Accept = ["application/openmetrics-text", "text/plain; q=0.9"],
+  }
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.lgtm.receiver]
+}
+
+prometheus.scrape "beyla" {
+  targets        = beyla.ebpf.smart_address.targets
+  honor_labels   = true
+  scrape_interval = "15s"
+  forward_to     = [prometheus.remote_write.lgtm.receiver]
+}
+
+prometheus.remote_write "lgtm" {
+  endpoint {
+    url = "http://lgtm:9090/api/v1/write"
+  }
+}
+
+otelcol.processor.batch "beyla" {
+  output {
+    traces = [otelcol.exporter.otlp.beyla.input]
+  }
+}
+
+otelcol.exporter.otlp "beyla" {
+  client {
+    endpoint = coalesce(sys.env("SMART_ADDRESS_BEYLA_OTLP_ENDPOINT"), "lgtm:4317")
+    tls {
+      insecure = true
+    }
+  }
+}
+
+pyroscope.write "lgtm" {
+  endpoint {
+    url = "http://lgtm:4040"
+  }
+}
+
+pyroscope.ebpf "smart_address" {
+  forward_to = [pyroscope.write.lgtm.receiver]
+  targets    = discovery.relabel.smart_address_pyroscope.output
+}

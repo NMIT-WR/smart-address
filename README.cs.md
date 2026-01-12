@@ -59,20 +59,31 @@ curl "http://localhost:8787/metrics"
 
 Smart Address posílá jeden wide event na request a trace přes Effect + OpenTelemetry.
 
-Lokální OTEL backend:
+Lokální OTEL backend (Grafana + Tempo + Loki + Prometheus + Pyroscope):
 
 ```bash
-docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm
+docker compose -f deploy/compose/obs.yaml up -d
 ```
 
 Doporučené env proměnné:
 
 - `SMART_ADDRESS_OTEL_ENABLED` (výchozí: `true`)
-- `OTEL_EXPORTER_OTLP_ENDPOINT` (výchozí: `http://localhost:4318/v1/traces`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (výchozí: `http://localhost:4318`)
 - `OTEL_SERVICE_NAME` (výchozí: `smart-address-service`)
 - `OTEL_SERVICE_VERSION` (volitelné)
-- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (výchozí: `1` v dev, `0.05` v production)
+- `SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE` (výchozí: `1`)
 - `SMART_ADDRESS_WIDE_EVENT_SLOW_MS` (výchozí: `2000`)
+- `SMART_ADDRESS_LOG_RAW_QUERY` (výchozí: `true` v dev, `false` v production)
+
+Příchozí hlavička `traceparent` pokračuje upstream trace.
+
+Posílání JSON logů a Prometheus metrik do LGTM přes Alloy:
+
+```bash
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml -f deploy/compose/alloy.yaml up -d
+```
+
+Linux eBPF (Beyla) runbook: viz `apps/docs/content/cs/how-to/ebpf.md` (pouze Linux).
 
 ## SDK pro prohlížeč (module script)
 
@@ -105,14 +116,14 @@ Tip na tagování (doporučeno pro produkci):
 docker build -t smart-address-service:$(git rev-parse --short HEAD) .
 ```
 
-Spuštění přes Docker Compose:
+Spuštění přes Docker Compose (jen služba):
 
 ```bash
 NOMINATIM_USER_AGENT="your-app-name" \
 NOMINATIM_EMAIL="you@example.com" \
 RADAR_API_KEY="your-radar-api-key" \
 HERE_API_KEY="your-here-api-key" \
-docker compose up -d
+docker compose -f deploy/compose/app.yaml up -d
 ```
 
 Tip: `docker compose` načítá `.env` v kořeni repa, takže můžete nastavit
@@ -123,6 +134,16 @@ Persistování SQLite DB:
 - Compose mountuje volume `smart-address-data` do `/app/data`.
 - Výchozí cesta DB je `data/smart-address.db` (relativně k `/app`).
 - Přepište přes `SMART_ADDRESS_DB_PATH` (např. `/app/data/custom.db`).
+
+Plná lokální observabilita (služba + LGTM):
+
+```bash
+NOMINATIM_USER_AGENT="your-app-name" \
+NOMINATIM_EMAIL="you@example.com" \
+RADAR_API_KEY="your-radar-api-key" \
+HERE_API_KEY="your-here-api-key" \
+docker compose -f deploy/compose/obs.yaml -f deploy/compose/app.yaml up -d
+```
 
 Doporučené env proměnné (zásady Nominatim):
 

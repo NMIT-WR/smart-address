@@ -1,0 +1,50 @@
+services:
+  smart-address:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - "8787:8787"
+    environment:
+      SMART_ADDRESS_OTEL_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+      OTEL_SERVICE_NAME: "smart-address-service"
+      SMART_ADDRESS_WIDE_EVENT_SAMPLE_RATE: "1"
+      SMART_ADDRESS_LOG_RAW_QUERY: "true"
+      NOMINATIM_USER_AGENT: "${NOMINATIM_USER_AGENT:-smart-address-service}"
+      NOMINATIM_EMAIL: "${NOMINATIM_EMAIL:-}"
+      # Optional overrides:
+      # NOMINATIM_BASE_URL: "https://nominatim.openstreetmap.org"
+      # NOMINATIM_REFERER: "https://your-app.example"
+      # SMART_ADDRESS_DB_PATH: "/app/data/smart-address.db"
+      RADAR_API_KEY: "${RADAR_API_KEY:-}"
+      RADAR_AUTOCOMPLETE_BASE_URL: "${RADAR_AUTOCOMPLETE_BASE_URL:-}"
+      RADAR_AUTOCOMPLETE_DEFAULT_LIMIT: "${RADAR_AUTOCOMPLETE_DEFAULT_LIMIT:-}"
+      RADAR_AUTOCOMPLETE_LAYERS: "${RADAR_AUTOCOMPLETE_LAYERS:-}"
+      RADAR_AUTOCOMPLETE_NEAR: "${RADAR_AUTOCOMPLETE_NEAR:-}"
+      RADAR_AUTOCOMPLETE_COUNTRY_CODE: "${RADAR_AUTOCOMPLETE_COUNTRY_CODE:-}"
+      RADAR_AUTOCOMPLETE_RATE_LIMIT_MS: "${RADAR_AUTOCOMPLETE_RATE_LIMIT_MS:-}"
+      HERE_API_KEY: "${HERE_API_KEY:-}"
+      HERE_DISCOVER_BASE_URL: "${HERE_DISCOVER_BASE_URL:-}"
+      HERE_DISCOVER_DEFAULT_LIMIT: "${HERE_DISCOVER_DEFAULT_LIMIT:-}"
+      HERE_DISCOVER_LANGUAGE: "${HERE_DISCOVER_LANGUAGE:-}"
+      HERE_DISCOVER_IN_AREA: "${HERE_DISCOVER_IN_AREA:-}"
+      HERE_DISCOVER_AT: "${HERE_DISCOVER_AT:-}"
+      HERE_DEFAULT_LAT: "${HERE_DEFAULT_LAT:-}"
+      HERE_DEFAULT_LNG: "${HERE_DEFAULT_LNG:-}"
+      HERE_DISCOVER_RATE_LIMIT_MS: "${HERE_DISCOVER_RATE_LIMIT_MS:-}"
+    volumes:
+      - smart-address-data:/app/data
+    restart: unless-stopped
+    depends_on:
+      lgtm:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8787/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  smart-address-data:
