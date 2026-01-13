@@ -15,7 +15,7 @@ catalogs:
     is-tree-shakable: ^0.4.2
     publint: ^0.3.16
   tooling:
-    '@effect/language-service': ^0.62.5
+    '@effect/language-service': ^0.65.0
   types:
     '@types/bun': ^1.3.5
     typescript: ^5.9.3
